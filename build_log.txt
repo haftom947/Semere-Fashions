@@ -1,0 +1,1012 @@
+[ +790 ms] Artifact Instance of 'MaterialFonts' is not required, skipping update.
+[   +1 ms] Artifact Instance of 'GradleWrapper' is not required, skipping update.
+[        ] Artifact Instance of 'AndroidGenSnapshotArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'AndroidInternalBuildArtifacts' is not required, skipping update.
+[   +1 ms] Artifact Instance of 'IOSEngineArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'FlutterWebSdk' is not required, skipping update.
+[   +2 ms] Artifact Instance of 'LegacyCanvasKitRemover' is not required, skipping update.
+[        ] Artifact Instance of 'FlutterSdk' is not required, skipping update.
+[        ] Artifact Instance of 'WindowsEngineArtifacts' is not required, skipping update.
+[   +1 ms] Artifact Instance of 'MacOSEngineArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'LinuxEngineArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'LinuxFuchsiaSDKArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'MacOSFuchsiaSDKArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'FlutterRunnerSDKArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'FlutterRunnerDebugSymbols' is not required, skipping update.
+[        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'FontSubsetArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'PubDependencies' is not required, skipping update.
+[   +1 ms] executing: [C:\Users\Haftom\flutter/] git -c log.showSignature=false log HEAD -n 1 --pretty=format:%ad --date=iso
+[ +215 ms] Exit code 0 from: git -c log.showSignature=false log HEAD -n 1 --pretty=format:%ad --date=iso
+[        ] 2026-02-12 17:12:32 -0800
+[  +72 ms] Artifact Instance of 'AndroidGenSnapshotArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'AndroidInternalBuildArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'IOSEngineArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'FlutterWebSdk' is not required, skipping update.
+[        ] Artifact Instance of 'FlutterEngineStamp' is not required, skipping update.
+[        ] Artifact Instance of 'LegacyCanvasKitRemover' is not required, skipping update.
+[  +13 ms] Artifact Instance of 'WindowsEngineArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'MacOSEngineArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'LinuxEngineArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'LinuxFuchsiaSDKArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'MacOSFuchsiaSDKArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'FlutterRunnerSDKArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'FlutterRunnerDebugSymbols' is not required, skipping update.
+[ +295 ms] executing: C:\Users\Haftom\AppData\Local\Android\sdk\platform-tools\adb.exe devices -l
+[ +223 ms] List of devices attached
+           702356724F100321       device product:KJ5n-EU model:TECNO_Mobile_KJ5n device:TECNO-Mobile-KJ5n transport_id:1
+[  +13 ms] C:\Users\Haftom\AppData\Local\Android\sdk\platform-tools\adb.exe -s 702356724F100321 shell getprop
+[ +279 ms] Artifact Instance of 'AndroidInternalBuildArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'IOSEngineArtifacts' is not required, skipping update.
+[   +2 ms] Artifact Instance of 'FlutterEngineStamp' is not required, skipping update.
+[  +11 ms] Artifact Instance of 'MacOSEngineArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'LinuxEngineArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'LinuxFuchsiaSDKArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'MacOSFuchsiaSDKArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'FlutterRunnerSDKArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'FlutterRunnerDebugSymbols' is not required, skipping update.
+[ +414 ms] Skipping pub get: version match.
+[ +318 ms] Found plugin firebase_core at C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_core-3.15.2\
+[  +20 ms] Found plugin firebase_core_web at C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_core_web-2.24.1\
+[  +33 ms] Found plugin firebase_auth at C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_auth-5.7.0\
+[   +9 ms] Found plugin firebase_auth_web at C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_auth_web-5.15.3\
+[  +72 ms] Found plugin cloud_firestore at C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\cloud_firestore-5.6.12\
+[  +33 ms] Found plugin cloud_firestore_web at C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\cloud_firestore_web-4.4.12\
+[ +433 ms] Found plugin firebase_core at C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_core-3.15.2\
+[  +15 ms] Found plugin firebase_core_web at C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_core_web-2.24.1\
+[  +21 ms] Found plugin firebase_auth at C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_auth-5.7.0\
+[  +13 ms] Found plugin firebase_auth_web at C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_auth_web-5.15.3\
+[  +84 ms] Found plugin cloud_firestore at C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\cloud_firestore-5.6.12\
+[   +5 ms] Found plugin cloud_firestore_web at C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\cloud_firestore_web-4.4.12\
+[  +49 ms] Skipping generating web_plugin_registrant.dart because it is up-to-date.
+[ +153 ms] Found plugin firebase_core at C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_core-3.15.2\
+[   +5 ms] Found plugin firebase_core_web at C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_core_web-2.24.1\
+[  +20 ms] Found plugin firebase_auth at C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_auth-5.7.0\
+[   +4 ms] Found plugin firebase_auth_web at C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_auth_web-5.15.3\
+[  +17 ms] Found plugin cloud_firestore at C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\cloud_firestore-5.6.12\
+[   +6 ms] Found plugin cloud_firestore_web at C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\cloud_firestore_web-4.4.12\
+[  +25 ms] Generating D:\Any code\Any code\Summer Code\All Before GUI\Semere_Fashions\semere_fashions\android\app\src\main\java\io\flutter\plugins\GeneratedPluginRegistrant.java
+[   +7 ms] Skipping generating GeneratedPluginRegistrant.java because it is up-to-date.
+[  +11 ms] Skipping generating generated_plugin_registrant.h because it is up-to-date.
+[   +7 ms] Skipping generating generated_plugin_registrant.cc because it is up-to-date.
+[   +5 ms] Skipping generating generated_plugins.cmake because it is up-to-date.
+[  +10 ms] Skipping generating generated_plugin_registrant.h because it is up-to-date.
+[   +4 ms] Skipping generating generated_plugin_registrant.cc because it is up-to-date.
+[   +4 ms] Skipping generating generated_plugins.cmake because it is up-to-date.
+[   +8 ms] Skipping generating GeneratedPluginRegistrant.h because it is up-to-date.
+[   +4 ms] Skipping generating GeneratedPluginRegistrant.m because it is up-to-date.
+[   +6 ms] Skipping generating GeneratedPluginRegistrant.swift because it is up-to-date.
+[ +149 ms] ro.hardware = mt6768
+[        ] ro.build.characteristics = default
+[ +143 ms] Initializing file store
+[  +23 ms] Skipping target: gen_localizations
+[   +6 ms] gen_dart_plugin_registrant: Starting due to {InvalidatedReasonKind.inputChanged: The following inputs have updated contents: D:\Any code\Any code\Summer Code\All Before GUI\Semere_Fashions\semere_fashions\.dart_tool\package_config.json}
+[ +175 ms] Found plugin firebase_core at C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_core-3.15.2\
+[   +5 ms] Found plugin firebase_core_web at C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_core_web-2.24.1\
+[  +18 ms] Found plugin firebase_auth at C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_auth-5.7.0\
+[   +5 ms] Found plugin firebase_auth_web at C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_auth_web-5.15.3\
+[  +12 ms] Found plugin cloud_firestore at C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\cloud_firestore-5.6.12\
+[   +2 ms] Found plugin cloud_firestore_web at C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\cloud_firestore_web-4.4.12\
+[  +12 ms] gen_dart_plugin_registrant: Complete
+[   +4 ms] Skipping target: _composite
+[   +3 ms] complete
+[  +13 ms] Launching lib\main.dart on TECNO Mobile KJ5n in debug mode...
+[  +10 ms] C:\Users\Haftom\flutter\bin\cache\dart-sdk\bin\dartaotruntime.exe C:\Users\Haftom\flutter\bin\cache\dart-sdk\bin\snapshots\frontend_server_aot.dart.snapshot --sdk-root C:\Users\Haftom\flutter\bin\cache\artifacts\engine\common\flutter_patched_sdk/ --incremental --target=flutter --experimental-emit-debug-metadata -DFLUTTER_VERSION=3.41.1 -DFLUTTER_CHANNEL=stable -DFLUTTER_GIT_URL=https://github.com/flutter/flutter.git -DFLUTTER_FRAMEWORK_REVISION=582a0e7c55 -DFLUTTER_ENGINE_REVISION=3452d735bd -DFLUTTER_DART_VERSION=3.11.0 --output-dill C:\Users\Haftom\AppData\Local\Temp\flutter_tools.e7ff4670\flutter_tool.27f51e55\app.dill --packages D:\Any code\Any code\Summer Code\All Before GUI\Semere_Fashions\semere_fashions\.dart_tool\package_config.json -Ddart.vm.profile=false -Ddart.vm.product=false --enable-asserts --track-widget-creation --filesystem-scheme org-dartlang-root --initialize-from-dill build\fa875cea96ff9eb23bebfb51f104f901.cache.dill.track.dill --verbosity=error --enable-experiment=alternative-invalidation-strategy
+[  +53 ms] executing: C:\Users\Haftom\AppData\Local\Android\sdk\platform-tools\adb.exe -s 702356724F100321 shell -x logcat -v time -t 1
+[+2632 ms] <- compile package:semere_fashions/main.dart
+[ +286 ms] --------- beginning of main
+           02-18 01:05:08.539 I/libPerfCtl(  756): xgfGetFPS pid:10458 fps:-1
+[  +24 ms] executing: C:\Users\Haftom\AppData\Local\Android\sdk\platform-tools\adb.exe version
+[ +222 ms] Android Debug Bridge version 1.0.41
+           Version 36.0.0-13206524
+           Installed as C:\Users\Haftom\AppData\Local\Android\sdk\platform-tools\adb.exe
+           Running on Windows 10.0.26100
+[   +2 ms] executing: C:\Users\Haftom\AppData\Local\Android\sdk\platform-tools\adb.exe start-server
+[ +185 ms] Building APK
+[  +42 ms] executing: C:\Program Files\Android\Android Studio\jbr\bin\java -version
+[+1480 ms] Exit code 0 from: C:\Program Files\Android\Android Studio\jbr\bin\java -version
+[        ] openjdk version "21.0.8" 2025-07-15
+           OpenJDK Runtime Environment (build 21.0.8+-14196175-b1038.72)
+           OpenJDK 64-Bit Server VM (build 21.0.8+-14196175-b1038.72, mixed mode)
+[  +22 ms] Top-level Gradle build file not found, skipping migration of task "clean".
+[   +5 ms] executing: C:\Program Files\Android\Android Studio\jbr\bin\java --version
+[ +680 ms] Exit code 0 from: C:\Program Files\Android\Android Studio\jbr\bin\java --version
+[        ] openjdk 21.0.8 2025-07-15
+           OpenJDK Runtime Environment (build 21.0.8+-14196175-b1038.72)
+           OpenJDK 64-Bit Server VM (build 21.0.8+-14196175-b1038.72, mixed mode)
+[   +3 ms] Version of Java is different than impacted version, no migration attempted.
+[ +285 ms] CMake project not found, skipping support Android 15 16k page size migration.
+[ +190 ms] Using gradle from D:\Any code\Any code\Summer Code\All Before GUI\Semere_Fashions\semere_fashions\android\gradlew.bat.
+[ +180 ms] LocalFile: 'D:\Any code\Any code\Summer Code\All Before GUI\Semere_Fashions\semere_fashions\android\build.gradle.kts' doesn't provide an AGP version. Checking settings.
+[  +22 ms] LocalFile: 'D:\Any code\Any code\Summer Code\All Before GUI\Semere_Fashions\semere_fashions\android\settings.gradle.kts' provides AGP version: 8.11.1
+[  +31 ms] Running Gradle task 'assembleDebug'...
+[   +2 ms] executing: [D:\Any code\Any code\Summer Code\All Before GUI\Semere_Fashions\semere_fashions\android/] D:\Any code\Any code\Summer Code\All Before GUI\Semere_Fashions\semere_fashions\android\gradlew.bat --full-stacktrace --info -Pverbose=true -Ptarget-platform=android-arm64 -Ptarget=D:\Any code\Any code\Summer Code\All Before GUI\Semere_Fashions\semere_fashions\lib\main.dart -Pbase-application-name=android.app.Application -Pdart-defines=RkxVVFRFUl9WRVJTSU9OPTMuNDEuMQ==,RkxVVFRFUl9DSEFOTkVMPXN0YWJsZQ==,RkxVVFRFUl9HSVRfVVJMPWh0dHBzOi8vZ2l0aHViLmNvbS9mbHV0dGVyL2ZsdXR0ZXIuZ2l0,RkxVVFRFUl9GUkFNRVdPUktfUkVWSVNJT049NTgyYTBlN2M1NQ==,RkxVVFRFUl9FTkdJTkVfUkVWSVNJT049MzQ1MmQ3MzViZA==,RkxVVFRFUl9EQVJUX1ZFUlNJT049My4xMS4w -Pdart-obfuscation=false -Ptrack-widget-creation=true -Ptree-shake-icons=false -Pfilesystem-scheme=org-dartlang-root assembleDebug
+[+9106 ms] Initialized native services in: C:\Users\Haftom\.gradle\native
+[ +558 ms] Initialized jansi services in: C:\Users\Haftom\.gradle\native
+[+14345 ms] The client will now receive all logging from the daemon (pid: 15016). The daemon log file: C:\Users\Haftom\.gradle\daemon\8.14\daemon-15016.out.log
+[ +285 ms] Starting 2nd build in daemon [uptime: 3 mins 8.851 secs, performance: 99%, GC rate: 0.00/s, heap usage: 0% of 8 GiB, non-heap usage: 2% of 4 GiB]
+[ +297 ms] Using 4 worker leases.
+[ +413 ms] Now considering [D:\Any code\Any code\Summer Code\All Before GUI\Semere_Fashions\semere_fashions\android, C:\Users\Haftom\flutter\packages\flutter_tools\gradle] as hierarchies to watch
+[  +87 ms] Watching the file system is configured to be enabled if available
+[  +98 ms] File system watching is active
+[ +104 ms] Starting Build
+[ +297 ms] Invalidating in-memory cache of D:\Any code\Any code\Summer Code\All Before GUI\Semere_Fashions\semere_fashions\android\.gradle\8.14\checksums\md5-checksums.bin
+[        ] Invalidating in-memory cache of D:\Any code\Any code\Summer Code\All Before GUI\Semere_Fashions\semere_fashions\android\.gradle\8.14\checksums\sha1-checksums.bin
+[        ] Invalidating in-memory cache of D:\Any code\Any code\Summer Code\All Before GUI\Semere_Fashions\semere_fashions\android\.gradle\8.14\checksums\sha256-checksums.bin
+[        ] Invalidating in-memory cache of D:\Any code\Any code\Summer Code\All Before GUI\Semere_Fashions\semere_fashions\android\.gradle\8.14\checksums\sha512-checksums.bin
+[ +296 ms] Now considering [C:\Users\Haftom\flutter\packages\flutter_tools\gradle, D:\Any code\Any code\Summer Code\All Before GUI\Semere_Fashions\semere_fashions\android] as hierarchies to watch
+[+2206 ms] > Configure project :gradle
+[   +1 ms] Evaluating project ':gradle' using build file 'C:\Users\Haftom\flutter\packages\flutter_tools\gradle\build.gradle.kts'.
+[        ] Resolved plugin [id: 'org.gradle.java-gradle-plugin']
+[        ] Resolved plugin [id: 'org.gradle.groovy']
+[   +3 ms] Resolved plugin [id: 'org.gradle.kotlin.kotlin-dsl', version: '5.2.0']
+[        ] Resolved plugin [id: 'org.jetbrains.kotlin.jvm', version: '1.9.20']
+[        ] Invalidating in-memory cache of C:\Users\Haftom\.gradle\caches\journal-1\file-access.bin
+[        ] Invalidating in-memory cache of C:\Users\Haftom\.gradle\caches\8.14\fileHashes\fileHashes.bin
+[        ] Invalidating in-memory cache of C:\Users\Haftom\.gradle\caches\8.14\fileHashes\resourceHashesCache.bin
+[  +99 ms] Using Kotlin Gradle Plugin gradle85 variant
+[ +186 ms] kotlin scripting plugin: created the scripting discovery configuration: kotlinScriptDef
+[   +3 ms] kotlin scripting plugin: created the scripting discovery configuration: testKotlinScriptDef
+[+1097 ms] file or directory 'C:\Users\Haftom\flutter\packages\flutter_tools\gradle\src\main\java', not found
+[ +220 ms] Invalidating in-memory cache of C:\Users\Haftom\.gradle\caches\journal-1\file-access.bin
+[ +466 ms] Resolved plugin [id: 'dev.flutter.flutter-plugin-loader', version: '1.0.0']
+[ +850 ms] Resolved plugin [id: 'com.android.application', version: '8.11.1', apply: false]
+[   +2 ms] Resolved plugin [id: 'com.google.gms.google-services', version: '4.3.15', apply: false]
+[  +81 ms] Resolved plugin [id: 'org.jetbrains.kotlin.android', version: '2.2.20', apply: false]
+[ +279 ms] Resolve mutations for :gradle:checkKotlinGradlePluginConfigurationErrors (Thread[#107,included builds,5,main]) started.
+[   +3 ms] :gradle:checkKotlinGradlePluginConfigurationErrors (Thread[#107,included builds,5,main]) started.
+[  +59 ms] > Task :gradle:checkKotlinGradlePluginConfigurationErrors SKIPPED
+[        ] Skipping task ':gradle:checkKotlinGradlePluginConfigurationErrors' as task onlyIf 'errorDiagnostics are present' is false.
+[        ] Resolve mutations for :gradle:compileKotlin (Thread[#107,included builds,5,main]) started.
+[        ] :gradle:compileKotlin (Thread[#107,included builds,5,main]) started.
+[+1926 ms] > Task :gradle:compileKotlin
+[   +2 ms] Invalidating in-memory cache of C:\Users\Haftom\.gradle\caches\journal-1\file-access.bin
+[   +1 ms] Invalidating in-memory cache of C:\Users\Haftom\.gradle\caches\journal-1\file-access.bin
+[        ] Invalidating in-memory cache of C:\Users\Haftom\.gradle\caches\journal-1\file-access.bin
+[ +296 ms] Invalidating in-memory cache of C:\Users\Haftom\.gradle\caches\journal-1\file-access.bin
+[ +308 ms] Caching disabled for task ':gradle:compileKotlin' because:
+[   +9 ms]   Build cache is disabled
+[   +1 ms] Skipping task ':gradle:compileKotlin' as it is up-to-date.
+[        ] > Task :gradle:compileKotlin UP-TO-DATE
+[        ] Resolve mutations for :gradle:compileJava (Thread[#107,included builds,5,main]) started.
+[ +107 ms] :gradle:compileJava (Thread[#107,included builds,5,main]) started.
+[   +4 ms] > Task :gradle:compileJava NO-SOURCE
+[  +24 ms] Skipping task ':gradle:compileJava' as it has no source files and no previous output files.
+[   +2 ms] Resolve mutations for :gradle:compileGroovy (Thread[#107,included builds,5,main]) started.
+[  +43 ms] :gradle:compileGroovy (Thread[#109,Execution worker Thread 2,5,main]) started.
+[  +39 ms] > Task :gradle:compileGroovy NO-SOURCE
+[        ] Skipping task ':gradle:compileGroovy' as it has no source files and no previous output files.
+[        ] Resolve mutations for :gradle:pluginDescriptors (Thread[#109,Execution worker Thread 2,5,main]) started.
+[   +6 ms] :gradle:pluginDescriptors (Thread[#107,included builds,5,main]) started.
+[  +63 ms] > Task :gradle:pluginDescriptors UP-TO-DATE
+[   +2 ms] Caching disabled for task ':gradle:pluginDescriptors' because:
+[        ]   Build cache is disabled
+[        ]   Not worth caching
+[        ] Skipping task ':gradle:pluginDescriptors' as it is up-to-date.
+[        ] Resolve mutations for :gradle:processResources (Thread[#107,included builds,5,main]) started.
+[        ] :gradle:processResources (Thread[#109,Execution worker Thread 2,5,main]) started.
+[        ] > Task :gradle:processResources UP-TO-DATE
+[        ] Caching disabled for task ':gradle:processResources' because:
+[        ]   Build cache is disabled
+[        ]   Not worth caching
+[        ] Skipping task ':gradle:processResources' as it is up-to-date.
+[        ] Resolve mutations for :gradle:classes (Thread[#107,included builds,5,main]) started.
+[        ] :gradle:classes (Thread[#107,included builds,5,main]) started.
+[        ] > Task :gradle:classes UP-TO-DATE
+[        ] Skipping task ':gradle:classes' as it has no actions.
+[        ] Resolve mutations for :gradle:jar (Thread[#107,included builds,5,main]) started.
+[        ] :gradle:jar (Thread[#107,included builds,5,main]) started.
+[  +85 ms] > Task :gradle:jar UP-TO-DATE
+[        ] Caching disabled for task ':gradle:jar' because:
+[        ]   Build cache is disabled
+[        ]   Not worth caching
+[        ] Skipping task ':gradle:jar' as it is up-to-date.
+[ +593 ms] Invalidating in-memory cache of C:\Users\Haftom\.gradle\caches\journal-1\file-access.bin
+[ +710 ms] Invalidating in-memory cache of C:\Users\Haftom\.gradle\caches\journal-1\file-access.bin
+[+1995 ms] Invalidating in-memory cache of C:\Users\Haftom\.gradle\caches\journal-1\file-access.bin
+[   +2 ms] Settings evaluated using settings file 'D:\Any code\Any code\Summer Code\All Before GUI\Semere_Fashions\semere_fashions\android\settings.gradle.kts'.
+[   +6 ms] Projects loaded. Root project using build file 'D:\Any code\Any code\Summer Code\All Before GUI\Semere_Fashions\semere_fashions\android\build.gradle.kts'.
+[        ] Included projects: [root project 'android', project ':app', project ':cloud_firestore', project ':firebase_auth', project ':firebase_core']
+[+1984 ms] > Configure project :
+[   +1 ms] Evaluating root project 'android' using build file 'D:\Any code\Any code\Summer Code\All Before GUI\Semere_Fashions\semere_fashions\android\build.gradle.kts'.
+[+7399 ms] > Configure project :app
+[        ] Evaluating project ':app' using build file 'D:\Any code\Any code\Summer Code\All Before GUI\Semere_Fashions\semere_fashions\android\app\build.gradle.kts'.
+[        ] Resolved plugin [id: 'com.android.application']
+[  +11 ms] Resolved plugin [id: 'com.google.gms.google-services']
+[        ] Resolved plugin [id: 'kotlin-android']
+[        ] Resolved plugin [id: 'dev.flutter.flutter-gradle-plugin']
+[        ] Using default execution profile
+[        ] Build afb703a2-072a-4adf-a7de-2a44f120d445 is started
+[   +2 ms] Using Kotlin Gradle Plugin gradle813 variant
+[        ] Invalidating in-memory cache of C:\Users\Haftom\.gradle\caches\journal-1\file-access.bin
+[        ] C/C++: android.ndkVersion from module build.gradle is [28.2.13676358]
+[        ] C/C++: android.ndkPath from module build.gradle is not set
+[        ] C/C++: ndk.dir in local.properties is not set
+[        ] C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+[        ] C/C++: sdkFolder is C:\Users\Haftom\AppData\Local\Android\sdk
+[        ] C/C++: android.ndkVersion from module build.gradle is [28.2.13676358]
+[        ] C/C++: android.ndkPath from module build.gradle is not set
+[        ] C/C++: ndk.dir in local.properties is not set
+[   +4 ms] C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+[        ] C/C++: sdkFolder is C:\Users\Haftom\AppData\Local\Android\sdk
+[        ] C/C++: android.ndkVersion from module build.gradle is [28.2.13676358]
+[        ] C/C++: android.ndkPath from module build.gradle is not set
+[   +5 ms] C/C++: ndk.dir in local.properties is not set
+[        ] C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+[        ] C/C++: sdkFolder is C:\Users\Haftom\AppData\Local\Android\sdk
+[        ] C/C++: android.ndkVersion from module build.gradle is [28.2.13676358]
+[        ] C/C++: android.ndkPath from module build.gradle is not set
+[        ] C/C++: ndk.dir in local.properties is not set
+[        ] C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+[   +3 ms] C/C++: sdkFolder is C:\Users\Haftom\AppData\Local\Android\sdk
+[        ] C/C++: android.ndkVersion from module build.gradle is [28.2.13676358]
+[        ] C/C++: android.ndkPath from module build.gradle is not set
+[        ] C/C++: ndk.dir in local.properties is not set
+[        ] C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+[        ] C/C++: sdkFolder is C:\Users\Haftom\AppData\Local\Android\sdk
+[        ] C/C++: android.ndkVersion from module build.gradle is [28.2.13676358]
+[   +2 ms] C/C++: android.ndkPath from module build.gradle is not set
+[        ] C/C++: ndk.dir in local.properties is not set
+[        ] C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+[        ] C/C++: sdkFolder is C:\Users\Haftom\AppData\Local\Android\sdk
+[        ] C/C++: android.ndkVersion from module build.gradle is [28.2.13676358]
+[        ] C/C++: android.ndkPath from module build.gradle is not set
+[        ] C/C++: ndk.dir in local.properties is not set
+[        ] C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+[   +3 ms] C/C++: sdkFolder is C:\Users\Haftom\AppData\Local\Android\sdk
+[        ] C/C++: android.ndkVersion from module build.gradle is [28.2.13676358]
+[        ] C/C++: android.ndkPath from module build.gradle is not set
+[        ] C/C++: ndk.dir in local.properties is not set
+[        ] C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+[        ] C/C++: sdkFolder is C:\Users\Haftom\AppData\Local\Android\sdk
+[        ] C/C++: android.ndkVersion from module build.gradle is [28.2.13676358]
+[        ] C/C++: android.ndkPath from module build.gradle is not set
+[   +2 ms] C/C++: ndk.dir in local.properties is not set
+[   +2 ms] C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+[        ] C/C++: sdkFolder is C:\Users\Haftom\AppData\Local\Android\sdk
+[   +5 ms] C/C++: android.ndkVersion from module build.gradle is [28.2.13676358]
+[        ] C/C++: android.ndkPath from module build.gradle is not set
+[        ] C/C++: ndk.dir in local.properties is not set
+[        ] C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+[        ] C/C++: sdkFolder is C:\Users\Haftom\AppData\Local\Android\sdk
+[        ] C/C++: android.ndkVersion from module build.gradle is [28.2.13676358]
+[        ] C/C++: android.ndkPath from module build.gradle is not set
+[        ] C/C++: ndk.dir in local.properties is not set
+[        ] C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+[   +4 ms] C/C++: sdkFolder is C:\Users\Haftom\AppData\Local\Android\sdk
+[        ] C/C++: android.ndkVersion from module build.gradle is [28.2.13676358]
+[        ] C/C++: android.ndkPath from module build.gradle is not set
+[        ] C/C++: ndk.dir in local.properties is not set
+[        ] C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+[   +3 ms] C/C++: sdkFolder is C:\Users\Haftom\AppData\Local\Android\sdk
+[        ] C/C++: android.ndkVersion from module build.gradle is [28.2.13676358]
+[        ] C/C++: android.ndkPath from module build.gradle is not set
+[        ] C/C++: ndk.dir in local.properties is not set
+[        ] C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+[        ] C/C++: sdkFolder is C:\Users\Haftom\AppData\Local\Android\sdk
+[        ] C/C++: android.ndkVersion from module build.gradle is [28.2.13676358]
+[        ] C/C++: android.ndkPath from module build.gradle is not set
+[   +3 ms] C/C++: ndk.dir in local.properties is not set
+[        ] C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+[        ] C/C++: sdkFolder is C:\Users\Haftom\AppData\Local\Android\sdk
+[        ] C/C++: android.ndkVersion from module build.gradle is [28.2.13676358]
+[        ] C/C++: android.ndkPath from module build.gradle is not set
+[        ] C/C++: ndk.dir in local.properties is not set
+[   +3 ms] C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+[        ] C/C++: sdkFolder is C:\Users\Haftom\AppData\Local\Android\sdk
+[        ] C/C++: android.ndkVersion from module build.gradle is [28.2.13676358]
+[        ] C/C++: android.ndkPath from module build.gradle is not set
+[        ] C/C++: ndk.dir in local.properties is not set
+[        ] C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+[        ] C/C++: sdkFolder is C:\Users\Haftom\AppData\Local\Android\sdk
+[        ] C/C++: android.ndkVersion from module build.gradle is [28.2.13676358]
+[   +2 ms] C/C++: android.ndkPath from module build.gradle is not set
+[        ] C/C++: ndk.dir in local.properties is not set
+[        ] C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+[        ] C/C++: sdkFolder is C:\Users\Haftom\AppData\Local\Android\sdk
+[   +3 ms] C/C++: android.ndkVersion from module build.gradle is [28.2.13676358]
+[        ] C/C++: android.ndkPath from module build.gradle is not set
+[   +1 ms] C/C++: ndk.dir in local.properties is not set
+[        ] C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+[        ] C/C++: sdkFolder is C:\Users\Haftom\AppData\Local\Android\sdk
+[        ] C/C++: android.ndkVersion from module build.gradle is [28.2.13676358]
+[        ] C/C++: android.ndkPath from module build.gradle is not set
+[   +3 ms] C/C++: ndk.dir in local.properties is not set
+[   +3 ms] C/C++: Not considering ANDROID_NDK_HOME because support was removed after deprecation period.
+[        ] C/C++: sdkFolder is C:\Users\Haftom\AppData\Local\Android\sdk
+[+1932 ms] > Configure project :cloud_firestore
+[   +1 ms] Evaluating project ':cloud_firestore' using build file 'C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\cloud_firestore-5.6.12\android\build.gradle'.
+[ +657 ms] Invalidating in-memory cache of C:\Users\Haftom\.gradle\caches\journal-1\file-access.bin
+[ +204 ms] Invalidating in-memory cache of C:\Users\Haftom\.gradle\caches\8.14\fileHashes\fileHashes.bin
+[        ] Invalidating in-memory cache of C:\Users\Haftom\.gradle\caches\8.14\fileHashes\resourceHashesCache.bin
+[ +210 ms] Invalidating in-memory cache of C:\Users\Haftom\.gradle\caches\journal-1\file-access.bin
+[+1801 ms] > Configure project :cloud_firestore
+[        ] Invalidating in-memory cache of C:\Users\Haftom\.gradle\caches\journal-1\file-access.bin
+[   +9 ms] Invalidating in-memory cache of C:\Users\Haftom\.gradle\caches\8.14\fileHashes\fileHashes.bin
+[        ] Invalidating in-memory cache of C:\Users\Haftom\.gradle\caches\8.14\fileHashes\resourceHashesCache.bin
+[ +384 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\14d2918117304880902b00c819ffd615\transformed\analysis\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[   +2 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\99f4e32302d4e3d0b8b631d9977384ac\transformed\analysis\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[   +2 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\e02509c64c1472cfc2831723b79ab2ef\transformed\analysis\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[        ] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\f1255741c3908d5e2a56b527e5f45cc2\transformed\analysis\instrumentation-dependencies.bin because:
+[   +1 ms]   Build cache is disabled
+[        ]   Caching not enabled.
+[+2387 ms] Invalidating in-memory cache of C:\Users\Haftom\.gradle\caches\8.14\fileHashes\fileHashes.bin
+[   +9 ms] Invalidating in-memory cache of C:\Users\Haftom\.gradle\caches\8.14\fileHashes\resourceHashesCache.bin
+[ +325 ms] Invalidating in-memory cache of C:\Users\Haftom\.gradle\caches\journal-1\file-access.bin
+[   +1 ms] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\da7be04f11d32dc7849683ca0a7617ca\transformed\merge\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[  +29 ms]   Caching not enabled.
+[ +332 ms] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\1a2826869366640c39842994b0aaa278\transformed\merge\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[   +4 ms]   Caching not enabled.
+[ +106 ms] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\cb149c57b0bc894f96f39e43d704292e\transformed\merge\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[   +4 ms]   Caching not enabled.
+[        ] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\087283da5a38ec2c671bd7602e8a676e\transformed\merge\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[+6380 ms] Invalidating in-memory cache of C:\Users\Haftom\.gradle\caches\8.14\fileHashes\fileHashes.bin
+[  +96 ms] Invalidating in-memory cache of C:\Users\Haftom\.gradle\caches\8.14\fileHashes\resourceHashesCache.bin
+[+1595 ms] Invalidating in-memory cache of C:\Users\Haftom\.gradle\caches\journal-1\file-access.bin
+[+11300 ms] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\com.android.tools.build\gradle\8.3.0\cb0cc4ee365545f762a0bae61b24c658e993921d\gradle-8.3.0.jar because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[        ] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\com.android.tools.build\builder\8.3.0\8e1c898e72837e1e5c74f6f4bf7c37ce838b57a9\builder-8.3.0.jar because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[ +201 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\70f32a76420e410b9619bdfd45aa79c7\transformed\analysis\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[ +107 ms] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\ea3a7c230ed55d31aa99b54da0ebb235\transformed\merge\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[  +82 ms]   Caching not enabled.
+[ +334 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\com.android.tools.build\bundletool\1.15.6\d804e9cf5387426500061a8e0eb5602d50a49e56\bundletool-1.15.6.jar because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[  +71 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\9381e5ac50cf8b33b60e52fb9cbc79ba\transformed\analysis\instrumentation-hierarchy.bin because:
+[  +24 ms]   Build cache is disabled
+[        ]   Caching not enabled.
+[        ] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\82480dca73dff6d1cceaa815e3ac19dd\transformed\analysis\instrumentation-hierarchy.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[ +179 ms] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\com.android.tools.build\aapt2-proto\8.3.0-10880808\2bdf5dc2c2d31ae3dbbec287b8c929169b192c12\aapt2-proto-8.3.0-10880808.jar because:
+[   +2 ms]   Build cache is disabled
+[ +277 ms]   Caching not enabled.
+[ +153 ms] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\9df720ea1a310f41d03f81b20eea54a6\transformed\merge\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[        ] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\82480dca73dff6d1cceaa815e3ac19dd\transformed\analysis\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[        ] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\9381e5ac50cf8b33b60e52fb9cbc79ba\transformed\analysis\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[  +62 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\0f541974602e56bd5198d4be5ba2794b\transformed\analysis\instrumentation-hierarchy.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[  +92 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\com.android.tools.analytics-library\tracker\31.3.0\1d9aaac90bf5fe9aebe187724605965abf05fd51\tracker-31.3.0.jar because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[        ] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\0f541974602e56bd5198d4be5ba2794b\transformed\analysis\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[ +499 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\com.android.tools.analytics-library\crash\31.3.0\669e0dbea9c0612c1752365738497bea9627a6b9\crash-31.3.0.jar because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[        ] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\54c2f09798ce268432a455a7af3bfb70\transformed\merge\instrumentation-dependencies.bin because:
+[   +1 ms]   Build cache is disabled
+[        ]   Caching not enabled.
+[ +102 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\com.android.tools.analytics-library\shared\31.3.0\19dcfacddf50f8e012524b4576dfc6b51bd8b20a\shared-31.3.0.jar because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[ +202 ms] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\60368155d749919961749b0b05cb66ba\transformed\merge\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[ +209 ms] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\com.android.tools.analytics-library\tracker\31.3.0\1d9aaac90bf5fe9aebe187724605965abf05fd51\tracker-31.3.0.jar because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[  +37 ms] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\c8d6601316b3746adaf258749c61d5e8\transformed\merge\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[  +48 ms] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\com.android.tools.analytics-library\crash\31.3.0\669e0dbea9c0612c1752365738497bea9627a6b9\crash-31.3.0.jar because:
+[  +21 ms]   Build cache is disabled
+[        ]   Caching not enabled.
+[ +182 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\7488c851a3e39b6abf481c5aca2c250a\transformed\analysis\instrumentation-hierarchy.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[        ] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\7488c851a3e39b6abf481c5aca2c250a\transformed\analysis\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[   +1 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\8cecd9dd0b55c9416d6858350bcc3e1a\transformed\analysis\instrumentation-hierarchy.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[ +186 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\8cecd9dd0b55c9416d6858350bcc3e1a\transformed\analysis\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[  +10 ms] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\com.android.tools.analytics-library\shared\31.3.0\19dcfacddf50f8e012524b4576dfc6b51bd8b20a\shared-31.3.0.jar because:
+[        ]   Build cache is disabled
+[  +10 ms]   Caching not enabled.
+[        ] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\com.android.tools.lint\lint-typedef-remover\31.3.0\644ab9b8a697ba83702c4e32eaaf95c504e1a522\lint-typedef-remover-31.3.0.jar because:
+[        ]   Build cache is disabled
+[   +1 ms]   Caching not enabled.
+[        ] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\fe76fc135f96406a49c9a809ba8584cb\transformed\analysis\instrumentation-hierarchy.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[  +68 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\fe76fc135f96406a49c9a809ba8584cb\transformed\analysis\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[   +4 ms] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\283c8aa8c9f94da1d0100741a9691329\transformed\merge\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[ +197 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\androidx.databinding\databinding-common\8.3.0\2be3530b78477835e69dce953b17adc1dbc5c6fa\databinding-common-8.3.0.jar because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[ +408 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\androidx.databinding\databinding-compiler-common\8.3.0\37c67e55fc73950c1860f8c96414de401b44ccfd\databinding-compiler-common-8.3.0.jar because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[  +34 ms] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\com.android.tools.lint\lint-typedef-remover\31.3.0\644ab9b8a697ba83702c4e32eaaf95c504e1a522\lint-typedef-remover-31.3.0.jar because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[ +109 ms] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\52d96b1f45ce05c5f185cc24f48a10a5\transformed\merge\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[   +1 ms]   Caching not enabled.
+[  +44 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\c76a338f037f9514b3e9cd073d6258ba\transformed\analysis\instrumentation-hierarchy.bin because:
+[  +30 ms]   Build cache is disabled
+[   +1 ms]   Caching not enabled.
+[   +1 ms] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\011e356aede83ca67d35d1a1999b1928\transformed\merge\instrumentation-dependencies.bin because:
+[  +10 ms]   Build cache is disabled
+[   +3 ms]   Caching not enabled.
+[  +58 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\c76a338f037f9514b3e9cd073d6258ba\transformed\analysis\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[  +97 ms] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\androidx.databinding\databinding-common\8.3.0\2be3530b78477835e69dce953b17adc1dbc5c6fa\databinding-common-8.3.0.jar because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[        ] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\com.android.databinding\baseLibrary\8.3.0\7e7399239e52d4069896277615e005add7ae8e5a\baseLibrary-8.3.0.jar because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[        ] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\3d53522cfc769e331450ee1ad8e60ee1\transformed\analysis\instrumentation-hierarchy.bin because:
+[  +38 ms]   Build cache is disabled
+[        ]   Caching not enabled.
+[  +62 ms] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\24c57a9641bd70beb2937d0c9e772129\transformed\merge\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[   +3 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\3d53522cfc769e331450ee1ad8e60ee1\transformed\analysis\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[+5792 ms] Invalidating in-memory cache of C:\Users\Haftom\.gradle\caches\8.14\fileHashes\fileHashes.bin
+[   +1 ms] Invalidating in-memory cache of C:\Users\Haftom\.gradle\caches\8.14\fileHashes\resourceHashesCache.bin
+[+2108 ms] Invalidating in-memory cache of C:\Users\Haftom\.gradle\caches\8.14\fileHashes\fileHashes.bin
+[        ] Invalidating in-memory cache of C:\Users\Haftom\.gradle\caches\8.14\fileHashes\resourceHashesCache.bin
+[  +82 ms] Invalidating in-memory cache of C:\Users\Haftom\.gradle\caches\journal-1\file-access.bin
+[  +12 ms] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\com.android.tools.build\bundletool\1.15.6\d804e9cf5387426500061a8e0eb5602d50a49e56\bundletool-1.15.6.jar because:
+[  +12 ms]   Build cache is disabled
+[   +4 ms]   Caching not enabled.
+[ +872 ms] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\58d6c82b56e116d1003228ee3f36004c\transformed\merge\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[ +106 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\d9465b1bdaefa828a83347ca8060596e\transformed\analysis\instrumentation-hierarchy.bin because:
+[  +11 ms]   Build cache is disabled
+[        ]   Caching not enabled.
+[        ] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\42009beae34bf5764ff1ce960ad810cc\transformed\merge\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[   +3 ms]   Caching not enabled.
+[  +38 ms] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\50710f888a81ff78fb74073758836d9f\transformed\merge\instrumentation-dependencies.bin because:
+[  +14 ms]   Build cache is disabled
+[  +10 ms]   Caching not enabled.
+[        ] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\d9465b1bdaefa828a83347ca8060596e\transformed\analysis\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[ +225 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\io.grpc\grpc-netty\1.57.0\99cc01516c2fd1d134bf2585c2b38fa400804986\grpc-netty-1.57.0.jar because:
+[   +1 ms]   Build cache is disabled
+[   +5 ms]   Caching not enabled.
+[+4376 ms] Invalidating in-memory cache of C:\Users\Haftom\.gradle\caches\8.14\fileHashes\fileHashes.bin
+[   +1 ms] Invalidating in-memory cache of C:\Users\Haftom\.gradle\caches\8.14\fileHashes\resourceHashesCache.bin
+[ +116 ms] Invalidating in-memory cache of C:\Users\Haftom\.gradle\caches\journal-1\file-access.bin
+[ +396 ms] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\9d9cd6f8d66f2286dfd5678cabb0b7a0\transformed\merge\instrumentation-dependencies.bin because:
+[   +9 ms]   Build cache is disabled
+[        ]   Caching not enabled.
+[  +86 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\jakarta.xml.bind\jakarta.xml.bind-api\2.3.2\8d49996a4338670764d7ca4b85a1c4ccf7fe665d\jakarta.xml.bind-api-2.3.2.jar because:
+[   +1 ms]   Build cache is disabled
+[   +2 ms]   Caching not enabled.
+[ +182 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\com.google.auto.value\auto-value-annotations\1.6.2\ed193d86e0af90cc2342aedbe73c5d86b03fa09b\auto-value-annotations-1.6.2.jar because:
+[   +2 ms]   Build cache is disabled
+[   +7 ms]   Caching not enabled.
+[        ] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\2e9ba682fa466731a5d84bfa3e2ce06a\transformed\analysis\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[        ] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\com.google.errorprone\error_prone_annotations\2.18.0\89b684257096f548fa39a7df9fdaa409d4d4df91\error_prone_annotations-2.18.0.jar because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[ +104 ms] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\bf0e0c56ce57ad551abbc837704e75a8\transformed\merge\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[   +2 ms] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\com.google.errorprone\error_prone_annotations\2.18.0\89b684257096f548fa39a7df9fdaa409d4d4df91\error_prone_annotations-2.18.0.jar because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[   +2 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\02afc11b8ec1264570aeb56b58c49aa9\transformed\analysis\instrumentation-hierarchy.bin because:
+[   +3 ms]   Build cache is disabled
+[   +3 ms]   Caching not enabled.
+[  +75 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\02afc11b8ec1264570aeb56b58c49aa9\transformed\analysis\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[   +1 ms]   Caching not enabled.
+[   +5 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\org.bitbucket.b_c\jose4j\0.7.0\478ee8518687f9b01f20912fc7edd9d7b46d06da\jose4j-0.7.0.jar because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[   +2 ms] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\f10be6a08d27c32fc0491614e99bc232\transformed\merge\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[  +97 ms] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\org.bitbucket.b_c\jose4j\0.7.0\478ee8518687f9b01f20912fc7edd9d7b46d06da\jose4j-0.7.0.jar because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[  +92 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\6f8bdd5d75a2382fcea921634ccf18cb\transformed\analysis\instrumentation-hierarchy.bin because:
+[        ]   Build cache is disabled
+[   +2 ms]   Caching not enabled.
+[   +1 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\6f8bdd5d75a2382fcea921634ccf18cb\transformed\analysis\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[   +4 ms]   Caching not enabled.
+[   +1 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\org.slf4j\slf4j-api\1.7.30\b5a4b6d16ab13e34a88fae84c35cd5d68cac922c\slf4j-api-1.7.30.jar because:
+[        ]   Build cache is disabled
+[   +1 ms]   Caching not enabled.
+[        ] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\58004fb02668d400301539bc7fd0023b\transformed\analysis\instrumentation-hierarchy.bin because:
+[   +1 ms]   Build cache is disabled
+[   +2 ms]   Caching not enabled.
+[  +79 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\58004fb02668d400301539bc7fd0023b\transformed\analysis\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[   +4 ms]   Caching not enabled.
+[   +1 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\org.jdom\jdom2\2.0.6\6f14738ec2e9dd0011e343717fa624a10f8aab64\jdom2-2.0.6.jar because:
+[        ]   Build cache is disabled
+[   +4 ms]   Caching not enabled.
+[        ] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\d8695b060e50975c4594c2fcb6098560\transformed\analysis\instrumentation-hierarchy.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[  +97 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\d8695b060e50975c4594c2fcb6098560\transformed\analysis\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[   +1 ms]   Caching not enabled.
+[        ] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\com.google.code.findbugs\jsr305\3.0.2\25ea2e8b0c338a877313bd4672d3fe056ea78f0d\jsr305-3.0.2.jar because:
+[        ]   Build cache is disabled
+[   +1 ms]   Caching not enabled.
+[  +93 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\1e98e31a88d3569c883642359deaeb18\transformed\analysis\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[   +1 ms]   Caching not enabled.
+[   +2 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\com.google.j2objc\j2objc-annotations\2.8\c85270e307e7b822f1086b93689124b89768e273\j2objc-annotations-2.8.jar because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[   +3 ms] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\e2176cd4a3011d1221f974b00c55432f\transformed\merge\instrumentation-dependencies.bin because:
+[   +1 ms]   Build cache is disabled
+[   +1 ms]   Caching not enabled.
+[  +83 ms] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\com.google.j2objc\j2objc-annotations\2.8\c85270e307e7b822f1086b93689124b89768e273\j2objc-annotations-2.8.jar because:
+[   +4 ms]   Build cache is disabled
+[   +1 ms]   Caching not enabled.
+[   +1 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\085ab5d22c0c73b805b5ceab6a9ea7ff\transformed\analysis\instrumentation-dependencies.bin because:
+[   +3 ms]   Build cache is disabled
+[   +1 ms]   Caching not enabled.
+[  +80 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\com.google.android\annotations\4.1.1.4\a1678ba907bf92691d879fef34e1a187038f9259\annotations-4.1.1.4.jar because:
+[   +6 ms]   Build cache is disabled
+[        ]   Caching not enabled.
+[   +2 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\ba62313f914ba6663c4cec7d64c7b39c\transformed\analysis\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[   +2 ms]   Caching not enabled.
+[  +99 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\org.codehaus.mojo\animal-sniffer-annotations\1.23\3c0daebd5f0e1ce72cc50c818321ac957aeb5d70\animal-sniffer-annotations-1.23.jar because:
+[   +7 ms]   Build cache is disabled
+[   +3 ms]   Caching not enabled.
+[   +1 ms] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\23174121790f3ee3524121c689976def\transformed\merge\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[   +5 ms]   Caching not enabled.
+[   +2 ms] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\org.codehaus.mojo\animal-sniffer-annotations\1.23\3c0daebd5f0e1ce72cc50c818321ac957aeb5d70\animal-sniffer-annotations-1.23.jar because:
+[   +3 ms]   Build cache is disabled
+[  +23 ms]   Caching not enabled.
+[   +6 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\2c1c5505ea44e2d46dded4fbfa765af4\transformed\analysis\instrumentation-hierarchy.bin because:
+[   +8 ms]   Build cache is disabled
+[   +7 ms]   Caching not enabled.
+[  +23 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\2c1c5505ea44e2d46dded4fbfa765af4\transformed\analysis\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[   +9 ms]   Caching not enabled.
+[ +109 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\io.perfmark\perfmark-api\0.26.0\ef65452adaf20bf7d12ef55913aba24037b82738\perfmark-api-0.26.0.jar because:
+[   +2 ms]   Build cache is disabled
+[  +31 ms]   Caching not enabled.
+[  +51 ms] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\b7e5fc7689ca91e2dc44776a532c1172\transformed\merge\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[   +3 ms]   Caching not enabled.
+[  +92 ms] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\io.perfmark\perfmark-api\0.26.0\ef65452adaf20bf7d12ef55913aba24037b82738\perfmark-api-0.26.0.jar because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[   +3 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\fb49339d67fb50356730ac21e8958a82\transformed\analysis\instrumentation-hierarchy.bin because:
+[   +1 ms]   Build cache is disabled
+[        ]   Caching not enabled.
+[   +3 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\fb49339d67fb50356730ac21e8958a82\transformed\analysis\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[        ] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\io.netty\netty-codec-http2\4.1.93.Final\f1625b43bde13ec057da0d2fe381ded2547a70e\netty-codec-http2-4.1.93.Final.jar because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[  +84 ms] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\60be380d678c8942a6d88e2bc3bec090\transformed\merge\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[ +209 ms] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\io.netty\netty-codec-http2\4.1.93.Final\f1625b43bde13ec057da0d2fe381ded2547a70e\netty-codec-http2-4.1.93.Final.jar because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[   +1 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\7c9f6714a8b6f78ce01392eec620352e\transformed\analysis\instrumentation-hierarchy.bin because:
+[        ]   Build cache is disabled
+[   +2 ms]   Caching not enabled.
+[        ] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\7c9f6714a8b6f78ce01392eec620352e\transformed\analysis\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[  +84 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\io.netty\netty-handler-proxy\4.1.93.Final\c165c1efe1b9c0cc22546a057b530611a088768b\netty-handler-proxy-4.1.93.Final.jar because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[        ] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\1b7a2953c992a74e15c341dcdf5c0418\transformed\merge\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[  +97 ms] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\io.netty\netty-handler-proxy\4.1.93.Final\c165c1efe1b9c0cc22546a057b530611a088768b\netty-handler-proxy-4.1.93.Final.jar because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[   +5 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\6eea777d73d3847fc26b13a7fcb86bd1\transformed\analysis\instrumentation-hierarchy.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[   +4 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\6eea777d73d3847fc26b13a7fcb86bd1\transformed\analysis\instrumentation-dependencies.bin because:
+[   +1 ms]   Build cache is disabled
+[        ]   Caching not enabled.
+[        ] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\org.bouncycastle\bcprov-jdk15on\1.67\8c0998045da87dbc2f1d4b6480458ed811ca7b82\bcprov-jdk15on-1.67.jar because:
+[        ]   Build cache is disabled
+[   +5 ms]   Caching not enabled.
+[        ] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\61f206b05acea259bc9beaded837b3b4\transformed\analysis\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[        ] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\93aa9e21b58bd2147002bf0d45409f6d\transformed\analysis\instrumentation-hierarchy.bin because:
+[   +1 ms]   Build cache is disabled
+[        ]   Caching not enabled.
+[        ] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\93aa9e21b58bd2147002bf0d45409f6d\transformed\analysis\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[   +3 ms]   Caching not enabled.
+[        ] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\34914867655c864bc8af15d1c3172054\transformed\analysis\instrumentation-hierarchy.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[  +74 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\com.android\signflinger\8.3.0\13f035dd8e7e470ff8f3216a0b46333187f26df5\signflinger-8.3.0.jar because:
+[   +6 ms]   Build cache is disabled
+[        ]   Caching not enabled.
+[        ] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\io.netty\netty-codec-http\4.1.93.Final\36acf0c94d03eb6ecef78a749a32cbb7dc0c57b4\netty-codec-http-4.1.93.Final.jar because:
+[        ]   Build cache is disabled
+[   +3 ms]   Caching not enabled.
+[        ] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\e9eebeb30ae7d3b658e51b89a186f19f\transformed\merge\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[   +6 ms]   Caching not enabled.
+[   +1 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\34914867655c864bc8af15d1c3172054\transformed\analysis\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[   +6 ms]   Caching not enabled.
+[        ] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\io.netty\netty-handler\4.1.93.Final\10f7ed9d8e1bfcba416074c70e5388be96116bfc\netty-handler-4.1.93.Final.jar because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[   +5 ms] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\362db469f69bc7288e050dcbad08a7f6\transformed\merge\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[  +65 ms] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\89dee29c73ced5bc97b09b00274adb36\transformed\merge\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[        ] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\io.netty\netty-transport-native-unix-common\4.1.93.Final\f4fb8b4c8da539091f43abcbb9f0389e48807eea\netty-transport-native-unix-common-4.1.93.Final.jar because:
+[   +1 ms]   Build cache is disabled
+[   +1 ms]   Caching not enabled.
+[        ] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\com.android\signflinger\8.3.0\13f035dd8e7e470ff8f3216a0b46333187f26df5\signflinger-8.3.0.jar because:
+[        ]   Build cache is disabled
+[   +1 ms]   Caching not enabled.
+[   +1 ms] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\d4f295285cd87aa2584e27566b959447\transformed\merge\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[   +1 ms]   Caching not enabled.
+[        ] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\22c24790be97e98a9417f35d2063d1ed\transformed\analysis\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[   +1 ms]   Caching not enabled.
+[  +75 ms] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\io.netty\netty-transport-native-unix-common\4.1.93.Final\f4fb8b4c8da539091f43abcbb9f0389e48807eea\netty-transport-native-unix-common-4.1.93.Final.jar because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[        ] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\org.checkerframework\checker-qual\3.33.0\de2b60b62da487644fc11f734e73c8b0b431238f\checker-qual-3.33.0.jar because:
+[        ]   Build cache is disabled
+[   +4 ms]   Caching not enabled.
+[   +1 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\059495c8615bae36d0fc93a846ab4920\transformed\analysis\instrumentation-hierarchy.bin because:
+[        ]   Build cache is disabled
+[   +4 ms]   Caching not enabled.
+[        ] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\1c439b705e9c9c39ee7c46e0a6be6203\transformed\merge\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[   +1 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\059495c8615bae36d0fc93a846ab4920\transformed\analysis\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[ +100 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\commons-codec\commons-codec\1.11\3acb4705652e16236558f0f4f2192cc33c3bd189\commons-codec-1.11.jar because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[        ] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\642a3961b97fba1e84dbce0c4d947a5e\transformed\analysis\instrumentation-hierarchy.bin because:
+[   +2 ms]   Build cache is disabled
+[        ]   Caching not enabled.
+[        ] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\org.checkerframework\checker-qual\3.33.0\de2b60b62da487644fc11f734e73c8b0b431238f\checker-qual-3.33.0.jar because:
+[        ]   Build cache is disabled
+[   +3 ms]   Caching not enabled.
+[        ] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\642a3961b97fba1e84dbce0c4d947a5e\transformed\analysis\instrumentation-dependencies.bin because:
+[   +1 ms]   Build cache is disabled
+[   +4 ms]   Caching not enabled.
+[   +1 ms] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\io.netty\netty-handler\4.1.93.Final\10f7ed9d8e1bfcba416074c70e5388be96116bfc\netty-handler-4.1.93.Final.jar because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[  +74 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\2d6ad7057afe351af184d49f5efa7fa0\transformed\analysis\instrumentation-hierarchy.bin because:
+[  +32 ms]   Build cache is disabled
+[        ]   Caching not enabled.
+[        ] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\io.netty\netty-codec-http\4.1.93.Final\36acf0c94d03eb6ecef78a749a32cbb7dc0c57b4\netty-codec-http-4.1.93.Final.jar because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[  +13 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\com.android.tools.build\apksig\8.3.0\9125e1bb9607abb6d2d582f6b551360b0258658a\apksig-8.3.0.jar because:
+[   +9 ms]   Build cache is disabled
+[   +2 ms]   Caching not enabled.
+[   +1 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\2d6ad7057afe351af184d49f5efa7fa0\transformed\analysis\instrumentation-dependencies.bin because:
+[  +10 ms]   Build cache is disabled
+[   +3 ms]   Caching not enabled.
+[   +6 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\2d952aba5eede5fb4e1f256b2006639a\transformed\analysis\instrumentation-dependencies.bin because:
+[   +1 ms]   Build cache is disabled
+[        ]   Caching not enabled.
+[        ] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\0f1dfc7635de05b665059484e3364d6b\transformed\merge\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[   +5 ms]   Caching not enabled.
+[  +11 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\b4e207aa96e8d470c5c1c936134d8f4c\transformed\analysis\instrumentation-dependencies.bin because:
+[  +45 ms]   Build cache is disabled
+[   +9 ms]   Caching not enabled.
+[   +1 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\com.squareup\javawriter\2.5.0\81241ff7078ef14f42ea2a8995fa09c096256e6b\javawriter-2.5.0.jar because:
+[   +2 ms]   Build cache is disabled
+[   +1 ms]   Caching not enabled.
+[  +53 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\com.google.guava\failureaccess\1.0.1\1dcf1de382a0bf95a3d8b0849546c88bac1292c9\failureaccess-1.0.1.jar because:
+[        ]   Build cache is disabled
+[  +28 ms]   Caching not enabled.
+[  +76 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\8e362c5f3c362fbc630f6643bca41639\transformed\analysis\instrumentation-hierarchy.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[ +369 ms] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\a411744320cca8a5bc54d6f67dee8085\transformed\merge\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[        ] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\com.android.tools.build\apksig\8.3.0\9125e1bb9607abb6d2d582f6b551360b0258658a\apksig-8.3.0.jar because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[        ] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\com.google.guava\listenablefuture\9999.0-empty-to-avoid-conflict-with-guava\b421526c5f297295adef1c886e5246c39d4ac629\listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[ +108 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\b61fb44fc1d8321fadf92de7a61bc6d5\transformed\analysis\instrumentation-hierarchy.bin because:
+[        ]   Build cache is disabled
+[   +4 ms]   Caching not enabled.
+[        ] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\8e362c5f3c362fbc630f6643bca41639\transformed\analysis\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[        ] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\com.google.guava\failureaccess\1.0.1\1dcf1de382a0bf95a3d8b0849546c88bac1292c9\failureaccess-1.0.1.jar because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[  +89 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\b61fb44fc1d8321fadf92de7a61bc6d5\transformed\analysis\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[        ] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\55a85a0531de113e25f31ab47bad8e31\transformed\analysis\instrumentation-hierarchy.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[   +8 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\commons-logging\commons-logging\1.2\4bfc12adfe4842bf07b657f0369c4cb522955686\commons-logging-1.2.jar because:
+[        ]   Build cache is disabled
+[   +4 ms]   Caching not enabled.
+[   +2 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\76a64f71bbd7e2d3272a45437d47cdd0\transformed\analysis\instrumentation-hierarchy.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[        ] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\net.java.dev.jna\jna\5.6.0\330f2244e9030119ab3030fc3fededc86713d9cc\jna-5.6.0.jar because:
+[   +5 ms]   Build cache is disabled
+[        ]   Caching not enabled.
+[   +1 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\55a85a0531de113e25f31ab47bad8e31\transformed\analysis\instrumentation-dependencies.bin because:
+[   +3 ms]   Build cache is disabled
+[        ]   Caching not enabled.
+[  +60 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\709c5952c06f691f28b54c313b7a0c9a\transformed\analysis\instrumentation-hierarchy.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[   +3 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\76a64f71bbd7e2d3272a45437d47cdd0\transformed\analysis\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[   +2 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\8bf72f769a0f728290cd5d67a8d37d13\transformed\analysis\instrumentation-hierarchy.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[        ] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\709c5952c06f691f28b54c313b7a0c9a\transformed\analysis\instrumentation-dependencies.bin because:
+[   +4 ms]   Build cache is disabled
+[        ]   Caching not enabled.
+[   +1 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\io.netty\netty-codec-socks\4.1.93.Final\81ca78969afc60073e47c3b7b361cc3839392c73\netty-codec-socks-4.1.93.Final.jar because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[        ] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\io.netty\netty-codec\4.1.93.Final\503badb458b6586632be8d1f81aa4e5ab99a80fc\netty-codec-4.1.93.Final.jar because:
+[        ]   Build cache is disabled
+[   +3 ms]   Caching not enabled.
+[   +1 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\8bf72f769a0f728290cd5d67a8d37d13\transformed\analysis\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[        ] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\716db285c092937c81f09b7b2c658c79\transformed\merge\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[   +3 ms]   Caching not enabled.
+[        ] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\io.netty\netty-transport\4.1.93.Final\1a0894915c8027ce83b4d6a811c4e765955efd15\netty-transport-4.1.93.Final.jar because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[   +2 ms] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\356b23341ebaeb13a630a4cc4d2e3c87\transformed\merge\instrumentation-dependencies.bin because:
+[   +1 ms]   Build cache is disabled
+[        ]   Caching not enabled.
+[  +76 ms] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\043b4536c5cbccb50a583d55d2b84eaf\transformed\merge\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[        ] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\io.netty\netty-buffer\4.1.93.Final\87fac21f4ef95157866b07b48e3c707a2f13c581\netty-buffer-4.1.93.Final.jar because:
+[   +3 ms]   Build cache is disabled
+[        ]   Caching not enabled.
+[        ] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\58fc625da1065fa2a1e08eb769603de0\transformed\merge\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[   +3 ms]   Caching not enabled.
+[        ] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\io.netty\netty-codec-socks\4.1.93.Final\81ca78969afc60073e47c3b7b361cc3839392c73\netty-codec-socks-4.1.93.Final.jar because:
+[        ]   Build cache is disabled
+[   +3 ms]   Caching not enabled.
+[   +1 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\4aae65b5640f6afbbbc4bfb1e535d15a\transformed\analysis\instrumentation-hierarchy.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[  +80 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\4aae65b5640f6afbbbc4bfb1e535d15a\transformed\analysis\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[        ] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\io.netty\netty-resolver\4.1.93.Final\3860e99075f9e078364ed38f6d6fc8825b7a168a\netty-resolver-4.1.93.Final.jar because:
+[   +2 ms]   Build cache is disabled
+[        ]   Caching not enabled.
+[  +87 ms] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\1213569ecfefee799c90f86f6c2863e5\transformed\merge\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[   +4 ms]   Caching not enabled.
+[        ] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\io.netty\netty-codec\4.1.93.Final\503badb458b6586632be8d1f81aa4e5ab99a80fc\netty-codec-4.1.93.Final.jar because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[   +5 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\0c969b6970336d635796ea19a95ff646\transformed\analysis\instrumentation-hierarchy.bin because:
+[   +1 ms]   Build cache is disabled
+[        ]   Caching not enabled.
+[        ] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\io.netty\netty-resolver\4.1.93.Final\3860e99075f9e078364ed38f6d6fc8825b7a168a\netty-resolver-4.1.93.Final.jar because:
+[   +1 ms]   Build cache is disabled
+[        ]   Caching not enabled.
+[  +92 ms] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\io.netty\netty-buffer\4.1.93.Final\87fac21f4ef95157866b07b48e3c707a2f13c581\netty-buffer-4.1.93.Final.jar because:
+[   +6 ms]   Build cache is disabled
+[        ]   Caching not enabled.
+[        ] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\0c969b6970336d635796ea19a95ff646\transformed\analysis\instrumentation-dependencies.bin because:
+[   +4 ms]   Build cache is disabled
+[        ]   Caching not enabled.
+[        ] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\io.netty\netty-transport\4.1.93.Final\1a0894915c8027ce83b4d6a811c4e765955efd15\netty-transport-4.1.93.Final.jar because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[ +174 ms] Caching disabled for MergeInstrumentationAnalysisTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\io.netty\netty-common\4.1.93.Final\1cfc49b91b0d3ddb30c9f7d8467e5d02ae8babdf\netty-common-4.1.93.Final.jar because:
+[        ]   Build cache is disabled
+[   +1 ms]   Caching not enabled.
+[        ] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\8.14\transforms\3d09a2b05e17e07cceee877cffc20b5c\transformed\merge\instrumentation-dependencies.bin because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[ +107 ms] Caching disabled for ExternalDependencyInstrumentingArtifactTransform: C:\Users\Haftom\.gradle\caches\modules-2\files-2.1\io.netty\netty-common\4.1.93.Final\1cfc49b91b0d3ddb30c9f7d8467e5d02ae8babdf\netty-common-4.1.93.Final.jar because:
+[        ]   Build cache is disabled
+[        ]   Caching not enabled.
+[+1599 ms] Invalidating in-memory cache of C:\Users\Haftom\.gradle\caches\8.14\fileHashes\fileHashes.bin
+[        ] Invalidating in-memory cache of C:\Users\Haftom\.gradle\caches\8.14\fileHashes\resourceHashesCache.bin
+[ +491 ms] Invalidating in-memory cache of C:\Users\Haftom\.gradle\caches\8.14\fileHashes\fileHashes.bin
+[        ] Invalidating in-memory cache of C:\Users\Haftom\.gradle\caches\8.14\fileHashes\resourceHashesCache.bin
+[ +695 ms] Invalidating in-memory cache of C:\Users\Haftom\.gradle\caches\8.14\fileHashes\fileHashes.bin
+[        ] Invalidating in-memory cache of C:\Users\Haftom\.gradle\caches\8.14\fileHashes\resourceHashesCache.bin
+[ +999 ms] Invalidating in-memory cache of C:\Users\Haftom\.gradle\caches\8.14\fileHashes\fileHashes.bin
+[        ] Invalidating in-memory cache of C:\Users\Haftom\.gradle\caches\8.14\fileHashes\resourceHashesCache.bin
+[+1210 ms] Invalidating in-memory cache of C:\Users\Haftom\.gradle\caches\8.14\fileHashes\fileHashes.bin
+[        ] Invalidating in-memory cache of C:\Users\Haftom\.gradle\caches\8.14\fileHashes\resourceHashesCache.bin
+[ +588 ms] Invalidating in-memory cache of C:\Users\Haftom\.gradle\caches\journal-1\file-access.bin
+[   +1 ms] Caching disabled for Groovy DSL script compilation (proj) because:
+[        ]   Build cache is disabled
+[        ]   Not worth caching.
+[ +109 ms] Compiling build file 'C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\cloud_firestore-5.6.12\android\build.gradle' using BuildScriptTransformer.
+[+25009 ms] Invalidating in-memory cache of C:\Users\Haftom\.gradle\caches\8.14\fileHashes\fileHashes.bin
+[   +3 ms] Invalidating in-memory cache of C:\Users\Haftom\.gradle\caches\8.14\fileHashes\resourceHashesCache.bin
+[ +177 ms] Invalidating in-memory cache of C:\Users\Haftom\.gradle\caches\journal-1\file-access.bin
+[+1887 ms] > Configure project :cloud_firestore
+[   +2 ms] Using default execution profile
+[   +1 ms] Caching disabled for Groovy DSL script compilation (cp_dsl) because:
+[   +1 ms]   Build cache is disabled
+[   +1 ms]   Not worth caching.
+[   +1 ms] Compiling script 'C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\cloud_firestore-5.6.12\android\local-config.gradle' using SubsetScriptTransformer.
+[   +1 ms] Caching disabled for Groovy DSL script compilation (dsl) because:
+[   +1 ms]   Build cache is disabled
+[   +1 ms]   Not worth caching.
+[   +1 ms] Compiling script 'C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\cloud_firestore-5.6.12\android\local-config.gradle' using BuildScriptTransformer.
+[ +936 ms] Invalidating in-memory cache of C:\Users\Haftom\.gradle\caches\journal-1\file-access.bin
+[   +1 ms] Caching disabled for Groovy DSL script compilation (cp_dsl) because:
+[        ]   Build cache is disabled
+[        ]   Not worth caching.
+[        ] Compiling script 'C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\cloud_firestore-5.6.12\android\user-agent.gradle' using SubsetScriptTransformer.
+[ +360 ms] Invalidating in-memory cache of C:\Users\Haftom\.gradle\caches\8.14\fileHashes\fileHashes.bin
+[        ] Invalidating in-memory cache of C:\Users\Haftom\.gradle\caches\8.14\fileHashes\resourceHashesCache.bin
+[ +402 ms] Caching disabled for Groovy DSL script compilation (dsl) because:
+[   +1 ms]   Build cache is disabled
+[   +1 ms]   Not worth caching.
+[  +29 ms] Compiling script 'C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\cloud_firestore-5.6.12\android\user-agent.gradle' using BuildScriptTransformer.
+[+4086 ms] > Configure project :firebase_auth
+[        ] Evaluating project ':firebase_auth' using build file 'C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_auth-5.7.0\android\build.gradle'.
+[   +1 ms] Caching disabled for Groovy DSL script compilation (cp_proj) because:
+[        ]   Build cache is disabled
+[        ]   Not worth caching.
+[        ] Compiling build file 'C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_auth-5.7.0\android\build.gradle' using SubsetScriptTransformer.
+[        ] Caching disabled for Groovy DSL script compilation (proj) because:
+[   +3 ms]   Build cache is disabled
+[        ]   Not worth caching.
+[        ] Compiling build file 'C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_auth-5.7.0\android\build.gradle' using BuildScriptTransformer.
+[        ] Using default execution profile
+[   +1 ms] Caching disabled for Groovy DSL script compilation (cp_dsl) because:
+[   +1 ms]   Build cache is disabled
+[        ]   Not worth caching.
+[        ] Compiling script 'C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_auth-5.7.0\android\user-agent.gradle' using SubsetScriptTransformer.
+[ +181 ms] Caching disabled for Groovy DSL script compilation (dsl) because:
+[   +1 ms]   Build cache is disabled
+[   +2 ms]   Not worth caching.
+[  +10 ms] Compiling script 'C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_auth-5.7.0\android\user-agent.gradle' using BuildScriptTransformer.
+[+7880 ms] > Configure project :firebase_core
+[   +3 ms] Evaluating project ':firebase_core' using build file 'C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_core-3.15.2\android\build.gradle'.
+[        ] Caching disabled for Groovy DSL script compilation (cp_proj) because:
+[        ]   Build cache is disabled
+[        ]   Not worth caching.
+[        ] Compiling build file 'C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_core-3.15.2\android\build.gradle' using SubsetScriptTransformer.
+[        ] Caching disabled for Groovy DSL script compilation (proj) because:
+[        ]   Build cache is disabled
+[        ]   Not worth caching.
+[        ] Compiling build file 'C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_core-3.15.2\android\build.gradle' using BuildScriptTransformer.
+[        ] Using default execution profile
+[        ] Caching disabled for Groovy DSL script compilation (cp_dsl) because:
+[   +1 ms]   Build cache is disabled
+[        ]   Not worth caching.
+[        ] Compiling script 'C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_core-3.15.2\android\user-agent.gradle' using SubsetScriptTransformer.
+[        ] Caching disabled for Groovy DSL script compilation (dsl) because:
+[        ]   Build cache is disabled
+[        ]   Not worth caching.
+[   +1 ms] Compiling script 'C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_core-3.15.2\android\user-agent.gradle' using BuildScriptTransformer.
+[ +172 ms] All projects evaluated.
+[ +111 ms] Task name matched 'assembleDebug'
+[        ] Selected primary task 'assembleDebug' from project :
+[+10916 ms] Adding -Xuse-inline-scopes-numbers Kotlin compiler flag for task :app:compileDebugKotlin
+[+5987 ms] Tasks to be executed: [task ':app:DebugMinSdkCheck', task ':app:preBuild', task ':app:preDebugBuild', task ':app:mergeDebugNativeDebugMetadata', task ':app:checkKotlinGradlePluginConfigurationErrors', task ':app:compileFlutterBuildDebug', task ':app:packJniLibsflutterBuildDebug', task ':cloud_firestore:preBuild', task ':cloud_firestore:preDebugBuild', task ':cloud_firestore:writeDebugAarMetadata', task ':firebase_auth:preBuild', task ':firebase_auth:preDebugBuild', task ':firebase_auth:writeDebugAarMetadata', task ':firebase_core:preBuild', task ':firebase_core:preDebugBuild', task ':firebase_core:writeDebugAarMetadata', task ':app:checkDebugAarMetadata', task ':app:cleanMergeDebugAssets', task ':app:mergeDebugShaders', task ':app:compileDebugShaders', task ':app:generateDebugAssets', task ':cloud_firestore:mergeDebugShaders', task ':cloud_firestore:compileDebugShaders', task ':cloud_firestore:generateDebugAssets', task ':cloud_firestore:mergeDebugAssets', task ':firebase_auth:mergeDebugShaders', task ':firebase_auth:compileDebugShaders', task ':firebase_auth:generateDebugAssets', task ':firebase_auth:mergeDebugAssets', task ':firebase_core:mergeDebugShaders', task ':firebase_core:compileDebugShaders', task ':firebase_core:generateDebugAssets', task ':firebase_core:mergeDebugAssets', task ':app:mergeDebugAssets', task ':app:copyFlutterAssetsDebug', task ':app:generateDebugResValues', task ':app:processDebugGoogleServices', task ':cloud_firestore:generateDebugResValues', task ':cloud_firestore:generateDebugResources', task ':cloud_firestore:packageDebugResources', task ':firebase_auth:generateDebugResValues', task ':firebase_auth:generateDebugResources', task ':firebase_auth:packageDebugResources', task ':firebase_core:generateDebugResValues', task ':firebase_core:generateDebugResources', task ':firebase_core:packageDebugResources', task ':app:mapDebugSourceSetPaths', task ':app:generateDebugResources', task ':app:mergeDebugResources', task ':app:packageDebugResources', task ':app:parseDebugLocalResources', task ':app:createDebugCompatibleScreenManifests', task ':app:extractDeepLinksDebug', task ':cloud_firestore:extractDeepLinksDebug', task ':cloud_firestore:processDebugManifest', task ':firebase_auth:extractDeepLinksDebug', task ':firebase_auth:processDebugManifest', task ':firebase_core:extractDeepLinksDebug', task ':firebase_core:processDebugManifest', task ':app:processDebugMainManifest', task ':app:outputDebugAppLinkSettings', task ':app:processDebugManifest', task ':app:processDebugManifestForPackage', task ':cloud_firestore:compileDebugLibraryResources', task ':cloud_firestore:parseDebugLocalResources', task ':cloud_firestore:generateDebugRFile', task ':firebase_auth:compileDebugLibraryResources', task ':firebase_auth:parseDebugLocalResources', task ':firebase_auth:generateDebugRFile', task ':firebase_core:compileDebugLibraryResources', task ':firebase_core:parseDebugLocalResources', task ':firebase_core:generateDebugRFile', task ':app:processDebugResources', task ':cloud_firestore:generateDebugBuildConfig', task ':cloud_firestore:javaPreCompileDebug', task ':firebase_core:generateDebugBuildConfig', task ':firebase_core:javaPreCompileDebug', task ':firebase_core:compileDebugJavaWithJavac', task ':firebase_core:bundleLibCompileToJarDebug', task ':cloud_firestore:compileDebugJavaWithJavac', task ':cloud_firestore:bundleLibCompileToJarDebug', task ':firebase_auth:generateDebugBuildConfig', task ':firebase_auth:javaPreCompileDebug', task ':firebase_auth:compileDebugJavaWithJavac', task ':firebase_auth:bundleLibCompileToJarDebug', task ':app:compileDebugKotlin', task ':app:javaPreCompileDebug', task ':app:compileDebugJavaWithJavac', task ':app:compressDebugAssets', task ':cloud_firestore:bundleLibRuntimeToJarDebug', task ':firebase_auth:bundleLibRuntimeToJarDebug', task ':firebase_core:bundleLibRuntimeToJarDebug', task ':app:desugarDebugFileDependencies', task ':app:dexBuilderDebug', task ':app:mergeDebugGlobalSynthetics', task ':app:processDebugJavaRes', task ':cloud_firestore:processDebugJavaRes', task ':firebase_auth:processDebugJavaRes', task ':firebase_core:processDebugJavaRes', task ':app:mergeDebugJavaResource', task ':app:checkDebugDuplicateClasses', task ':app:mergeExtDexDebug', task ':cloud_firestore:bundleLibRuntimeToDirDebug', task ':firebase_auth:bundleLibRuntimeToDirDebug', task ':firebase_core:bundleLibRuntimeToDirDebug', task ':app:mergeLibDexDebug', task ':app:mergeProjectDexDebug', task ':app:configureCMakeDebug[arm64-v8a]', task ':app:buildCMakeDebug[arm64-v8a]', task ':app:configureCMakeDebug[armeabi-v7a]', task ':app:buildCMakeDebug[armeabi-v7a]', task ':app:configureCMakeDebug[x86_64]', task ':app:buildCMakeDebug[x86_64]', task ':app:mergeDebugJniLibFolders', task ':cloud_firestore:mergeDebugJniLibFolders', task ':cloud_firestore:mergeDebugNativeLibs', task ':cloud_firestore:copyDebugJniLibsProjectOnly', task ':firebase_auth:mergeDebugJniLibFolders', task ':firebase_auth:mergeDebugNativeLibs', task ':firebase_auth:copyDebugJniLibsProjectOnly', task ':firebase_core:mergeDebugJniLibFolders', task ':firebase_core:mergeDebugNativeLibs', task ':firebase_core:copyDebugJniLibsProjectOnly', task ':app:mergeDebugNativeLibs', task ':app:stripDebugDebugSymbols', task ':app:validateSigningDebug', task ':app:writeDebugAppMetadata', task ':app:writeDebugSigningConfigVersions', task ':app:packageDebug', task ':app:createDebugApkListingFileRedirect', task ':app:assembleDebug', task ':cloud_firestore:stripDebugDebugSymbols', task ':cloud_firestore:copyDebugJniLibsProjectAndLocalJars', task ':cloud_firestore:extractDebugAnnotations', task ':cloud_firestore:extractDeepLinksForAarDebug', task ':cloud_firestore:mergeDebugGeneratedProguardFiles', task ':cloud_firestore:mergeDebugConsumerProguardFiles', task ':cloud_firestore:prepareDebugArtProfile', task ':cloud_firestore:prepareLintJarForPublish', task ':cloud_firestore:mergeDebugJavaResource', task ':cloud_firestore:syncDebugLibJars', task ':cloud_firestore:bundleDebugAar', task ':cloud_firestore:assembleDebug', task ':firebase_auth:stripDebugDebugSymbols', task ':firebase_auth:copyDebugJniLibsProjectAndLocalJars', task ':firebase_auth:extractDebugAnnotations', task ':firebase_auth:extractDeepLinksForAarDebug', task ':firebase_auth:mergeDebugGeneratedProguardFiles', task ':firebase_auth:mergeDebugConsumerProguardFiles', task ':firebase_auth:prepareDebugArtProfile', task ':firebase_auth:prepareLintJarForPublish', task ':firebase_auth:mergeDebugJavaResource', task ':firebase_auth:syncDebugLibJars', task ':firebase_auth:bundleDebugAar', task ':firebase_auth:assembleDebug', task ':firebase_core:stripDebugDebugSymbols', task ':firebase_core:copyDebugJniLibsProjectAndLocalJars', task ':firebase_core:extractDebugAnnotations', task ':firebase_core:extractDeepLinksForAarDebug', task ':firebase_core:mergeDebugGeneratedProguardFiles', task ':firebase_core:mergeDebugConsumerProguardFiles', task ':firebase_core:prepareDebugArtProfile', task ':firebase_core:prepareLintJarForPublish', task ':firebase_core:mergeDebugJavaResource', task ':firebase_core:syncDebugLibJars', task ':firebase_core:bundleDebugAar', task ':firebase_core:assembleDebug']
+[   +3 ms] Tasks that were excluded: []
+[+3600 ms] work action Parameters of IdentityTransform (Thread[#108,Execution worker,5,main]) started.
+[  +89 ms] work action Parameters of DexingNoClasspathTransform (Thread[#108,Execution worker,5,main]) started.
+[   +1 ms] work action Parameters of DexingOutputSplitTransform (Thread[#108,Execution worker,5,main]) started.
+[  +22 ms] work action Parameters of ClassesDirToClassesTransform (Thread[#143,included builds Thread 2,5,main]) started.
+[   +1 ms] work action Parameters of DexingOutputSplitTransform (Thread[#143,included builds Thread 2,5,main]) started.
+[        ] Resolve mutations for :app:DebugMinSdkCheck (Thread[#108,Execution worker,5,main]) started.
+[   +1 ms] :app:DebugMinSdkCheck (Thread[#108,Execution worker,5,main]) started.
+[ +430 ms] > Task :app:DebugMinSdkCheck
+[   +1 ms] Caching disabled for task ':app:DebugMinSdkCheck' because:
+[   +1 ms]   Build cache is disabled
+[        ] Task ':app:DebugMinSdkCheck' is not up-to-date because:
+[        ]   Task has not declared any outputs despite executing actions.
+[        ] Resolve mutations for :app:preBuild (Thread[#108,Execution worker,5,main]) started.
+[        ] :app:preBuild (Thread[#109,Execution worker Thread 2,5,main]) started.
+[  +12 ms] > Task :app:preBuild UP-TO-DATE
+[  +30 ms] Skipping task ':app:preBuild' as it has no actions.
+[  +59 ms] Resolve mutations for :app:preDebugBuild (Thread[#109,Execution worker Thread 2,5,main]) started.
+[  +55 ms] :app:preDebugBuild (Thread[#109,Execution worker Thread 2,5,main]) started.
+[  +54 ms] > Task :app:preDebugBuild UP-TO-DATE
+[  +80 ms] Skipping task ':app:preDebugBuild' as it has no actions.
+[  +29 ms] Resolve mutations for :app:mergeDebugNativeDebugMetadata (Thread[#108,Execution worker,5,main]) started.
+[  +46 ms] :app:mergeDebugNativeDebugMetadata (Thread[#108,Execution worker,5,main]) started.
+[  +53 ms] > Task :app:mergeDebugNativeDebugMetadata NO-SOURCE
+[  +17 ms] Skipping task ':app:mergeDebugNativeDebugMetadata' as it has no source files and no previous output files.
+[  +54 ms] Resolve mutations for :app:checkKotlinGradlePluginConfigurationErrors (Thread[#108,Execution worker,5,main]) started.
+[        ] :app:checkKotlinGradlePluginConfigurationErrors (Thread[#108,Execution worker,5,main]) started.
+[        ] > Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
+[        ] Skipping task ':app:checkKotlinGradlePluginConfigurationErrors' as task onlyIf 'errorDiagnostics are present' is false.
+[        ] Resolve mutations for :app:compileFlutterBuildDebug (Thread[#108,Execution worker,5,main]) started.
+[+2543 ms] :app:compileFlutterBuildDebug (Thread[#108,Execution worker,5,main]) started.
+[+1888 ms] > Task :app:compileFlutterBuildDebug
+[        ] Caching disabled for task ':app:compileFlutterBuildDebug' because:
+[   +1 ms]   Build cache is disabled
+[        ]   Caching has not been enabled for the task
+[   +3 ms] Task ':app:compileFlutterBuildDebug' is not up-to-date because:
+[        ]   No history is available.
+[   +4 ms] Starting process 'command 'C:\Users\Haftom\flutter\bin\flutter.bat''. Working directory: D:\Any code\Any code\Summer Code\All Before GUI\Semere_Fashions\semere_fashions Command: C:\Users\Haftom\flutter\bin\flutter.bat --verbose assemble --no-version-check --depfile D:\Any code\Any code\Summer Code\All Before GUI\Semere_Fashions\semere_fashions\build\app\intermediates\flutter\debug/flutter_build.d --output D:\Any code\Any code\Summer Code\All Before GUI\Semere_Fashions\semere_fashions\build\app\intermediates\flutter\debug -dTargetFile=D:\Any code\Any code\Summer Code\All Before GUI\Semere_Fashions\semere_fashions\lib\main.dart -dTargetPlatform=android -dBuildMode=debug -dTrackWidgetCreation=true --DartDefines=RkxVVFRFUl9WRVJTSU9OPTMuNDEuMQ==,RkxVVFRFUl9DSEFOTkVMPXN0YWJsZQ==,RkxVVFRFUl9HSVRfVVJMPWh0dHBzOi8vZ2l0aHViLmNvbS9mbHV0dGVyL2ZsdXR0ZXIuZ2l0,RkxVVFRFUl9GUkFNRVdPUktfUkVWSVNJT049NTgyYTBlN2M1NQ==,RkxVVFRFUl9FTkdJTkVfUkVWSVNJT049MzQ1MmQ3MzViZA==,RkxVVFRFUl9EQVJUX1ZFUlNJT049My4xMS4w -dFlavor= -dAndroidArchs=android-arm64 -dMinSdkVersion=24 debug_android_application
+[        ] Successfully started process 'command 'C:\Users\Haftom\flutter\bin\flutter.bat''
+[+6984 ms] Running 3 shutdown hooks
+[  +22 ms] Shutdown hooks complete
+[ +299 ms] exiting with code 0
+Terminate batch job (Y/N)? 
+^CTerminate batch job (Y/N)? 
+^CThe syntax of the command is incorrect.

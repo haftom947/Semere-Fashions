@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "585578517638",
+    "project_id": "semere-fashions-60efc",
+    "storage_bucket": "semere-fashions-60efc.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:585578517638:android:e44f9a6f591705c191ed07",
+        "android_client_info": {
+          "package_name": "com.example.semere_fashions"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBM1G5KL5h8-Um4EZhn1LK0LArCgBgyTbc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

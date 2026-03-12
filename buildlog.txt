@@ -1,0 +1,137 @@
+[ +958 ms] Artifact Instance of 'MaterialFonts' is not required, skipping update.
+[   +1 ms] Artifact Instance of 'GradleWrapper' is not required, skipping update.
+[        ] Artifact Instance of 'AndroidGenSnapshotArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'AndroidInternalBuildArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'IOSEngineArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'FlutterWebSdk' is not required, skipping update.
+[   +2 ms] Artifact Instance of 'LegacyCanvasKitRemover' is not required, skipping update.
+[        ] Artifact Instance of 'FlutterSdk' is not required, skipping update.
+[        ] Artifact Instance of 'WindowsEngineArtifacts' is not required, skipping update.
+[   +1 ms] Artifact Instance of 'MacOSEngineArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'LinuxEngineArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'LinuxFuchsiaSDKArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'MacOSFuchsiaSDKArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'FlutterRunnerSDKArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'FlutterRunnerDebugSymbols' is not required, skipping update.
+[        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'IosUsbArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'FontSubsetArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'PubDependencies' is not required, skipping update.
+[  +57 ms] executing: [C:\Users\Haftom\flutter/] git -c log.showSignature=false log HEAD -n 1 --pretty=format:%ad --date=iso
+[ +749 ms] Exit code 0 from: git -c log.showSignature=false log HEAD -n 1 --pretty=format:%ad --date=iso
+[        ] 2026-02-12 17:12:32 -0800
+[ +170 ms] Artifact Instance of 'AndroidGenSnapshotArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'AndroidInternalBuildArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'IOSEngineArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'FlutterWebSdk' is not required, skipping update.
+[        ] Artifact Instance of 'FlutterEngineStamp' is not required, skipping update.
+[        ] Artifact Instance of 'LegacyCanvasKitRemover' is not required, skipping update.
+[  +13 ms] Artifact Instance of 'WindowsEngineArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'MacOSEngineArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'LinuxEngineArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'LinuxFuchsiaSDKArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'MacOSFuchsiaSDKArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'FlutterRunnerSDKArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'FlutterRunnerDebugSymbols' is not required, skipping update.
+[ +312 ms] executing: C:\Users\Haftom\AppData\Local\Android\sdk\platform-tools\adb.exe devices -l
+[ +216 ms] List of devices attached
+           702356724F100321       device product:KJ5n-EU model:TECNO_Mobile_KJ5n device:TECNO-Mobile-KJ5n transport_id:1
+[  +12 ms] C:\Users\Haftom\AppData\Local\Android\sdk\platform-tools\adb.exe -s 702356724F100321 shell getprop
+[ +267 ms] Artifact Instance of 'AndroidInternalBuildArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'IOSEngineArtifacts' is not required, skipping update.
+[   +5 ms] Artifact Instance of 'FlutterEngineStamp' is not required, skipping update.
+[  +22 ms] Artifact Instance of 'MacOSEngineArtifacts' is not required, skipping update.
+[   +1 ms] Artifact Instance of 'LinuxEngineArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'LinuxFuchsiaSDKArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'MacOSFuchsiaSDKArtifacts' is not required, skipping update.
+[        ] Artifact Instance of 'FlutterRunnerSDKArtifacts' is not required, skipping update.
+[   +1 ms] Artifact Instance of 'FlutterRunnerDebugSymbols' is not required, skipping update.
+[ +820 ms] Skipping pub get: version match.
+[ +219 ms] Found plugin firebase_core at C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_core-3.15.2\
+[  +24 ms] Found plugin firebase_core_web at C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_core_web-2.24.1\
+[  +23 ms] Found plugin firebase_auth at C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_auth-5.7.0\
+[   +6 ms] Found plugin firebase_auth_web at C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_auth_web-5.15.3\
+[  +28 ms] Found plugin cloud_firestore at C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\cloud_firestore-5.6.12\
+[  +20 ms] Found plugin cloud_firestore_web at C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\cloud_firestore_web-4.4.12\
+[ +350 ms] Found plugin firebase_core at C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_core-3.15.2\
+[   +6 ms] Found plugin firebase_core_web at C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_core_web-2.24.1\
+[  +18 ms] Found plugin firebase_auth at C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_auth-5.7.0\
+[   +8 ms] Found plugin firebase_auth_web at C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_auth_web-5.15.3\
+[  +20 ms] Found plugin cloud_firestore at C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\cloud_firestore-5.6.12\
+[   +6 ms] Found plugin cloud_firestore_web at C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\cloud_firestore_web-4.4.12\
+[  +56 ms] Skipping generating web_plugin_registrant.dart because it is up-to-date.
+[  +85 ms] Found plugin firebase_core at C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_core-3.15.2\
+[   +4 ms] Found plugin firebase_core_web at C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_core_web-2.24.1\
+[  +13 ms] Found plugin firebase_auth at C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_auth-5.7.0\
+[   +3 ms] Found plugin firebase_auth_web at C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_auth_web-5.15.3\
+[  +16 ms] Found plugin cloud_firestore at C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\cloud_firestore-5.6.12\
+[   +5 ms] Found plugin cloud_firestore_web at C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\cloud_firestore_web-4.4.12\
+[  +20 ms] Generating D:\Any code\Any code\Summer Code\All Before GUI\Semere_Fashions\semere_fashions\android\app\src\main\java\io\flutter\plugins\GeneratedPluginRegistrant.java
+[   +6 ms] Skipping generating GeneratedPluginRegistrant.java because it is up-to-date.
+[  +14 ms] Skipping generating generated_plugin_registrant.h because it is up-to-date.
+[   +5 ms] Skipping generating generated_plugin_registrant.cc because it is up-to-date.
+[  +13 ms] Skipping generating generated_plugins.cmake because it is up-to-date.
+[  +15 ms] Skipping generating generated_plugin_registrant.h because it is up-to-date.
+[   +3 ms] Skipping generating generated_plugin_registrant.cc because it is up-to-date.
+[   +4 ms] Skipping generating generated_plugins.cmake because it is up-to-date.
+[  +24 ms] Skipping generating GeneratedPluginRegistrant.h because it is up-to-date.
+[  +14 ms] Skipping generating GeneratedPluginRegistrant.m because it is up-to-date.
+[  +12 ms] Skipping generating GeneratedPluginRegistrant.swift because it is up-to-date.
+[+1683 ms] ro.hardware = mt6768
+[        ] ro.build.characteristics = default
+[ +296 ms] Initializing file store
+[  +43 ms] Skipping target: gen_localizations
+[   +6 ms] gen_dart_plugin_registrant: Starting due to {InvalidatedReasonKind.inputChanged: The following inputs have updated contents: D:\Any code\Any code\Summer Code\All Before GUI\Semere_Fashions\semere_fashions\.dart_tool\package_config.json}
+[ +896 ms] Found plugin firebase_core at C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_core-3.15.2\
+[   +4 ms] Found plugin firebase_core_web at C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_core_web-2.24.1\
+[  +20 ms] Found plugin firebase_auth at C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_auth-5.7.0\
+[   +4 ms] Found plugin firebase_auth_web at C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\firebase_auth_web-5.15.3\
+[  +14 ms] Found plugin cloud_firestore at C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\cloud_firestore-5.6.12\
+[  +33 ms] Found plugin cloud_firestore_web at C:\Users\Haftom\AppData\Local\Pub\Cache\hosted\pub.dev\cloud_firestore_web-4.4.12\
+[  +20 ms] gen_dart_plugin_registrant: Complete
+[   +5 ms] Skipping target: _composite
+[   +3 ms] complete
+[  +28 ms] Launching lib\main.dart on TECNO Mobile KJ5n in debug mode...
+[  +37 ms] C:\Users\Haftom\flutter\bin\cache\dart-sdk\bin\dartaotruntime.exe C:\Users\Haftom\flutter\bin\cache\dart-sdk\bin\snapshots\frontend_server_aot.dart.snapshot --sdk-root C:\Users\Haftom\flutter\bin\cache\artifacts\engine\common\flutter_patched_sdk/ --incremental --target=flutter --experimental-emit-debug-metadata -DFLUTTER_VERSION=3.41.1 -DFLUTTER_CHANNEL=stable -DFLUTTER_GIT_URL=https://github.com/flutter/flutter.git -DFLUTTER_FRAMEWORK_REVISION=582a0e7c55 -DFLUTTER_ENGINE_REVISION=3452d735bd -DFLUTTER_DART_VERSION=3.11.0 --output-dill C:\Users\Haftom\AppData\Local\Temp\flutter_tools.637b35ac\flutter_tool.2ab3b6e5\app.dill --packages D:\Any code\Any code\Summer Code\All Before GUI\Semere_Fashions\semere_fashions\.dart_tool\package_config.json -Ddart.vm.profile=false -Ddart.vm.product=false --enable-asserts --track-widget-creation --filesystem-scheme org-dartlang-root --initialize-from-dill build\fa875cea96ff9eb23bebfb51f104f901.cache.dill.track.dill --verbosity=error --enable-experiment=alternative-invalidation-strategy
+[  +54 ms] executing: C:\Users\Haftom\AppData\Local\Android\sdk\platform-tools\adb.exe -s 702356724F100321 shell -x logcat -v time -t 1
+[ +143 ms] <- compile package:semere_fashions/main.dart
+[ +719 ms] --------- beginning of system
+           02-18 01:10:54.772 D/ActivityManager( 1446): getProcessesInErrorState callingUid=10241, CallingPid=11316
+[  +27 ms] executing: C:\Users\Haftom\AppData\Local\Android\sdk\platform-tools\adb.exe version
+[ +825 ms] Android Debug Bridge version 1.0.41
+           Version 36.0.0-13206524
+           Installed as C:\Users\Haftom\AppData\Local\Android\sdk\platform-tools\adb.exe
+           Running on Windows 10.0.26100
+[   +4 ms] executing: C:\Users\Haftom\AppData\Local\Android\sdk\platform-tools\adb.exe start-server
+[ +373 ms] Building APK
+[  +29 ms] executing: C:\Program Files\Android\Android Studio\jbr\bin\java -version
+[+1526 ms] Exit code 0 from: C:\Program Files\Android\Android Studio\jbr\bin\java -version
+[        ] openjdk version "21.0.8" 2025-07-15
+           OpenJDK Runtime Environment (build 21.0.8+-14196175-b1038.72)
+           OpenJDK 64-Bit Server VM (build 21.0.8+-14196175-b1038.72, mixed mode)
+[  +18 ms] Top-level Gradle build file not found, skipping migration of task "clean".
+[   +5 ms] executing: C:\Program Files\Android\Android Studio\jbr\bin\java --version
+[+1540 ms] Exit code 0 from: C:\Program Files\Android\Android Studio\jbr\bin\java --version
+[        ] openjdk 21.0.8 2025-07-15
+           OpenJDK Runtime Environment (build 21.0.8+-14196175-b1038.72)
+           OpenJDK 64-Bit Server VM (build 21.0.8+-14196175-b1038.72, mixed mode)
+[   +2 ms] Version of Java is different than impacted version, no migration attempted.
+[  +66 ms] CMake project not found, skipping support Android 15 16k page size migration.
+[ +216 ms] Using gradle from D:\Any code\Any code\Summer Code\All Before GUI\Semere_Fashions\semere_fashions\android\gradlew.bat.
+[ +112 ms] LocalFile: 'D:\Any code\Any code\Summer Code\All Before GUI\Semere_Fashions\semere_fashions\android\build.gradle.kts' doesn't provide an AGP version. Checking settings.
+[  +36 ms] LocalFile: 'D:\Any code\Any code\Summer Code\All Before GUI\Semere_Fashions\semere_fashions\android\settings.gradle.kts' provides AGP version: 8.11.1
+[  +33 ms] Running Gradle task 'assembleDebug'...
+[   +1 ms] executing: [D:\Any code\Any code\Summer Code\All Before GUI\Semere_Fashions\semere_fashions\android/] D:\Any code\Any code\Summer Code\All Before GUI\Semere_Fashions\semere_fashions\android\gradlew.bat --full-stacktrace --info -Pverbose=true -Ptarget-platform=android-arm64 -Ptarget=D:\Any code\Any code\Summer Code\All Before GUI\Semere_Fashions\semere_fashions\lib\main.dart -Pbase-application-name=android.app.Application -Pdart-defines=RkxVVFRFUl9WRVJTSU9OPTMuNDEuMQ==,RkxVVFRFUl9DSEFOTkVMPXN0YWJsZQ==,RkxVVFRFUl9HSVRfVVJMPWh0dHBzOi8vZ2l0aHViLmNvbS9mbHV0dGVyL2ZsdXR0ZXIuZ2l0,RkxVVFRFUl9GUkFNRVdPUktfUkVWSVNJT049NTgyYTBlN2M1NQ==,RkxVVFRFUl9FTkdJTkVfUkVWSVNJT049MzQ1MmQ3MzViZA==,RkxVVFRFUl9EQVJUX1ZFUlNJT049My4xMS4w -Pdart-obfuscation=false -Ptrack-widget-creation=true -Ptree-shake-icons=false -Pfilesystem-scheme=org-dartlang-root assembleDebug
+[+8731 ms] Initialized native services in: C:\Users\Haftom\.gradle\native
+[ +144 ms] Initialized jansi services in: C:\Users\Haftom\.gradle\native
+[+3459 ms] Removing 0 daemon stop events from registry
+[ +151 ms] Starting a Gradle Daemon, 2 busy Daemons could not be reused, use --status for details
+[ +441 ms] Starting process 'Gradle build daemon'. Working directory: C:\Users\Haftom\.gradle\daemon\8.14 Command: C:\Program Files\Android\Android Studio\jbr\bin\java.exe --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.prefs/java.util.prefs=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.prefs/java.util.prefs=ALL-UNNAMED --add-opens=java.base/java.nio.charset=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED --add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED --add-opens=java.xml/javax.xml.namespace=ALL-UNNAMED -XX:MaxMetaspaceSize=4G -XX:ReservedCodeCacheSize=512m -XX:+HeapDumpOnOutOfMemoryError -Xmx8G -Dfile.encoding=UTF-8 -Duser.country=US -Duser.language=en -Duser.variant -cp C:\Users\Haftom\.gradle\wrapper\dists\gradle-8.14-all\c2qonpi39x1mddn7hk5gh9iqj\gradle-8.14\lib\gradle-daemon-main-8.14.jar -javaagent:C:\Users\Haftom\.gradle\wrapper\dists\gradle-8.14-all\c2qonpi39x1mddn7hk5gh9iqj\gradle-8.14\lib\agents\gradle-instrumentation-agent-8.14.jar org.gradle.launcher.daemon.bootstrap.GradleDaemon 8.14
+[  +99 ms] Successfully started process 'Gradle build daemon'
+[+18968 ms] An attempt to start the daemon took 18.976 secs.
+[+1022 ms] The client will now receive all logging from the daemon (pid: 16872). The daemon log file: C:\Users\Haftom\.gradle\daemon\8.14\daemon-16872.out.log
+[        ] Starting build in new daemon [memory: 8 GiB]

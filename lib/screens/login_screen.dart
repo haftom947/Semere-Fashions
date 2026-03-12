@@ -1,0 +1,209 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import '../utils/colors.dart';
+import '../utils/error_handler.dart';
+
+class LoginScreen extends StatefulWidget {
+  @override
+  _LoginScreenState createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final TextEditingController _pinController = TextEditingController();
+  final FocusNode _pinFocusNode = FocusNode();
+  final FocusNode _rawKeyboardFocusNode = FocusNode();
+  bool _isLoading = false;
+  bool _obscurePin = true;
+
+  @override
+  void dispose() {
+    _pinController.dispose();
+    _pinFocusNode.dispose();
+    _rawKeyboardFocusNode.dispose();
+    super.dispose();
+  }
+
+  Future<void> _login() async {
+    String pin = _pinController.text.trim();
+
+    if (pin.isEmpty) {
+      ErrorHandler.showError(context, 'Please enter your PIN');
+      return;
+    }
+    if (pin.length != 6 || int.tryParse(pin) == null) {
+      ErrorHandler.showError(context, 'PIN must be exactly 6 digits');
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      String email = 'pin$pin@semere.local';
+
+      UserCredential userCredential = await FirebaseAuth.instance
+          .signInWithEmailAndPassword(email: email, password: pin);
+
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userCredential.user!.uid)
+          .get();
+
+      if (!userDoc.exists) {
+        throw Exception('User data not found. Please contact admin.');
+      }
+
+      String role = userDoc.get('role');
+      print('User role: "$role"');
+
+      // FCM token and topic subscription
+      FirebaseMessaging messaging = FirebaseMessaging.instance;
+      NotificationSettings settings = await messaging.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+
+      if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+        String? token = await messaging.getToken();
+        if (token != null) {
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(userCredential.user!.uid)
+              .set({'fcmToken': token}, SetOptions(merge: true));
+        }
+      }
+
+      if (role == 'admin' || role == 'manager') {
+        await messaging.subscribeToTopic('admins');
+      }
+
+      if (!mounted) return;
+
+      switch (role) {
+        case 'admin':
+          Navigator.pushNamedAndRemoveUntil(context, '/admin', (route) => false);
+          break;
+        case 'manager':
+          Navigator.pushNamedAndRemoveUntil(context, '/manager', (route) => false);
+          break;
+        case 'sales':
+          Navigator.pushNamedAndRemoveUntil(context, '/sales', (route) => false);
+          break;
+        case 'tailor':
+          Navigator.pushNamedAndRemoveUntil(context, '/tailor', (route) => false);
+          break;
+        default:
+          ErrorHandler.showError(context, 'Invalid role: "$role"');
+      }
+    } on FirebaseAuthException catch (e) {
+      String message = 'Login failed';
+      if (e.code == 'user-not-found' || e.code == 'wrong-password') {
+        message = 'Invalid PIN';
+      }
+      if (mounted) ErrorHandler.showError(context, message);
+    } catch (e) {
+      if (mounted) ErrorHandler.showError(context, 'Error: ${e.toString()}');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [AppColors.backgroundStart, AppColors.backgroundEnd],
+          ),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text(
+                  'Semere Fashions',
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.white,
+                  ),
+                ),
+                const SizedBox(height: 48),
+                RawKeyboardListener(
+                  focusNode: _rawKeyboardFocusNode,
+                  onKey: (event) {
+                    if (event.isKeyPressed(LogicalKeyboardKey.enter) && !_isLoading) {
+                      _login();
+                    }
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.white.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: TextFormField(
+                      controller: _pinController,
+                      focusNode: _pinFocusNode,
+                      keyboardType: TextInputType.number,
+                      obscureText: _obscurePin,
+                      maxLength: 6,
+                      style: const TextStyle(color: AppColors.white),
+                      decoration: InputDecoration(
+                        labelText: 'Enter your 6-digit PIN',
+                        labelStyle: const TextStyle(color: AppColors.white),
+                        prefixIcon: const Icon(Icons.lock, color: AppColors.white),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscurePin ? Icons.visibility_off : Icons.visibility,
+                            color: AppColors.white,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _obscurePin = !_obscurePin;
+                            });
+                          },
+                        ),
+                        border: InputBorder.none,
+                        contentPadding:
+                            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: _isLoading ? null : _login,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primaryRed,
+                      foregroundColor: AppColors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: _isLoading
+                        ? const CircularProgressIndicator(color: AppColors.white)
+                        : const Text(
+                            'Login',
+                            style: TextStyle(fontSize: 18),
+                          ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
