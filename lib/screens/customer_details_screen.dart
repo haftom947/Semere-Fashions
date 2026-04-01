@@ -7,7 +7,11 @@ import 'add_measurement_screen.dart';
 class CustomerDetailsScreen extends StatefulWidget {
   final String customerId;
   final String customerName;
-  const CustomerDetailsScreen({Key? key, required this.customerId, required this.customerName}) : super(key: key);
+  const CustomerDetailsScreen({
+    super.key,
+    required this.customerId,
+    required this.customerName,
+  });
 
   @override
   _CustomerDetailsScreenState createState() => _CustomerDetailsScreenState();
@@ -28,9 +32,13 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
   Future<void> _loadData() async {
     var types = await _dbHelper.query('measurement_types');
     var allMeasurements = await _dbHelper.query('measurements');
-    var filtered = allMeasurements.where((m) => m['customer_id'] == widget.customerId).toList();
+    var filtered = allMeasurements
+        .where((m) => m['customer_id'] == widget.customerId)
+        .toList();
     // Sort by date taken (most recent first)
-    filtered.sort((a, b) => (b['date_taken'] as int).compareTo(a['date_taken'] as int));
+    filtered.sort(
+      (a, b) => (b['date_taken'] as int).compareTo(a['date_taken'] as int),
+    );
     if (mounted) {
       setState(() {
         _types = types;
@@ -43,16 +51,27 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
   Future<void> _deleteMeasurement(String id) async {
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Measurement'),
-        content: const Text('Are you sure you want to delete this measurement?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete', style: TextStyle(color: AppColors.error)),
+      builder: (context) => Theme(
+        data: ThemeData.light(),
+        child: AlertDialog(
+          title: const Text('Delete Measurement'),
+          content: const Text(
+            'Are you sure you want to delete this measurement?',
           ),
-        ],
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text(
+                'Delete',
+                style: TextStyle(color: AppColors.error),
+              ),
+            ),
+          ],
+        ),
       ),
     );
     if (confirm == true) {
@@ -81,40 +100,49 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
         child: _isLoading
             ? const Center(child: CircularProgressIndicator())
             : _measurements.isEmpty
-                ? const Center(
-                    child: Text('No measurements yet. Tap + to add.',
-                        style: TextStyle(color: AppColors.white)),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: _measurements.length,
-                    itemBuilder: (context, index) {
-                      var measurement = _measurements[index];
-                      var type = _types.firstWhere(
-                        (t) => t['id'] == measurement['measurement_type_id'],
-                        orElse: () => {'name': 'Unknown', 'unit': ''},
-                      );
-                      DateTime date = DateTime.fromMillisecondsSinceEpoch(measurement['date_taken']);
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 8),
-                        child: ListTile(
-                          title: Text('${type['name']}: ${measurement['value']} ${type['unit'] ?? ''}'),
-                          subtitle: Text('Date: ${date.day}/${date.month}/${date.year}'),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.delete, color: AppColors.error),
-                            onPressed: () => _deleteMeasurement(measurement['id']),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
+            ? const Center(
+                child: Text(
+                  'No measurements yet. Tap + to add.',
+                  style: TextStyle(color: AppColors.white),
+                ),
+              )
+            : ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: _measurements.length,
+                itemBuilder: (context, index) {
+                  var measurement = _measurements[index];
+                  var type = _types.firstWhere(
+                    (t) => t['id'] == measurement['measurement_type_id'],
+                    orElse: () => {'name': 'Unknown', 'unit': ''},
+                  );
+                  DateTime date = DateTime.fromMillisecondsSinceEpoch(
+                    measurement['date_taken'],
+                  );
+                  return Card(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    child: ListTile(
+                      title: Text(
+                        '${type['name']}: ${measurement['value']} ${type['unit'] ?? ''}',
+                      ),
+                      subtitle: Text(
+                        'Date: ${date.day}/${date.month}/${date.year}',
+                      ),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.delete, color: AppColors.error),
+                        onPressed: () => _deleteMeasurement(measurement['id']),
+                      ),
+                    ),
+                  );
+                },
+              ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => AddMeasurementScreen(customerId: widget.customerId),
+              builder: (context) =>
+                  AddMeasurementScreen(customerId: widget.customerId),
             ),
           ).then((_) {
             if (mounted) {

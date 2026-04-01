@@ -6,7 +6,7 @@ import '../utils/colors.dart';
 
 class CustomerSelector extends StatefulWidget {
   final Function(String customerId, String customerName) onCustomerSelected;
-  const CustomerSelector({Key? key, required this.onCustomerSelected}) : super(key: key);
+  const CustomerSelector({super.key, required this.onCustomerSelected});
 
   @override
   _CustomerSelectorState createState() => _CustomerSelectorState();
@@ -31,9 +31,13 @@ class _CustomerSelectorState extends State<CustomerSelector> {
 
   Future<void> _loadRecentCustomers() async {
     var allCustomers = await _dbHelper.query('customers');
-    allCustomers.sort((a, b) => (b['createdAt'] ?? 0).compareTo(a['createdAt'] ?? 0));
+    allCustomers.sort(
+      (a, b) => (b['createdAt'] ?? 0).compareTo(a['createdAt'] ?? 0),
+    );
     setState(() {
-      _recentCustomers = allCustomers.take(2).toList(); // Show only 2 recent customers
+      _recentCustomers = allCustomers
+          .take(2)
+          .toList(); // Show only 2 recent customers
     });
   }
 
@@ -44,10 +48,13 @@ class _CustomerSelectorState extends State<CustomerSelector> {
     }
     var allCustomers = await _dbHelper.query('customers');
     setState(() {
-      _searchResults = allCustomers.where((c) =>
-        (c['name'] ?? '').toLowerCase().contains(query.toLowerCase()) ||
-        (c['phone'] ?? '').contains(query)
-      ).toList();
+      _searchResults = allCustomers
+          .where(
+            (c) =>
+                (c['name'] ?? '').toLowerCase().contains(query.toLowerCase()) ||
+                (c['phone'] ?? '').contains(query),
+          )
+          .toList();
     });
   }
 
@@ -56,7 +63,10 @@ class _CustomerSelectorState extends State<CustomerSelector> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Customer', style: TextStyle(color: AppColors.white, fontWeight: FontWeight.w600)),
+        const Text(
+          'Customer',
+          style: TextStyle(color: AppColors.white, fontWeight: FontWeight.w600),
+        ),
         const SizedBox(height: 8),
         if (_selectedCustomerId != null)
           Container(
@@ -105,8 +115,14 @@ class _CustomerSelectorState extends State<CustomerSelector> {
                     style: const TextStyle(color: AppColors.white),
                     decoration: InputDecoration(
                       hintText: 'Search customer...',
-                      hintStyle: TextStyle(color: AppColors.white.withOpacity(0.5)),
-                      prefixIcon: const Icon(Icons.search, color: AppColors.white, size: 20),
+                      hintStyle: TextStyle(
+                        color: AppColors.white.withOpacity(0.5),
+                      ),
+                      prefixIcon: const Icon(
+                        Icons.search,
+                        color: AppColors.white,
+                        size: 20,
+                      ),
                       border: InputBorder.none,
                     ),
                     onChanged: _filterCustomers,
@@ -114,70 +130,125 @@ class _CustomerSelectorState extends State<CustomerSelector> {
                 ),
 
                 // Recent customers (only if search is empty)
-                if (_searchController.text.isEmpty && _recentCustomers.isNotEmpty) ...[
-                  const Divider(color: AppColors.white, height: 1, thickness: 0.5),
+                if (_searchController.text.isEmpty &&
+                    _recentCustomers.isNotEmpty) ...[
+                  const Divider(
+                    color: AppColors.white,
+                    height: 1,
+                    thickness: 0.5,
+                  ),
                   const Padding(
                     padding: EdgeInsets.all(8.0),
-                    child: Text('Recent', style: TextStyle(color: AppColors.white, fontSize: 12)),
-                  ),
-                  ..._recentCustomers.map((c) => ListTile(
-                    dense: true,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-                    leading: CircleAvatar(
-                      radius: 16,
-                      backgroundColor: AppColors.primaryRed,
-                      child: Text(
-                        (c['name'] ?? '?')[0].toUpperCase(),
-                        style: const TextStyle(color: AppColors.white, fontSize: 12),
-                      ),
+                    child: Text(
+                      'Recent',
+                      style: TextStyle(color: AppColors.white, fontSize: 12),
                     ),
-                    title: Text(c['name'] ?? '', style: const TextStyle(color: AppColors.white, fontSize: 14)),
-                    subtitle: c['phone'] != null
-                        ? Text(c['phone'], style: TextStyle(color: AppColors.white.withOpacity(0.7), fontSize: 12))
-                        : null,
-                    onTap: () {
-                      setState(() {
-                        _selectedCustomerId = c['id'];
-                        _selectedCustomerName = c['name'] ?? '';
-                      });
-                      widget.onCustomerSelected(c['id'], c['name'] ?? '');
-                    },
-                  )),
+                  ),
+                  ..._recentCustomers.map(
+                    (c) => ListTile(
+                      dense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 0,
+                      ),
+                      leading: CircleAvatar(
+                        radius: 16,
+                        backgroundColor: AppColors.primaryRed,
+                        child: Text(
+                          (c['name'] ?? '?')[0].toUpperCase(),
+                          style: const TextStyle(
+                            color: AppColors.white,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                      title: Text(
+                        c['name'] ?? '',
+                        style: const TextStyle(
+                          color: AppColors.white,
+                          fontSize: 14,
+                        ),
+                      ),
+                      subtitle: c['phone'] != null
+                          ? Text(
+                              c['phone'],
+                              style: TextStyle(
+                                color: AppColors.white.withOpacity(0.7),
+                                fontSize: 12,
+                              ),
+                            )
+                          : null,
+                      onTap: () {
+                        setState(() {
+                          _selectedCustomerId = c['id'];
+                          _selectedCustomerName = c['name'] ?? '';
+                        });
+                        widget.onCustomerSelected(c['id'], c['name'] ?? '');
+                      },
+                    ),
+                  ),
                 ],
 
                 // Search results
                 if (_searchResults.isNotEmpty)
-                  ..._searchResults.map((c) => ListTile(
-                    dense: true,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-                    leading: CircleAvatar(
-                      radius: 16,
-                      backgroundColor: AppColors.primaryRed,
-                      child: Text(
-                        (c['name'] ?? '?')[0].toUpperCase(),
-                        style: const TextStyle(color: AppColors.white, fontSize: 12),
+                  ..._searchResults.map(
+                    (c) => ListTile(
+                      dense: true,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 0,
                       ),
+                      leading: CircleAvatar(
+                        radius: 16,
+                        backgroundColor: AppColors.primaryRed,
+                        child: Text(
+                          (c['name'] ?? '?')[0].toUpperCase(),
+                          style: const TextStyle(
+                            color: AppColors.white,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                      title: Text(
+                        c['name'] ?? '',
+                        style: const TextStyle(
+                          color: AppColors.white,
+                          fontSize: 14,
+                        ),
+                      ),
+                      subtitle: c['phone'] != null
+                          ? Text(
+                              c['phone'],
+                              style: TextStyle(
+                                color: AppColors.white.withOpacity(0.7),
+                                fontSize: 12,
+                              ),
+                            )
+                          : null,
+                      onTap: () {
+                        setState(() {
+                          _selectedCustomerId = c['id'];
+                          _selectedCustomerName = c['name'] ?? '';
+                        });
+                        widget.onCustomerSelected(c['id'], c['name'] ?? '');
+                      },
                     ),
-                    title: Text(c['name'] ?? '', style: const TextStyle(color: AppColors.white, fontSize: 14)),
-                    subtitle: c['phone'] != null
-                        ? Text(c['phone'], style: TextStyle(color: AppColors.white.withOpacity(0.7), fontSize: 12))
-                        : null,
-                    onTap: () {
-                      setState(() {
-                        _selectedCustomerId = c['id'];
-                        _selectedCustomerName = c['name'] ?? '';
-                      });
-                      widget.onCustomerSelected(c['id'], c['name'] ?? '');
-                    },
-                  )),
+                  ),
 
                 // Add new customer button
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: TextButton.icon(
                     onPressed: _showAddCustomerDialog,
-                    icon: const Icon(Icons.add, color: AppColors.white, size: 18),
-                    label: const Text('Add new customer', style: TextStyle(color: AppColors.white)),
+                    icon: const Icon(
+                      Icons.add,
+                      color: AppColors.white,
+                      size: 18,
+                    ),
+                    label: const Text(
+                      'Add new customer',
+                      style: TextStyle(color: AppColors.white),
+                    ),
                   ),
                 ),
               ],
@@ -192,67 +263,77 @@ class _CustomerSelectorState extends State<CustomerSelector> {
     _newPhoneController.clear();
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Add New Customer'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: _newNameController,
-              decoration: const InputDecoration(
-                labelText: 'Name *',
-                hintText: 'Enter customer name',
+      builder: (context) => Theme(
+        data: ThemeData.light(),
+        child: AlertDialog(
+          title: const Text('Add New Customer'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: _newNameController,
+                style: const TextStyle(color: AppColors.black), // ← dark text
+                decoration: const InputDecoration(
+                  labelText: 'Name *',
+                  hintText: 'Enter customer name',
+                  labelStyle: TextStyle(color: AppColors.darkGrey),
+                  hintStyle: TextStyle(color: AppColors.mediumGrey),
+                ),
+                autofocus: true,
               ),
-              autofocus: true,
+              const SizedBox(height: 12),
+              TextField(
+                controller: _newPhoneController,
+                style: const TextStyle(color: AppColors.black), // ← dark text
+                decoration: const InputDecoration(
+                  labelText: 'Phone',
+                  hintText: 'Enter phone number',
+                  labelStyle: TextStyle(color: AppColors.darkGrey),
+                  hintStyle: TextStyle(color: AppColors.mediumGrey),
+                ),
+                keyboardType: TextInputType.phone,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
             ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _newPhoneController,
-              decoration: const InputDecoration(
-                labelText: 'Phone',
-                hintText: 'Enter phone number',
-              ),
-              keyboardType: TextInputType.phone,
+            ElevatedButton(
+              onPressed: () async {
+                if (_newNameController.text.trim().isEmpty) return;
+                try {
+                  String id = DateTime.now().millisecondsSinceEpoch.toString();
+                  Map<String, dynamic> data = {
+                    'id': id,
+                    'name': _newNameController.text.trim(),
+                    'phone': _newPhoneController.text.trim(),
+                    'createdAt': DateTime.now().millisecondsSinceEpoch,
+                  };
+                  await _dbHelper.insert('customers', data);
+                  var connectivityResult = await Connectivity()
+                      .checkConnectivity();
+                  if (connectivityResult != ConnectivityResult.none) {
+                    _syncService.syncAll();
+                  }
+                  setState(() {
+                    _selectedCustomerId = id;
+                    _selectedCustomerName = _newNameController.text.trim();
+                  });
+                  widget.onCustomerSelected(id, _newNameController.text.trim());
+                  Navigator.pop(context);
+                  _loadRecentCustomers(); // refresh recent list
+                } catch (e) {
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text('Error: $e')));
+                }
+              },
+              child: const Text('Add'),
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              if (_newNameController.text.trim().isEmpty) return;
-              try {
-                String id = DateTime.now().millisecondsSinceEpoch.toString();
-                Map<String, dynamic> data = {
-                  'id': id,
-                  'name': _newNameController.text.trim(),
-                  'phone': _newPhoneController.text.trim(),
-                  'createdAt': DateTime.now().millisecondsSinceEpoch,
-                };
-                await _dbHelper.insert('customers', data);
-                var connectivityResult = await Connectivity().checkConnectivity();
-                if (connectivityResult != ConnectivityResult.none) {
-                  _syncService.syncAll();
-                }
-                setState(() {
-                  _selectedCustomerId = id;
-                  _selectedCustomerName = _newNameController.text.trim();
-                });
-                widget.onCustomerSelected(id, _newNameController.text.trim());
-                Navigator.pop(context);
-                _loadRecentCustomers(); // refresh recent list
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Error: $e')),
-                );
-              }
-            },
-            child: const Text('Add'),
-          ),
-        ],
       ),
     );
   }

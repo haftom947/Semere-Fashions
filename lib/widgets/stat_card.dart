@@ -53,10 +53,7 @@ class StatCard extends StatelessWidget {
             SizedBox(height: 8),
             Text(
               title,
-              style: TextStyle(
-                fontSize: 12,
-                color: AppColors.mediumGrey,
-              ),
+              style: TextStyle(fontSize: 12, color: AppColors.mediumGrey),
             ),
           ],
         ),

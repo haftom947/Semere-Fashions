@@ -20,19 +20,31 @@ class PdfGenerator {
         build: (context) => [
           pw.Header(
             level: 0,
-            child: pw.Text('Sales Report', style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
+            child: pw.Text(
+              'Sales Report',
+              style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
+            ),
           ),
           pw.SizedBox(height: 20),
           pw.Row(
             mainAxisAlignment: pw.MainAxisAlignment.spaceEvenly,
             children: [
               _buildStatCard('Total Orders', totalOrders.toString()),
-              _buildStatCard('Revenue', 'ETB ${totalRevenue.toStringAsFixed(2)}'),
-              _buildStatCard('Avg Order', 'ETB ${avgOrderValue.toStringAsFixed(2)}'),
+              _buildStatCard(
+                'Revenue',
+                'ETB ${totalRevenue.toStringAsFixed(2)}',
+              ),
+              _buildStatCard(
+                'Avg Order',
+                'ETB ${avgOrderValue.toStringAsFixed(2)}',
+              ),
             ],
           ),
           pw.SizedBox(height: 30),
-          pw.Text('Daily Sales (Last 7 days)', style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
+          pw.Text(
+            'Daily Sales (Last 7 days)',
+            style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+          ),
           pw.SizedBox(height: 10),
           pw.Table.fromTextArray(
             data: [
@@ -43,8 +55,10 @@ class PdfGenerator {
             headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
           ),
           pw.SizedBox(height: 30),
-          pw.Text('Generated on ${DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now())}',
-              style: const pw.TextStyle(fontSize: 10)),
+          pw.Text(
+            'Generated on ${DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now())}',
+            style: const pw.TextStyle(fontSize: 10),
+          ),
         ],
       ),
     );
@@ -65,18 +79,30 @@ class PdfGenerator {
         build: (context) => [
           pw.Header(
             level: 0,
-            child: pw.Text('Products Report', style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
+            child: pw.Text(
+              'Products Report',
+              style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
+            ),
           ),
           pw.SizedBox(height: 20),
           pw.Row(
             mainAxisAlignment: pw.MainAxisAlignment.spaceEvenly,
             children: [
               _buildStatCard('Total Products', products.length.toString()),
-              _buildStatCard('Low Stock', products.where((p) => (p['stock'] ?? 0) < (p['minimumLevel'] ?? 5)).length.toString()),
+              _buildStatCard(
+                'Low Stock',
+                products
+                    .where((p) => (p['stock'] ?? 0) < (p['minimumLevel'] ?? 5))
+                    .length
+                    .toString(),
+              ),
             ],
           ),
           pw.SizedBox(height: 30),
-          pw.Text('Top 5 Products by Quantity Sold', style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
+          pw.Text(
+            'Top 5 Products by Quantity Sold',
+            style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+          ),
           pw.SizedBox(height: 10),
           if (topProducts.isEmpty)
             pw.Text('No product sales data')
@@ -84,14 +110,22 @@ class PdfGenerator {
             pw.Table.fromTextArray(
               data: [
                 ['Product', 'Quantity Sold', 'Revenue (ETB)'],
-                ...topProducts.map((p) => [p['name'], p['quantity'].toString(), 'ETB ${p['revenue'].toStringAsFixed(2)}']),
+                ...topProducts.map(
+                  (p) => [
+                    p['name'],
+                    p['quantity'].toString(),
+                    'ETB ${p['revenue'].toStringAsFixed(2)}',
+                  ],
+                ),
               ],
               border: pw.TableBorder.all(),
               headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
             ),
           pw.SizedBox(height: 30),
-          pw.Text('Generated on ${DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now())}',
-              style: const pw.TextStyle(fontSize: 10)),
+          pw.Text(
+            'Generated on ${DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now())}',
+            style: const pw.TextStyle(fontSize: 10),
+          ),
         ],
       ),
     );
@@ -115,7 +149,10 @@ class PdfGenerator {
         build: (context) => [
           pw.Header(
             level: 0,
-            child: pw.Text('Employees Report', style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
+            child: pw.Text(
+              'Employees Report',
+              style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold),
+            ),
           ),
           pw.SizedBox(height: 20),
           pw.Row(
@@ -126,7 +163,10 @@ class PdfGenerator {
             ],
           ),
           pw.SizedBox(height: 30),
-          pw.Text('Commission Summary', style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
+          pw.Text(
+            'Commission Summary',
+            style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+          ),
           pw.SizedBox(height: 10),
           pw.Table.fromTextArray(
             data: [
@@ -139,8 +179,10 @@ class PdfGenerator {
             headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
           ),
           pw.SizedBox(height: 30),
-          pw.Text('Generated on ${DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now())}',
-              style: const pw.TextStyle(fontSize: 10)),
+          pw.Text(
+            'Generated on ${DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now())}',
+            style: const pw.TextStyle(fontSize: 10),
+          ),
         ],
       ),
     );
@@ -158,7 +200,10 @@ class PdfGenerator {
       ),
       child: pw.Column(
         children: [
-          pw.Text(value, style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold)),
+          pw.Text(
+            value,
+            style: pw.TextStyle(fontSize: 20, fontWeight: pw.FontWeight.bold),
+          ),
           pw.SizedBox(height: 5),
           pw.Text(label),
         ],

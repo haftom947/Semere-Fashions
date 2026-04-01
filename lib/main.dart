@@ -1,3 +1,5 @@
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'firebase_options.dart';
@@ -38,25 +40,59 @@ import 'screens/add_edit_employee_payment_screen.dart';
 import 'screens/supplier_materials_screen.dart';
 import 'screens/leave_request_screen.dart';
 import 'screens/leave_requests_list_screen.dart';
+import 'screens/record_payment_screen.dart';
 import 'services/notification_service.dart';
 import 'services/rent_service.dart';
 import 'services/low_stock_service.dart';
+import 'services/sync_service.dart';
+import 'services/database_helper.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // NEW: Check if current Firebase user exists in local database
+  final user = FirebaseAuth.instance.currentUser;
+  String? storedRole;
+  if (user != null) {
+    final prefs = await SharedPreferences.getInstance();
+    storedRole = prefs.getString('userRole');
+  }
+
+  String initialRoute;
+  if (user != null && storedRole != null) {
+    // User is already logged in, go to appropriate home screen
+    switch (storedRole) {
+      case 'admin':
+        initialRoute = '/admin';
+        break;
+      case 'manager':
+        initialRoute = '/manager';
+        break;
+      case 'sales':
+        initialRoute = '/sales';
+        break;
+      case 'tailor':
+        initialRoute = '/tailor';
+        break;
+      default:
+        initialRoute = '/login';
+    }
+  } else {
+    initialRoute = '/login';
+  }
 
   await NotificationService().init();
   await RentService().generateRentDuesIfNeeded();
   await LowStockService().checkAndNotify();
+  SyncService().syncAll();
 
-  runApp(const MyApp());
+  runApp(MyApp(initialRoute: initialRoute));   // ✅ pass the route
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final String initialRoute;
+  const MyApp({Key? key, required this.initialRoute}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -104,9 +140,7 @@ class MyApp extends StatelessWidget {
           ),
         ),
         textButtonTheme: TextButtonThemeData(
-          style: TextButton.styleFrom(
-            foregroundColor: AppColors.white,
-          ),
+          style: TextButton.styleFrom(foregroundColor: AppColors.white),
         ),
         inputDecorationTheme: InputDecorationTheme(
           border: OutlineInputBorder(
@@ -123,7 +157,7 @@ class MyApp extends StatelessWidget {
           labelStyle: const TextStyle(color: AppColors.white),
         ),
       ),
-      initialRoute: '/login',
+      initialRoute: initialRoute,
       routes: {
         '/create-order': (context) => CreateOrderScreen(),
         '/branches': (context) => BranchListScreen(),
@@ -151,16 +185,16 @@ class MyApp extends StatelessWidget {
         '/accounts': (context) => AccountListScreen(),
         '/cashflow': (context) => CashFlowScreen(),
         '/production': (context) => ProductionOrderScreen(),
-        '/employee_payments': (context) => EmployeePaymentsScreen(employeeId: '', employeeName: ''),
+        '/employee_payments': (context) =>
+            EmployeePaymentsScreen(employeeId: '', employeeName: ''),
         '/leave_request': (context) => LeaveRequestScreen(),
         '/leave_requests': (context) => LeaveRequestsListScreen(),
+        '/record-payment': (context) => const RecordPaymentScreen(),
       },
       onUnknownRoute: (RouteSettings settings) {
         return MaterialPageRoute(
           builder: (context) => Scaffold(
-            body: Center(
-              child: Text('Route ${settings.name} not found'),
-            ),
+            body: Center(child: Text('Route ${settings.name} not found')),
           ),
         );
       },

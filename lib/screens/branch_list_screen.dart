@@ -31,7 +31,9 @@ class _BranchListScreenState extends State<BranchListScreen> {
 
   Future<void> _loadBranches() async {
     setState(() => _isLoading = true);
-    var branches = await _dbHelper.query('branches');
+    var branches = List<Map<String, dynamic>>.from(
+      await _dbHelper.query('branches'),
+    );
     branches.sort((a, b) => (a['name'] ?? '').compareTo(b['name'] ?? ''));
     setState(() {
       _branches = branches;
@@ -51,7 +53,7 @@ class _BranchListScreenState extends State<BranchListScreen> {
     setState(() {
       _uiBranches = _branches.where((b) {
         return (b['name'] ?? '').toLowerCase().contains(lowerQuery) ||
-               (b['location'] ?? '').toLowerCase().contains(lowerQuery);
+            (b['location'] ?? '').toLowerCase().contains(lowerQuery);
       }).toList();
     });
   }
@@ -59,16 +61,25 @@ class _BranchListScreenState extends State<BranchListScreen> {
   Future<void> _deleteBranch(String id, String name) async {
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Branch'),
-        content: Text('Are you sure you want to delete $name?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete', style: TextStyle(color: AppColors.error)),
-          ),
-        ],
+      builder: (context) => Theme(
+        data: ThemeData.light(),
+        child: AlertDialog(
+          title: const Text('Delete Branch'),
+          content: Text('Are you sure you want to delete $name?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text(
+                'Delete',
+                style: TextStyle(color: AppColors.error),
+              ),
+            ),
+          ],
+        ),
       ),
     );
     if (confirm != true) return;
@@ -103,7 +114,9 @@ class _BranchListScreenState extends State<BranchListScreen> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const AddEditBranchScreen()),
+                MaterialPageRoute(
+                  builder: (context) => const AddEditBranchScreen(),
+                ),
               ).then((_) => _loadBranches());
             },
           ),
@@ -144,57 +157,81 @@ class _BranchListScreenState extends State<BranchListScreen> {
           child: _isLoading
               ? const Center(child: CircularProgressIndicator())
               : _uiBranches.isEmpty
-                  ? const Center(
-                      child: Text('No branches found.', style: TextStyle(color: AppColors.white)),
-                    )
-                  : ListView.separated(
-                      padding: const EdgeInsets.all(8),
-                      itemCount: _uiBranches.length,
-                      separatorBuilder: (_, __) => const Divider(color: AppColors.white, height: 0.5),
-                      itemBuilder: (context, index) {
-                        var branch = _uiBranches[index];
-                        return ListTile(
-                          leading: CircleAvatar(
-                            radius: 18,
-                            backgroundColor: AppColors.primaryRed,
-                            child: Text(
-                              (branch['name'] ?? '?')[0].toUpperCase(),
-                              style: const TextStyle(color: AppColors.white, fontSize: 14),
+              ? const Center(
+                  child: Text(
+                    'No branches found.',
+                    style: TextStyle(color: AppColors.white),
+                  ),
+                )
+              : ListView.separated(
+                  padding: const EdgeInsets.all(8),
+                  itemCount: _uiBranches.length,
+                  separatorBuilder: (_, __) =>
+                      const Divider(color: AppColors.white, height: 0.5),
+                  itemBuilder: (context, index) {
+                    var branch = _uiBranches[index];
+                    return ListTile(
+                      leading: CircleAvatar(
+                        radius: 18,
+                        backgroundColor: AppColors.primaryRed,
+                        child: Text(
+                          (branch['name'] ?? '?')[0].toUpperCase(),
+                          style: const TextStyle(
+                            color: AppColors.white,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                      title: Text(
+                        branch['name'] ?? 'Unnamed',
+                        style: const TextStyle(
+                          color: AppColors.white,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      subtitle: branch['location'] != null
+                          ? Text(
+                              branch['location'],
+                              style: TextStyle(
+                                color: AppColors.white.withOpacity(0.7),
+                              ),
+                            )
+                          : null,
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(
+                              Icons.edit,
+                              color: AppColors.primaryRed,
+                              size: 20,
+                            ),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      AddEditBranchScreen(branchData: branch),
+                                ),
+                              ).then((_) => _loadBranches());
+                            },
+                          ),
+                          IconButton(
+                            icon: const Icon(
+                              Icons.delete,
+                              color: AppColors.error,
+                              size: 20,
+                            ),
+                            onPressed: () => _deleteBranch(
+                              branch['id'],
+                              branch['name'] ?? '',
                             ),
                           ),
-                          title: Text(
-                            branch['name'] ?? 'Unnamed',
-                            style: const TextStyle(color: AppColors.white, fontWeight: FontWeight.w500),
-                          ),
-                          subtitle: branch['location'] != null
-                              ? Text(
-                                  branch['location'],
-                                  style: TextStyle(color: AppColors.white.withOpacity(0.7)),
-                                )
-                              : null,
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.edit, color: AppColors.primaryRed, size: 20),
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => AddEditBranchScreen(branchData: branch),
-                                    ),
-                                  ).then((_) => _loadBranches());
-                                },
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.delete, color: AppColors.error, size: 20),
-                                onPressed: () => _deleteBranch(branch['id'], branch['name'] ?? ''),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
         ),
       ),
     );

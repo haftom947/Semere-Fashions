@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import '../services/database_helper.dart';
 import '../services/sync_service.dart';
 import '../utils/colors.dart';
@@ -7,7 +6,7 @@ import '../utils/error_handler.dart';
 
 class AddEditMaterialScreen extends StatefulWidget {
   final Map<String, dynamic>? materialData;
-  const AddEditMaterialScreen({Key? key, this.materialData}) : super(key: key);
+  const AddEditMaterialScreen({super.key, this.materialData});
 
   @override
   _AddEditMaterialScreenState createState() => _AddEditMaterialScreenState();
@@ -19,6 +18,7 @@ class _AddEditMaterialScreenState extends State<AddEditMaterialScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _categoryController = TextEditingController();
+  final _costPerUnitController = TextEditingController();
   final _unitController = TextEditingController();
   final _stockController = TextEditingController();
   final _minLevelController = TextEditingController();
@@ -31,10 +31,12 @@ class _AddEditMaterialScreenState extends State<AddEditMaterialScreen> {
     super.initState();
     if (widget.materialData != null) {
       _nameController.text = widget.materialData!['name'] ?? '';
+      _costPerUnitController.text = widget.materialData?['cost_per_unit']?.toString() ?? '';
       _categoryController.text = widget.materialData!['category'] ?? '';
       _unitController.text = widget.materialData!['unit'] ?? 'piece';
       _stockController.text = widget.materialData!['stock']?.toString() ?? '';
-      _minLevelController.text = widget.materialData!['minimumLevel']?.toString() ?? '';
+      _minLevelController.text =
+          widget.materialData!['minimumLevel']?.toString() ?? '';
     } else {
       _unitController.text = 'piece';
     }
@@ -45,9 +47,12 @@ class _AddEditMaterialScreenState extends State<AddEditMaterialScreen> {
     if (mounted) setState(() => _isLoading = true);
     try {
       Map<String, dynamic> data = {
-        'id': widget.materialData?['id'] ?? DateTime.now().millisecondsSinceEpoch.toString(),
+        'id':
+            widget.materialData?['id'] ??
+            DateTime.now().millisecondsSinceEpoch.toString(),
         'name': _nameController.text.trim(),
         'category': _categoryController.text.trim(),
+        'cost_per_unit': double.tryParse(_costPerUnitController.text) ?? 0,
         'unit': _unitController.text,
         'stock': int.tryParse(_stockController.text) ?? 0,
         'minimumLevel': int.tryParse(_minLevelController.text) ?? 5,
@@ -57,11 +62,14 @@ class _AddEditMaterialScreenState extends State<AddEditMaterialScreen> {
       } else {
         await _dbHelper.update('materials', data);
       }
-      var connectivityResult = await Connectivity().checkConnectivity();
-      if (connectivityResult != ConnectivityResult.none) {
-        _syncService.syncAll();
+      if (mounted) {
+        _syncService.triggerBackgroundSync();
+        ErrorHandler.showSuccess(
+          context,
+          widget.materialData == null ? 'Material saved' : 'Material updated',
+        );
+        ErrorHandler.safePop(context, true);
       }
-      if (mounted) ErrorHandler.safePop(context);
     } catch (e) {
       if (mounted) ErrorHandler.showError(context, 'Error: $e');
     } finally {
@@ -73,7 +81,9 @@ class _AddEditMaterialScreenState extends State<AddEditMaterialScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.materialData == null ? 'Add Material' : 'Edit Material'),
+        title: Text(
+          widget.materialData == null ? 'Add Material' : 'Edit Material',
+        ),
         backgroundColor: AppColors.primaryRed,
       ),
       body: Container(
@@ -100,13 +110,16 @@ class _AddEditMaterialScreenState extends State<AddEditMaterialScreen> {
                           labelText: 'Material Name *',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
                           ),
                         ),
-                        validator: (value) => value == null || value.isEmpty ? 'Required' : null,
+                        validator: (value) =>
+                            value == null || value.isEmpty ? 'Required' : null,
                       ),
                       const SizedBox(height: 16),
 
@@ -118,7 +131,9 @@ class _AddEditMaterialScreenState extends State<AddEditMaterialScreen> {
                           labelText: 'Category',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
@@ -129,11 +144,47 @@ class _AddEditMaterialScreenState extends State<AddEditMaterialScreen> {
 
                       // Unit dropdown
                       DropdownButtonFormField<String>(
-                        value: _unitController.text.isEmpty ? null : _unitController.text,
+                        initialValue: _unitController.text.isEmpty
+                            ? null
+                            : _unitController.text,
                         dropdownColor: AppColors.backgroundStart,
                         style: const TextStyle(color: AppColors.white),
                         decoration: InputDecoration(
                           labelText: 'Unit *',
+                          labelStyle: const TextStyle(color: AppColors.white),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
+                          ),
+                          focusedBorder: const OutlineInputBorder(
+                            borderSide: BorderSide(color: AppColors.white),
+                          ),
+                        ),
+                        items: _unitOptions
+                            .map(
+                              (unit) => DropdownMenuItem<String>(
+                                value: unit,
+                                child: Text(unit),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            _unitController.text = value ?? 'piece';
+                          });
+                        },
+                        validator: (value) =>
+                            value == null ? 'Select unit' : null,
+                      ),
+                      const SizedBox(height: 16),
+
+                      TextFormField(
+                        controller: _costPerUnitController,
+                        style: const TextStyle(color: AppColors.white),
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          labelText: 'Cost per Unit (ETB)',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
@@ -142,16 +193,6 @@ class _AddEditMaterialScreenState extends State<AddEditMaterialScreen> {
                             borderSide: BorderSide(color: AppColors.white),
                           ),
                         ),
-                        items: _unitOptions.map((unit) => DropdownMenuItem<String>(
-                          value: unit,
-                          child: Text(unit),
-                        )).toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            _unitController.text = value ?? 'piece';
-                          });
-                        },
-                        validator: (value) => value == null ? 'Select unit' : null,
                       ),
                       const SizedBox(height: 16),
 
@@ -164,7 +205,9 @@ class _AddEditMaterialScreenState extends State<AddEditMaterialScreen> {
                           labelText: 'Current Stock',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
@@ -182,7 +225,9 @@ class _AddEditMaterialScreenState extends State<AddEditMaterialScreen> {
                           labelText: 'Minimum Level',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
@@ -202,8 +247,14 @@ class _AddEditMaterialScreenState extends State<AddEditMaterialScreen> {
                             foregroundColor: AppColors.white,
                           ),
                           child: _isLoading
-                              ? const CircularProgressIndicator(color: AppColors.white)
-                              : Text(widget.materialData == null ? 'Add Material' : 'Update Material'),
+                              ? const CircularProgressIndicator(
+                                  color: AppColors.white,
+                                )
+                              : Text(
+                                  widget.materialData == null
+                                      ? 'Add Material'
+                                      : 'Update Material',
+                                ),
                         ),
                       ),
                     ],

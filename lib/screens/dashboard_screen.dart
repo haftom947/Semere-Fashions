@@ -6,6 +6,7 @@ import '../widgets/stat_card.dart';
 import '../widgets/category_card.dart';
 import '../widgets/recent_order_card.dart';
 import '../widgets/drawer_menu.dart';
+import '../widgets/global_date_filter_card.dart';
 
 class DashboardScreen extends StatefulWidget {
   final String role;
@@ -34,7 +35,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             .collection('users')
             .doc(user.uid)
             .get();
-        
+
         if (userDoc.exists) {
           setState(() {
             _userName = userDoc.get('name') ?? 'User';
@@ -56,11 +57,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<void> _logout() async {
     await FirebaseAuth.instance.signOut();
     if (mounted) {
-      Navigator.pushNamedAndRemoveUntil(
-        context, 
-        '/login', 
-        (route) => false
-      );
+      Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
     }
   }
 
@@ -135,7 +132,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               gradient: LinearGradient(
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,
-                                colors: [AppColors.backgroundStart, AppColors.backgroundEnd],
+                                colors: [
+                                  AppColors.backgroundStart,
+                                  AppColors.backgroundEnd,
+                                ],
                               ),
                             ),
                           ),
@@ -156,7 +156,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ),
                   ),
-                  
+
                   // Main Content
                   SliverPadding(
                     padding: const EdgeInsets.all(16.0),
@@ -183,7 +183,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 children: [
                                   CircleAvatar(
                                     radius: 30,
-                                    backgroundColor: AppColors.primaryRed.withOpacity(0.1),
+                                    backgroundColor: AppColors.primaryRed
+                                        .withOpacity(0.1),
                                     child: Text(
                                       widget.role[0].toUpperCase(),
                                       style: const TextStyle(
@@ -196,7 +197,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   const SizedBox(width: 16),
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           _userName,
@@ -216,10 +218,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                         ),
                                         const SizedBox(height: 8),
                                         Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 12,
+                                            vertical: 6,
+                                          ),
                                           decoration: BoxDecoration(
-                                            color: AppColors.primaryRed.withOpacity(0.1),
-                                            borderRadius: BorderRadius.circular(20),
+                                            color: AppColors.primaryRed
+                                                .withOpacity(0.1),
+                                            borderRadius: BorderRadius.circular(
+                                              20,
+                                            ),
                                           ),
                                           child: const Text(
                                             'Balance: ETB 15,230',
@@ -239,7 +247,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ),
                         ),
                         const SizedBox(height: 20),
-                        
+
                         // Welcome Message
                         Text(
                           'Good ${_getTimeOfDay()}, $_userName!',
@@ -251,30 +259,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                         const SizedBox(height: 8),
                         const Text(
-                          'Here\'s your business overview for today.',
+                          'Here\'s your business overview for the selected period.',
                           style: TextStyle(
                             fontSize: 14,
                             color: AppColors.white,
                           ),
                         ),
                         const SizedBox(height: 24),
-                        
+
+                        const GlobalDateFilterCard(),
+                        const SizedBox(height: 24),
+
                         // Quick Actions Row
                         _buildQuickActions(),
                         const SizedBox(height: 24),
-                        
+
                         // Stats Overview
                         _buildStatsSection(),
                         const SizedBox(height: 24),
-                        
+
                         // Order Categories
                         _buildCategoriesSection(),
                         const SizedBox(height: 24),
-                        
+
                         // Recent Orders
                         _buildRecentOrdersSection(),
                         const SizedBox(height: 24),
-                        
+
                         // Account Summary
                         _buildAccountSummary(),
                         const SizedBox(height: 24),
@@ -319,17 +330,42 @@ class _DashboardScreenState extends State<DashboardScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _buildActionButton(Icons.shopping_bag, 'New Order', AppColors.primaryRed, _navigateToOrders),
-            _buildActionButton(Icons.inventory, 'Inventory', AppColors.info, _navigateToInventory),
-            _buildActionButton(Icons.people, 'Employees', AppColors.success, _navigateToEmployees),
-            _buildActionButton(Icons.receipt, 'Reports', AppColors.accent, _navigateToReports),
+            _buildActionButton(
+              Icons.shopping_bag,
+              'New Order',
+              AppColors.primaryRed,
+              _navigateToOrders,
+            ),
+            _buildActionButton(
+              Icons.inventory,
+              'Inventory',
+              AppColors.info,
+              _navigateToInventory,
+            ),
+            _buildActionButton(
+              Icons.people,
+              'Employees',
+              AppColors.success,
+              _navigateToEmployees,
+            ),
+            _buildActionButton(
+              Icons.receipt,
+              'Reports',
+              AppColors.accent,
+              _navigateToReports,
+            ),
           ],
         ),
       ],
     );
   }
 
-  Widget _buildActionButton(IconData icon, String label, Color color, VoidCallback onTap) {
+  Widget _buildActionButton(
+    IconData icon,
+    String label,
+    Color color,
+    VoidCallback onTap,
+  ) {
     return GestureDetector(
       onTap: onTap,
       child: Column(
@@ -346,10 +382,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           const SizedBox(height: 4),
           Text(
             label,
-            style: const TextStyle(
-              fontSize: 11,
-              color: AppColors.white,
-            ),
+            style: const TextStyle(fontSize: 11, color: AppColors.white),
           ),
         ],
       ),
@@ -559,7 +592,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
             }
-            
+
             if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
               return Container(
                 padding: const EdgeInsets.all(20),
@@ -613,7 +646,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           for (var doc in snapshot.data!.docs) {
             double amount = (doc.get('total_amount') ?? 0).toDouble();
             String status = doc.get('status') ?? '';
-            
+
             if (status == 'delivered') {
               totalPaid += amount;
             } else if (status == 'pending') {

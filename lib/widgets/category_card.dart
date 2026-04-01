@@ -56,10 +56,7 @@ class CategoryCard extends StatelessWidget {
             SizedBox(height: 4),
             Text(
               title,
-              style: TextStyle(
-                fontSize: 10,
-                color: AppColors.mediumGrey,
-              ),
+              style: TextStyle(fontSize: 10, color: AppColors.mediumGrey),
               textAlign: TextAlign.center,
             ),
           ],

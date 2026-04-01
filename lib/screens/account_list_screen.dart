@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/database_helper.dart';
 import '../services/sync_service.dart';
 import '../utils/colors.dart';
+import '../utils/currency_helper.dart';
 import '../utils/error_handler.dart';
 import 'add_edit_account_screen.dart';
 
@@ -31,7 +32,9 @@ class _AccountListScreenState extends State<AccountListScreen> {
 
   Future<void> _loadAccounts() async {
     setState(() => _isLoading = true);
-    var accounts = await _dbHelper.query('accounts');
+    var accounts = List<Map<String, dynamic>>.from(
+      await _dbHelper.query('accounts'),
+    );
     accounts.sort((a, b) => (a['name'] ?? '').compareTo(b['name'] ?? ''));
     setState(() {
       _accounts = accounts;
@@ -51,7 +54,7 @@ class _AccountListScreenState extends State<AccountListScreen> {
     setState(() {
       _uiAccounts = _accounts.where((a) {
         return (a['name'] ?? '').toLowerCase().contains(lowerQuery) ||
-               (a['type'] ?? '').toLowerCase().contains(lowerQuery);
+            (a['type'] ?? '').toLowerCase().contains(lowerQuery);
       }).toList();
     });
   }
@@ -59,16 +62,25 @@ class _AccountListScreenState extends State<AccountListScreen> {
   Future<void> _deleteAccount(String id, String name) async {
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Account'),
-        content: Text('Are you sure you want to delete $name?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete', style: TextStyle(color: AppColors.error)),
-          ),
-        ],
+      builder: (context) => Theme(
+        data: ThemeData.light(),
+        child: AlertDialog(
+          title: const Text('Delete Account'),
+          content: Text('Are you sure you want to delete $name?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text(
+                'Delete',
+                style: TextStyle(color: AppColors.error),
+              ),
+            ),
+          ],
+        ),
       ),
     );
     if (confirm != true) return;
@@ -103,7 +115,9 @@ class _AccountListScreenState extends State<AccountListScreen> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const AddEditAccountScreen()),
+                MaterialPageRoute(
+                  builder: (context) => const AddEditAccountScreen(),
+                ),
               ).then((_) => _loadAccounts());
             },
           ),
@@ -144,56 +158,82 @@ class _AccountListScreenState extends State<AccountListScreen> {
           child: _isLoading
               ? const Center(child: CircularProgressIndicator())
               : _uiAccounts.isEmpty
-                  ? const Center(
-                      child: Text('No accounts found.', style: TextStyle(color: AppColors.white)),
-                    )
-                  : ListView.separated(
-                      padding: const EdgeInsets.all(8),
-                      itemCount: _uiAccounts.length,
-                      separatorBuilder: (_, __) => const Divider(color: AppColors.white, height: 0.5),
-                      itemBuilder: (context, index) {
-                        var account = _uiAccounts[index];
-                        return ListTile(
-                          leading: CircleAvatar(
-                            radius: 18,
-                            backgroundColor: account['type'] == 'bank' ? AppColors.info : AppColors.success,
-                            child: Icon(
-                              account['type'] == 'bank' ? Icons.account_balance : Icons.money,
-                              color: AppColors.white,
-                              size: 16,
+              ? const Center(
+                  child: Text(
+                    'No accounts found.',
+                    style: TextStyle(color: AppColors.white),
+                  ),
+                )
+              : ListView.separated(
+                  padding: const EdgeInsets.all(8),
+                  itemCount: _uiAccounts.length,
+                  separatorBuilder: (_, __) =>
+                      const Divider(color: AppColors.white, height: 0.5),
+                  itemBuilder: (context, index) {
+                    var account = _uiAccounts[index];
+                    return ListTile(
+                      leading: CircleAvatar(
+                        radius: 18,
+                        backgroundColor: account['type'] == 'bank'
+                            ? AppColors.info
+                            : AppColors.success,
+                        child: Icon(
+                          account['type'] == 'bank'
+                              ? Icons.account_balance
+                              : Icons.money,
+                          color: AppColors.white,
+                          size: 16,
+                        ),
+                      ),
+                      title: Text(
+                        account['name'] ?? 'Unnamed',
+                        style: const TextStyle(
+                          color: AppColors.white,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      subtitle: Text(
+                        '${account['type']} · Balance: ${CurrencyHelper.formatAmount((account['current_balance'] as num?)?.toDouble(), null)}',
+                        style: TextStyle(
+                          color: AppColors.white.withOpacity(0.7),
+                        ),
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(
+                              Icons.edit,
+                              color: AppColors.primaryRed,
+                              size: 20,
+                            ),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => AddEditAccountScreen(
+                                    accountData: account,
+                                  ),
+                                ),
+                              ).then((_) => _loadAccounts());
+                            },
+                          ),
+                          IconButton(
+                            icon: const Icon(
+                              Icons.delete,
+                              color: AppColors.error,
+                              size: 20,
+                            ),
+                            onPressed: () => _deleteAccount(
+                              account['id'],
+                              account['name'] ?? '',
                             ),
                           ),
-                          title: Text(
-                            account['name'] ?? 'Unnamed',
-                            style: const TextStyle(color: AppColors.white, fontWeight: FontWeight.w500),
-                          ),
-                          subtitle: Text(
-                            '${account['type']} · Balance: ETB ${(account['current_balance'] ?? 0).toStringAsFixed(2)}',
-                            style: TextStyle(color: AppColors.white.withOpacity(0.7)),
-                          ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.edit, color: AppColors.primaryRed, size: 20),
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => AddEditAccountScreen(accountData: account),
-                                    ),
-                                  ).then((_) => _loadAccounts());
-                                },
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.delete, color: AppColors.error, size: 20),
-                                onPressed: () => _deleteAccount(account['id'], account['name'] ?? ''),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
         ),
       ),
     );

@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'dart:convert';
 import '../services/database_helper.dart';
 import '../services/sync_service.dart';
 import '../utils/colors.dart';
+import '../utils/currency_helper.dart';
 import '../utils/error_handler.dart';
 import '../widgets/employee_selector_dialog.dart';
 
 class ProductionOrderScreen extends StatefulWidget {
-  const ProductionOrderScreen({Key? key}) : super(key: key);
+  const ProductionOrderScreen({super.key});
 
   @override
   _ProductionOrderScreenState createState() => _ProductionOrderScreenState();
@@ -25,9 +24,9 @@ class _ProductionOrderScreenState extends State<ProductionOrderScreen> {
 
   String? _tailorId;
   String? _tailorName;
-  List<Map<String, dynamic>> _materials = [];
+  final List<Map<String, dynamic>> _materials = [];
   List<Map<String, dynamic>> _allMaterials = [];
-  Map<String, TextEditingController> _quantityControllers = {};
+  final Map<String, TextEditingController> _quantityControllers = {};
   bool _isLoading = false;
 
   double _totalMaterialCost = 0;
@@ -42,12 +41,14 @@ class _ProductionOrderScreenState extends State<ProductionOrderScreen> {
 
   Future<void> _loadMaterials() async {
     var materials = await _dbHelper.query('materials');
-    if (mounted) setState(() {
-      _allMaterials = materials;
-      for (var mat in materials) {
-        _quantityControllers[mat['id']] = TextEditingController();
-      }
-    });
+    if (mounted) {
+      setState(() {
+        _allMaterials = materials;
+        for (var mat in materials) {
+          _quantityControllers[mat['id']] = TextEditingController();
+        }
+      });
+    }
   }
 
   void _calculateTotals() {
@@ -65,17 +66,17 @@ class _ProductionOrderScreenState extends State<ProductionOrderScreen> {
 
   Future<void> _selectTailor() async {
     var employees = await _dbHelper.query('users');
-    var tailors = employees.where((e) => e['role'] == 'tailor' && e['status'] == 'active').toList();
+    var tailors = employees
+        .where((e) => e['role'] == 'tailor' && e['status'] == 'active')
+        .toList();
     if (tailors.isEmpty) {
       ErrorHandler.showError(context, 'No active tailors found.');
       return;
     }
     final selected = await showDialog<Map<String, dynamic>>(
       context: context,
-      builder: (context) => EmployeeSelectorDialog(
-        employees: tailors,
-        title: 'Select Tailor',
-      ),
+      builder: (context) =>
+          EmployeeSelectorDialog(employees: tailors, title: 'Select Tailor'),
     );
     if (selected != null) {
       if (mounted) {
@@ -148,7 +149,7 @@ class _ProductionOrderScreenState extends State<ProductionOrderScreen> {
       await _dbHelper.insert('production_orders', prodOrder);
 
       // Create a product from this production
-      String productId = DateTime.now().millisecondsSinceEpoch.toString() + 'p';
+      String productId = '${DateTime.now().millisecondsSinceEpoch}p';
       Map<String, dynamic> product = {
         'id': productId,
         'name': _productNameController.text.trim(),
@@ -175,13 +176,8 @@ class _ProductionOrderScreenState extends State<ProductionOrderScreen> {
         });
       }
 
-      // Sync if online
-      var connectivityResult = await Connectivity().checkConnectivity();
-      if (connectivityResult != ConnectivityResult.none) {
-        _syncService.syncAll();
-      }
-
       if (mounted) {
+        _syncService.triggerBackgroundSync();
         ErrorHandler.showSuccess(context, 'Production order created');
         ErrorHandler.safePop(context);
       }
@@ -222,7 +218,9 @@ class _ProductionOrderScreenState extends State<ProductionOrderScreen> {
                         labelText: 'Product Name *',
                         labelStyle: const TextStyle(color: AppColors.white),
                         enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                          borderSide: BorderSide(
+                            color: AppColors.white.withOpacity(0.3),
+                          ),
                         ),
                         focusedBorder: const OutlineInputBorder(
                           borderSide: BorderSide(color: AppColors.white),
@@ -245,13 +243,25 @@ class _ProductionOrderScreenState extends State<ProductionOrderScreen> {
                     const SizedBox(height: 8),
 
                     // Materials list with quantity fields
-                    const Text('Materials Used', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.white)),
+                    const Text(
+                      'Materials Used',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.white,
+                      ),
+                    ),
                     ..._allMaterials.map((mat) {
                       return Padding(
                         padding: const EdgeInsets.symmetric(vertical: 4),
                         child: Row(
                           children: [
-                            Expanded(child: Text(mat['name'], style: const TextStyle(color: AppColors.white))),
+                            Expanded(
+                              child: Text(
+                                mat['name'],
+                                style: const TextStyle(color: AppColors.white),
+                              ),
+                            ),
                             SizedBox(
                               width: 100,
                               child: TextFormField(
@@ -260,9 +270,13 @@ class _ProductionOrderScreenState extends State<ProductionOrderScreen> {
                                 style: const TextStyle(color: AppColors.white),
                                 decoration: InputDecoration(
                                   hintText: 'Qty',
-                                  hintStyle: TextStyle(color: AppColors.white.withOpacity(0.5)),
+                                  hintStyle: TextStyle(
+                                    color: AppColors.white.withOpacity(0.5),
+                                  ),
                                   enabledBorder: UnderlineInputBorder(
-                                    borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                                    borderSide: BorderSide(
+                                      color: AppColors.white.withOpacity(0.3),
+                                    ),
                                   ),
                                 ),
                                 onChanged: (_) => _calculateTotals(),
@@ -271,7 +285,7 @@ class _ProductionOrderScreenState extends State<ProductionOrderScreen> {
                           ],
                         ),
                       );
-                    }).toList(),
+                    }),
                     const SizedBox(height: 16),
 
                     // Tailor commission (could be a separate field)
@@ -283,7 +297,9 @@ class _ProductionOrderScreenState extends State<ProductionOrderScreen> {
                         labelText: 'Tailor Commission (ETB)',
                         labelStyle: const TextStyle(color: AppColors.white),
                         enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                          borderSide: BorderSide(
+                            color: AppColors.white.withOpacity(0.3),
+                          ),
                         ),
                         focusedBorder: const OutlineInputBorder(
                           borderSide: BorderSide(color: AppColors.white),
@@ -307,7 +323,9 @@ class _ProductionOrderScreenState extends State<ProductionOrderScreen> {
                         labelText: 'Selling Price (ETB)',
                         labelStyle: const TextStyle(color: AppColors.white),
                         enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                          borderSide: BorderSide(
+                            color: AppColors.white.withOpacity(0.3),
+                          ),
                         ),
                         focusedBorder: const OutlineInputBorder(
                           borderSide: BorderSide(color: AppColors.white),
@@ -322,10 +340,20 @@ class _ProductionOrderScreenState extends State<ProductionOrderScreen> {
                         padding: const EdgeInsets.all(12),
                         child: Column(
                           children: [
-                            _buildSummaryRow('Material Cost', _totalMaterialCost),
-                            _buildSummaryRow('Tailor Commission', _tailorCommission),
+                            _buildSummaryRow(
+                              'Material Cost',
+                              _totalMaterialCost,
+                            ),
+                            _buildSummaryRow(
+                              'Tailor Commission',
+                              _tailorCommission,
+                            ),
                             const Divider(),
-                            _buildSummaryRow('Total Cost', _totalCost, bold: true),
+                            _buildSummaryRow(
+                              'Total Cost',
+                              _totalCost,
+                              bold: true,
+                            ),
                           ],
                         ),
                       ),
@@ -341,7 +369,9 @@ class _ProductionOrderScreenState extends State<ProductionOrderScreen> {
                         labelText: 'Notes',
                         labelStyle: const TextStyle(color: AppColors.white),
                         enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                          borderSide: BorderSide(
+                            color: AppColors.white.withOpacity(0.3),
+                          ),
                         ),
                         focusedBorder: const OutlineInputBorder(
                           borderSide: BorderSide(color: AppColors.white),
@@ -376,8 +406,18 @@ class _ProductionOrderScreenState extends State<ProductionOrderScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: TextStyle(fontWeight: bold ? FontWeight.bold : FontWeight.normal)),
-          Text('ETB ${amount.toStringAsFixed(2)}', style: TextStyle(fontWeight: bold ? FontWeight.bold : FontWeight.normal)),
+          Text(
+            label,
+            style: TextStyle(
+              fontWeight: bold ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+          Text(
+            CurrencyHelper.formatAmount(amount, null),
+            style: TextStyle(
+              fontWeight: bold ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
         ],
       ),
     );

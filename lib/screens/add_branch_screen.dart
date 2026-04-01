@@ -38,9 +38,9 @@ class _AddBranchScreenState extends State<AddBranchScreen> {
       );
       Navigator.pop(context);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: ${e.toString()}')));
     } finally {
       setState(() => _isLoading = false);
     }
@@ -76,15 +76,22 @@ class _AddBranchScreenState extends State<AddBranchScreen> {
                         decoration: InputDecoration(
                           labelText: 'Branch Name',
                           labelStyle: const TextStyle(color: AppColors.white),
-                          prefixIcon: const Icon(Icons.store, color: AppColors.white),
+                          prefixIcon: const Icon(
+                            Icons.store,
+                            color: AppColors.white,
+                          ),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
                           ),
                         ),
-                        validator: (value) => value == null || value.isEmpty ? 'Enter branch name' : null,
+                        validator: (value) => value == null || value.isEmpty
+                            ? 'Enter branch name'
+                            : null,
                       ),
                       const SizedBox(height: 16),
 
@@ -95,15 +102,22 @@ class _AddBranchScreenState extends State<AddBranchScreen> {
                         decoration: InputDecoration(
                           labelText: 'Location',
                           labelStyle: const TextStyle(color: AppColors.white),
-                          prefixIcon: const Icon(Icons.location_on, color: AppColors.white),
+                          prefixIcon: const Icon(
+                            Icons.location_on,
+                            color: AppColors.white,
+                          ),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
                           ),
                         ),
-                        validator: (value) => value == null || value.isEmpty ? 'Enter location' : null,
+                        validator: (value) => value == null || value.isEmpty
+                            ? 'Enter location'
+                            : null,
                       ),
                       const SizedBox(height: 16),
 
@@ -115,9 +129,14 @@ class _AddBranchScreenState extends State<AddBranchScreen> {
                         decoration: InputDecoration(
                           labelText: 'Phone Number',
                           labelStyle: const TextStyle(color: AppColors.white),
-                          prefixIcon: const Icon(Icons.phone, color: AppColors.white),
+                          prefixIcon: const Icon(
+                            Icons.phone,
+                            color: AppColors.white,
+                          ),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
@@ -134,9 +153,14 @@ class _AddBranchScreenState extends State<AddBranchScreen> {
                         decoration: InputDecoration(
                           labelText: 'Email (Optional)',
                           labelStyle: const TextStyle(color: AppColors.white),
-                          prefixIcon: const Icon(Icons.email, color: AppColors.white),
+                          prefixIcon: const Icon(
+                            Icons.email,
+                            color: AppColors.white,
+                          ),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
@@ -156,7 +180,9 @@ class _AddBranchScreenState extends State<AddBranchScreen> {
                             foregroundColor: AppColors.white,
                           ),
                           child: _isLoading
-                              ? const CircularProgressIndicator(color: AppColors.white)
+                              ? const CircularProgressIndicator(
+                                  color: AppColors.white,
+                                )
                               : const Text('Add Branch'),
                         ),
                       ),

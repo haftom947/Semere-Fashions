@@ -3,14 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../utils/colors.dart';
+import '../utils/currency_helper.dart';
 import '../widgets/drawer_menu.dart';
 import '../services/database_helper.dart';
 import '../services/sync_service.dart';
+import '../utils/app_date_filter.dart';
 import 'create_order_screen.dart';
 import 'orders_list_screen.dart';
 
 class SalesHome extends StatefulWidget {
-  const SalesHome({Key? key}) : super(key: key);
+  const SalesHome({super.key});
 
   @override
   _SalesHomeState createState() => _SalesHomeState();
@@ -19,19 +21,40 @@ class SalesHome extends StatefulWidget {
 class _SalesHomeState extends State<SalesHome> {
   final DatabaseHelper _dbHelper = DatabaseHelper();
   final SyncService _syncService = SyncService();
+  StreamSubscription<bool>? _dataChangedSubscription;
   String _salesName = 'Sales Person';
   bool _isLoading = true;
   int _todayOrders = 0;
   double _todaySales = 0.0;
+  bool _initialSyncTriggered = false;
 
   @override
   void initState() {
     super.initState();
     _loadSalesData();
     _loadTodayStats();
-    _syncService.dataChangedStream.listen((_) {
+    AppDateFilter.instance.rangeNotifier.addListener(_onGlobalRangeChanged);
+    _dataChangedSubscription = _syncService.dataChangedStream.listen((_) {
       _loadTodayStats();
     });
+  }
+
+  @override
+  void dispose() {
+    AppDateFilter.instance.rangeNotifier.removeListener(_onGlobalRangeChanged);
+    _dataChangedSubscription?.cancel();
+    super.dispose();
+  }
+
+  void _onGlobalRangeChanged() {
+    if (!mounted) return;
+    _loadTodayStats();
+  }
+
+  Future<void> _triggerInitialSync() async {
+    if (_initialSyncTriggered) return;
+    _initialSyncTriggered = true;
+    await _syncService.syncAll();
   }
 
   Future<void> _loadSalesData() async {
@@ -42,14 +65,16 @@ class _SalesHomeState extends State<SalesHome> {
             .collection('users')
             .doc(user.uid)
             .get();
-        
+
         if (userDoc.exists) {
           setState(() {
             _salesName = userDoc.get('name') ?? 'Sales Person';
             _isLoading = false;
           });
+          await _triggerInitialSync();
         } else {
           setState(() => _isLoading = false);
+          await _triggerInitialSync();
         }
       } else {
         setState(() => _isLoading = false);
@@ -62,15 +87,31 @@ class _SalesHomeState extends State<SalesHome> {
 
   Future<void> _loadTodayStats() async {
     try {
-      DateTime now = DateTime.now();
-      DateTime startOfDay = DateTime(now.year, now.month, now.day);
-      int startMillis = startOfDay.millisecondsSinceEpoch;
+      final range = AppDateFilter.instance.range;
+      final startMillis = range == null
+          ? 0
+          : DateTime(
+              range.start.year,
+              range.start.month,
+              range.start.day,
+            ).millisecondsSinceEpoch;
+      final endMillis = range == null
+          ? DateTime.now().millisecondsSinceEpoch
+          : DateTime(
+              range.end.year,
+              range.end.month,
+              range.end.day,
+              23,
+              59,
+              59,
+              999,
+            ).millisecondsSinceEpoch;
       var orders = await _dbHelper.query('orders');
       int ordersToday = 0;
       double salesToday = 0.0;
       for (var order in orders) {
         int createdAt = order['createdAt'] ?? 0;
-        if (createdAt >= startMillis) {
+        if (createdAt >= startMillis && createdAt <= endMillis) {
           ordersToday++;
           salesToday += (order['totalAmount'] as num?)?.toDouble() ?? 0.0;
         }
@@ -87,26 +128,28 @@ class _SalesHomeState extends State<SalesHome> {
   Future<void> _logout() async {
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Logout'),
-        content: const Text('Are you sure you want to logout?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Logout'),
-          ),
-        ],
+      builder: (context) => Theme(
+        data: ThemeData.light(),
+        child: AlertDialog(
+          title: const Text('Logout'),
+          content: const Text('Are you sure you want to logout?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Logout'),
+            ),
+          ],
+        ),
       ),
     );
     if (confirm == true) {
       await FirebaseAuth.instance.signOut();
       if (mounted) {
-        Navigator.pushNamedAndRemoveUntil(
-          context, 
-          '/login', 
-          (route) => false
-        );
+        Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
       }
     }
   }
@@ -159,12 +202,10 @@ class _SalesHomeState extends State<SalesHome> {
                       ),
                     ],
                     flexibleSpace: FlexibleSpaceBar(
-                      background: Container(
-                        color: Colors.transparent,
-                      ),
+                      background: Container(color: Colors.transparent),
                     ),
                   ),
-                  
+
                   SliverPadding(
                     padding: const EdgeInsets.all(16.0),
                     sliver: SliverList(
@@ -207,7 +248,7 @@ class _SalesHomeState extends State<SalesHome> {
                           ),
                         ),
                         const SizedBox(height: 24),
-                        
+
                         // Quick Actions
                         const Text(
                           'Quick Actions',
@@ -238,10 +279,10 @@ class _SalesHomeState extends State<SalesHome> {
                           ],
                         ),
                         const SizedBox(height: 24),
-                        
+
                         // Today's Stats
                         const Text(
-                          "Today's Summary",
+                          "Selected Summary",
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
@@ -265,7 +306,7 @@ class _SalesHomeState extends State<SalesHome> {
                             ),
                             _buildStatCard(
                               'Sales',
-                              'ETB ${_todaySales.toStringAsFixed(0)}',
+                              CurrencyHelper.formatAmount(_todaySales, null),
                               Icons.attach_money,
                               AppColors.success,
                             ),
@@ -285,7 +326,12 @@ class _SalesHomeState extends State<SalesHome> {
     );
   }
 
-  Widget _buildActionButton(IconData icon, String label, Color color, VoidCallback onTap) {
+  Widget _buildActionButton(
+    IconData icon,
+    String label,
+    Color color,
+    VoidCallback onTap,
+  ) {
     return GestureDetector(
       onTap: onTap,
       child: Column(
@@ -302,10 +348,7 @@ class _SalesHomeState extends State<SalesHome> {
           const SizedBox(height: 4),
           Text(
             label,
-            style: const TextStyle(
-              fontSize: 11,
-              color: AppColors.white,
-            ),
+            style: const TextStyle(fontSize: 11, color: AppColors.white),
             textAlign: TextAlign.center,
           ),
         ],
@@ -313,7 +356,12 @@ class _SalesHomeState extends State<SalesHome> {
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
+  Widget _buildStatCard(
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.white,
@@ -343,10 +391,7 @@ class _SalesHomeState extends State<SalesHome> {
             ),
             Text(
               title,
-              style: const TextStyle(
-                fontSize: 12,
-                color: AppColors.mediumGrey,
-              ),
+              style: const TextStyle(fontSize: 12, color: AppColors.mediumGrey),
             ),
           ],
         ),

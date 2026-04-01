@@ -6,7 +6,7 @@ import '../utils/colors.dart';
 
 class AddEditMetricsScreen extends StatefulWidget {
   final String accountId;
-  const AddEditMetricsScreen({Key? key, required this.accountId}) : super(key: key);
+  const AddEditMetricsScreen({super.key, required this.accountId});
 
   @override
   _AddEditMetricsScreenState createState() => _AddEditMetricsScreenState();
@@ -32,6 +32,8 @@ class _AddEditMetricsScreenState extends State<AddEditMetricsScreen> {
       initialDate: _selectedDate,
       firstDate: DateTime(2020),
       lastDate: DateTime.now(),
+      builder: (context, child) =>
+          Theme(data: ThemeData.light(), child: child!),
     );
     if (picked != null && picked != _selectedDate) {
       setState(() {
@@ -61,7 +63,9 @@ class _AddEditMetricsScreenState extends State<AddEditMetricsScreen> {
       }
       if (mounted) Navigator.pop(context);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
     } finally {
       setState(() => _isLoading = false);
     }
@@ -97,7 +101,10 @@ class _AddEditMetricsScreenState extends State<AddEditMetricsScreen> {
                           style: const TextStyle(color: AppColors.white),
                         ),
                         trailing: IconButton(
-                          icon: const Icon(Icons.calendar_today, color: AppColors.white),
+                          icon: const Icon(
+                            Icons.calendar_today,
+                            color: AppColors.white,
+                          ),
                           onPressed: () => _selectDate(context),
                         ),
                       ),
@@ -112,7 +119,9 @@ class _AddEditMetricsScreenState extends State<AddEditMetricsScreen> {
                           labelText: 'Followers',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
@@ -130,7 +139,9 @@ class _AddEditMetricsScreenState extends State<AddEditMetricsScreen> {
                           labelText: 'Posts Count',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
@@ -148,7 +159,9 @@ class _AddEditMetricsScreenState extends State<AddEditMetricsScreen> {
                           labelText: 'Likes',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
@@ -166,7 +179,9 @@ class _AddEditMetricsScreenState extends State<AddEditMetricsScreen> {
                           labelText: 'Comments',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
@@ -184,7 +199,9 @@ class _AddEditMetricsScreenState extends State<AddEditMetricsScreen> {
                           labelText: 'Shares',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
@@ -202,7 +219,9 @@ class _AddEditMetricsScreenState extends State<AddEditMetricsScreen> {
                           labelText: 'Views',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
@@ -222,7 +241,9 @@ class _AddEditMetricsScreenState extends State<AddEditMetricsScreen> {
                             foregroundColor: AppColors.white,
                           ),
                           child: _isLoading
-                              ? const CircularProgressIndicator(color: AppColors.white)
+                              ? const CircularProgressIndicator(
+                                  color: AppColors.white,
+                                )
                               : const Text('Save Metrics'),
                         ),
                       ),

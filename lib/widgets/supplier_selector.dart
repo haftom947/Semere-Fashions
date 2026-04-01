@@ -75,10 +75,14 @@ class _SupplierSelectorState extends State<SupplierSelector> {
                 borderSide: BorderSide(color: AppColors.white),
               ),
             ),
-            items: _suppliers.map((s) => DropdownMenuItem<String>(
-              value: s['id'],
-              child: Text(s['name'] ?? ''),
-            )).toList(),
+            items: _suppliers
+                .map(
+                  (s) => DropdownMenuItem<String>(
+                    value: s['id'],
+                    child: Text(s['name'] ?? ''),
+                  ),
+                )
+                .toList(),
             onChanged: (value) {
               var selected = _suppliers.firstWhere((s) => s['id'] == value);
               setState(() {

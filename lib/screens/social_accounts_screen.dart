@@ -32,8 +32,12 @@ class _SocialAccountsScreenState extends State<SocialAccountsScreen> {
 
   Future<void> _loadAccounts() async {
     setState(() => _isLoading = true);
-    var accounts = await _dbHelper.query('social_accounts');
-    accounts.sort((a, b) => (a['platform'] ?? '').compareTo(b['platform'] ?? ''));
+    var accounts = List<Map<String, dynamic>>.from(
+      await _dbHelper.query('social_accounts'),
+    );
+    accounts.sort(
+      (a, b) => (a['platform'] ?? '').compareTo(b['platform'] ?? ''),
+    );
     setState(() {
       _accounts = accounts;
       _uiAccounts = accounts;
@@ -52,8 +56,8 @@ class _SocialAccountsScreenState extends State<SocialAccountsScreen> {
     setState(() {
       _uiAccounts = _accounts.where((a) {
         return (a['accountName'] ?? '').toLowerCase().contains(lowerQuery) ||
-               (a['platform'] ?? '').toLowerCase().contains(lowerQuery) ||
-               (a['employeeName'] ?? '').toLowerCase().contains(lowerQuery);
+            (a['platform'] ?? '').toLowerCase().contains(lowerQuery) ||
+            (a['employeeName'] ?? '').toLowerCase().contains(lowerQuery);
       }).toList();
     });
   }
@@ -61,16 +65,25 @@ class _SocialAccountsScreenState extends State<SocialAccountsScreen> {
   Future<void> _deleteAccount(String id, String name) async {
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Account'),
-        content: Text('Are you sure you want to delete $name?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete', style: TextStyle(color: AppColors.error)),
-          ),
-        ],
+      builder: (context) => Theme(
+        data: ThemeData.light(),
+        child: AlertDialog(
+          title: const Text('Delete Account'),
+          content: Text('Are you sure you want to delete $name?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text(
+                'Delete',
+                style: TextStyle(color: AppColors.error),
+              ),
+            ),
+          ],
+        ),
       ),
     );
     if (confirm != true) return;
@@ -105,7 +118,9 @@ class _SocialAccountsScreenState extends State<SocialAccountsScreen> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const AddEditSocialAccountScreen()),
+                MaterialPageRoute(
+                  builder: (context) => const AddEditSocialAccountScreen(),
+                ),
               ).then((_) => _loadAccounts());
             },
           ),
@@ -146,70 +161,102 @@ class _SocialAccountsScreenState extends State<SocialAccountsScreen> {
           child: _isLoading
               ? const Center(child: CircularProgressIndicator())
               : _uiAccounts.isEmpty
-                  ? const Center(
-                      child: Text('No social accounts found.', style: TextStyle(color: AppColors.white)),
-                    )
-                  : ListView.separated(
-                      padding: const EdgeInsets.all(8),
-                      itemCount: _uiAccounts.length,
-                      separatorBuilder: (_, __) => const Divider(color: AppColors.white, height: 0.5),
-                      itemBuilder: (context, index) {
-                        var account = _uiAccounts[index];
-                        return ListTile(
-                          leading: CircleAvatar(
-                            radius: 18,
-                            backgroundColor: account['platform'] == 'TikTok' ? AppColors.black : AppColors.primaryRed,
-                            child: Icon(
-                              account['platform'] == 'TikTok' ? Icons.music_video : Icons.camera_alt,
-                              color: AppColors.white,
-                              size: 16,
+              ? const Center(
+                  child: Text(
+                    'No social accounts found.',
+                    style: TextStyle(color: AppColors.white),
+                  ),
+                )
+              : ListView.separated(
+                  padding: const EdgeInsets.all(8),
+                  itemCount: _uiAccounts.length,
+                  separatorBuilder: (_, __) =>
+                      const Divider(color: AppColors.white, height: 0.5),
+                  itemBuilder: (context, index) {
+                    var account = _uiAccounts[index];
+                    return ListTile(
+                      leading: CircleAvatar(
+                        radius: 18,
+                        backgroundColor: account['platform'] == 'TikTok'
+                            ? AppColors.black
+                            : AppColors.primaryRed,
+                        child: Icon(
+                          account['platform'] == 'TikTok'
+                              ? Icons.music_video
+                              : Icons.camera_alt,
+                          color: AppColors.white,
+                          size: 16,
+                        ),
+                      ),
+                      title: Text(
+                        account['accountName'] ?? 'Unnamed',
+                        style: const TextStyle(
+                          color: AppColors.white,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      subtitle: Text(
+                        '${account['platform']} · ${account['employeeName'] ?? 'Unassigned'}',
+                        style: TextStyle(
+                          color: AppColors.white.withOpacity(0.7),
+                        ),
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(
+                              Icons.bar_chart,
+                              color: AppColors.info,
+                              size: 20,
+                            ),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => SocialMetricsScreen(
+                                    accountId: account['id'],
+                                    accountName:
+                                        account['accountName'] ?? 'Account',
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                          IconButton(
+                            icon: const Icon(
+                              Icons.edit,
+                              color: AppColors.primaryRed,
+                              size: 20,
+                            ),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      AddEditSocialAccountScreen(
+                                        accountData: account,
+                                      ),
+                                ),
+                              ).then((_) => _loadAccounts());
+                            },
+                          ),
+                          IconButton(
+                            icon: const Icon(
+                              Icons.delete,
+                              color: AppColors.error,
+                              size: 20,
+                            ),
+                            onPressed: () => _deleteAccount(
+                              account['id'],
+                              account['accountName'] ?? '',
                             ),
                           ),
-                          title: Text(
-                            account['accountName'] ?? 'Unnamed',
-                            style: const TextStyle(color: AppColors.white, fontWeight: FontWeight.w500),
-                          ),
-                          subtitle: Text(
-                            '${account['platform']} · ${account['employeeName'] ?? 'Unassigned'}',
-                            style: TextStyle(color: AppColors.white.withOpacity(0.7)),
-                          ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.bar_chart, color: AppColors.info, size: 20),
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => SocialMetricsScreen(
-                                        accountId: account['id'],
-                                        accountName: account['accountName'] ?? 'Account',
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.edit, color: AppColors.primaryRed, size: 20),
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => AddEditSocialAccountScreen(accountData: account),
-                                    ),
-                                  ).then((_) => _loadAccounts());
-                                },
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.delete, color: AppColors.error, size: 20),
-                                onPressed: () => _deleteAccount(account['id'], account['accountName'] ?? ''),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
         ),
       ),
     );

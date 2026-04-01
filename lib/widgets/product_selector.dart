@@ -24,7 +24,9 @@ class _ProductSelectorState extends State<ProductSelector> {
 
   Future<void> _loadRecentProducts() async {
     var allProducts = await _dbHelper.query('products');
-    allProducts.sort((a, b) => (b['createdAt'] ?? 0).compareTo(a['createdAt'] ?? 0));
+    allProducts.sort(
+      (a, b) => (b['createdAt'] ?? 0).compareTo(a['createdAt'] ?? 0),
+    );
     setState(() {
       _recentProducts = allProducts.take(2).toList();
     });
@@ -37,9 +39,12 @@ class _ProductSelectorState extends State<ProductSelector> {
     }
     var allProducts = await _dbHelper.query('products');
     setState(() {
-      _searchResults = allProducts.where((p) =>
-        (p['name'] ?? '').toLowerCase().contains(query.toLowerCase())
-      ).toList();
+      _searchResults = allProducts
+          .where(
+            (p) =>
+                (p['name'] ?? '').toLowerCase().contains(query.toLowerCase()),
+          )
+          .toList();
     });
   }
 
@@ -48,7 +53,10 @@ class _ProductSelectorState extends State<ProductSelector> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Add Product', style: TextStyle(color: AppColors.white, fontWeight: FontWeight.w600)),
+        const Text(
+          'Add Product',
+          style: TextStyle(color: AppColors.white, fontWeight: FontWeight.w600),
+        ),
         const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
@@ -66,8 +74,14 @@ class _ProductSelectorState extends State<ProductSelector> {
                   style: const TextStyle(color: AppColors.white),
                   decoration: InputDecoration(
                     hintText: 'Search products...',
-                    hintStyle: TextStyle(color: AppColors.white.withOpacity(0.5)),
-                    prefixIcon: const Icon(Icons.search, color: AppColors.white, size: 20),
+                    hintStyle: TextStyle(
+                      color: AppColors.white.withOpacity(0.5),
+                    ),
+                    prefixIcon: const Icon(
+                      Icons.search,
+                      color: AppColors.white,
+                      size: 20,
+                    ),
                     border: InputBorder.none,
                   ),
                   onChanged: _filterProducts,
@@ -75,60 +89,102 @@ class _ProductSelectorState extends State<ProductSelector> {
               ),
 
               // Recent products (only if search is empty)
-              if (_searchController.text.isEmpty && _recentProducts.isNotEmpty) ...[
-                const Divider(color: AppColors.white, height: 1, thickness: 0.5),
+              if (_searchController.text.isEmpty &&
+                  _recentProducts.isNotEmpty) ...[
+                const Divider(
+                  color: AppColors.white,
+                  height: 1,
+                  thickness: 0.5,
+                ),
                 const Padding(
                   padding: EdgeInsets.all(8.0),
-                  child: Text('Recent', style: TextStyle(color: AppColors.white, fontSize: 12)),
+                  child: Text(
+                    'Recent',
+                    style: TextStyle(color: AppColors.white, fontSize: 12),
+                  ),
                 ),
-                ..._recentProducts.map((p) => ListTile(
-                  dense: true,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-                  leading: CircleAvatar(
-                    radius: 16,
-                    backgroundColor: AppColors.primaryRed,
-                    child: Text(
-                      (p['name'] ?? '?')[0].toUpperCase(),
-                      style: const TextStyle(color: AppColors.white, fontSize: 12),
+                ..._recentProducts.map(
+                  (p) => ListTile(
+                    dense: true,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 0,
                     ),
+                    leading: CircleAvatar(
+                      radius: 16,
+                      backgroundColor: AppColors.primaryRed,
+                      child: Text(
+                        (p['name'] ?? '?')[0].toUpperCase(),
+                        style: const TextStyle(
+                          color: AppColors.white,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                    title: Text(
+                      p['name'] ?? '',
+                      style: const TextStyle(
+                        color: AppColors.white,
+                        fontSize: 14,
+                      ),
+                    ),
+                    subtitle: Text(
+                      'ETB ${(p['sellingPrice'] ?? 0).toStringAsFixed(0)}',
+                      style: TextStyle(
+                        color: AppColors.white.withOpacity(0.7),
+                        fontSize: 12,
+                      ),
+                    ),
+                    onTap: () {
+                      widget.onProductSelected(p);
+                      _searchController.clear();
+                      _filterProducts('');
+                    },
                   ),
-                  title: Text(p['name'] ?? '', style: const TextStyle(color: AppColors.white, fontSize: 14)),
-                  subtitle: Text(
-                    'ETB ${(p['sellingPrice'] ?? 0).toStringAsFixed(0)}',
-                    style: TextStyle(color: AppColors.white.withOpacity(0.7), fontSize: 12),
-                  ),
-                  onTap: () {
-                    widget.onProductSelected(p);
-                    _searchController.clear();
-                    _filterProducts('');
-                  },
-                )),
+                ),
               ],
 
               // Search results
               if (_searchResults.isNotEmpty)
-                ..._searchResults.map((p) => ListTile(
-                  dense: true,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-                  leading: CircleAvatar(
-                    radius: 16,
-                    backgroundColor: AppColors.primaryRed,
-                    child: Text(
-                      (p['name'] ?? '?')[0].toUpperCase(),
-                      style: const TextStyle(color: AppColors.white, fontSize: 12),
+                ..._searchResults.map(
+                  (p) => ListTile(
+                    dense: true,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 0,
                     ),
+                    leading: CircleAvatar(
+                      radius: 16,
+                      backgroundColor: AppColors.primaryRed,
+                      child: Text(
+                        (p['name'] ?? '?')[0].toUpperCase(),
+                        style: const TextStyle(
+                          color: AppColors.white,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
+                    title: Text(
+                      p['name'] ?? '',
+                      style: const TextStyle(
+                        color: AppColors.white,
+                        fontSize: 14,
+                      ),
+                    ),
+                    subtitle: Text(
+                      'ETB ${(p['sellingPrice'] ?? 0).toStringAsFixed(0)}',
+                      style: TextStyle(
+                        color: AppColors.white.withOpacity(0.7),
+                        fontSize: 12,
+                      ),
+                    ),
+                    onTap: () {
+                      widget.onProductSelected(p);
+                      _searchController.clear();
+                      _filterProducts('');
+                    },
                   ),
-                  title: Text(p['name'] ?? '', style: const TextStyle(color: AppColors.white, fontSize: 14)),
-                  subtitle: Text(
-                    'ETB ${(p['sellingPrice'] ?? 0).toStringAsFixed(0)}',
-                    style: TextStyle(color: AppColors.white.withOpacity(0.7), fontSize: 12),
-                  ),
-                  onTap: () {
-                    widget.onProductSelected(p);
-                    _searchController.clear();
-                    _filterProducts('');
-                  },
-                )),
+                ),
             ],
           ),
         ),

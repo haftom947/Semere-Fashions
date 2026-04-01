@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import '../services/database_helper.dart';
 import '../services/sync_service.dart';
 import '../utils/colors.dart';
+import '../utils/error_handler.dart';
 
 class AddEditAccountScreen extends StatefulWidget {
   final Map<String, dynamic>? accountData;
-  const AddEditAccountScreen({Key? key, this.accountData}) : super(key: key);
+  const AddEditAccountScreen({super.key, this.accountData});
 
   @override
   _AddEditAccountScreenState createState() => _AddEditAccountScreenState();
@@ -31,7 +31,8 @@ class _AddEditAccountScreenState extends State<AddEditAccountScreen> {
     if (widget.accountData != null) {
       _nameController.text = widget.accountData!['name'] ?? '';
       _selectedType = widget.accountData!['type'] ?? 'cash';
-      _openingBalanceController.text = widget.accountData!['opening_balance']?.toString() ?? '';
+      _openingBalanceController.text =
+          widget.accountData!['opening_balance']?.toString() ?? '';
       _notesController.text = widget.accountData!['notes'] ?? '';
     }
   }
@@ -42,7 +43,9 @@ class _AddEditAccountScreenState extends State<AddEditAccountScreen> {
     try {
       double opening = double.tryParse(_openingBalanceController.text) ?? 0.0;
       Map<String, dynamic> data = {
-        'id': widget.accountData?['id'] ?? DateTime.now().millisecondsSinceEpoch.toString(),
+        'id':
+            widget.accountData?['id'] ??
+            DateTime.now().millisecondsSinceEpoch.toString(),
         'name': _nameController.text.trim(),
         'type': _selectedType,
         'opening_balance': opening,
@@ -54,15 +57,20 @@ class _AddEditAccountScreenState extends State<AddEditAccountScreen> {
       } else {
         await _dbHelper.update('accounts', data);
       }
-      var connectivityResult = await Connectivity().checkConnectivity();
-      if (connectivityResult != ConnectivityResult.none) {
-        _syncService.syncAll();
+      if (mounted) {
+        _syncService.triggerBackgroundSync();
+        ErrorHandler.showSuccess(
+          context,
+          widget.accountData == null
+              ? 'Account saved'
+              : 'Account updated',
+        );
+        Navigator.pop(context, true);
       }
-      if (mounted) Navigator.pop(context);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      if (mounted) ErrorHandler.showError(context, 'Error: $e');
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -70,7 +78,9 @@ class _AddEditAccountScreenState extends State<AddEditAccountScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.accountData == null ? 'Add Account' : 'Edit Account'),
+        title: Text(
+          widget.accountData == null ? 'Add Account' : 'Edit Account',
+        ),
         backgroundColor: AppColors.primaryRed,
       ),
       body: Container(
@@ -97,36 +107,46 @@ class _AddEditAccountScreenState extends State<AddEditAccountScreen> {
                           labelText: 'Account Name *',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
                           ),
                         ),
-                        validator: (value) => value == null || value.isEmpty ? 'Required' : null,
+                        validator: (value) =>
+                            value == null || value.isEmpty ? 'Required' : null,
                       ),
                       const SizedBox(height: 16),
 
                       // Type dropdown
                       DropdownButtonFormField<String>(
-                        value: _selectedType,
+                        initialValue: _selectedType,
                         dropdownColor: AppColors.backgroundStart,
                         style: const TextStyle(color: AppColors.white),
                         decoration: InputDecoration(
                           labelText: 'Type *',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
                           ),
                         ),
-                        items: _types.map((type) => DropdownMenuItem<String>(
-                          value: type,
-                          child: Text(type),
-                        )).toList(),
-                        onChanged: (value) => setState(() => _selectedType = value!),
+                        items: _types
+                            .map(
+                              (type) => DropdownMenuItem<String>(
+                                value: type,
+                                child: Text(type),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (value) =>
+                            setState(() => _selectedType = value!),
                       ),
                       const SizedBox(height: 16),
 
@@ -139,7 +159,9 @@ class _AddEditAccountScreenState extends State<AddEditAccountScreen> {
                           labelText: 'Opening Balance (ETB)',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
@@ -157,7 +179,9 @@ class _AddEditAccountScreenState extends State<AddEditAccountScreen> {
                           labelText: 'Notes',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
@@ -177,8 +201,14 @@ class _AddEditAccountScreenState extends State<AddEditAccountScreen> {
                             foregroundColor: AppColors.white,
                           ),
                           child: _isLoading
-                              ? const CircularProgressIndicator(color: AppColors.white)
-                              : Text(widget.accountData == null ? 'Add Account' : 'Update Account'),
+                              ? const CircularProgressIndicator(
+                                  color: AppColors.white,
+                                )
+                              : Text(
+                                  widget.accountData == null
+                                      ? 'Add Account'
+                                      : 'Update Account',
+                                ),
                         ),
                       ),
                     ],

@@ -6,7 +6,7 @@ import '../utils/colors.dart';
 
 class AddEditEquipmentScreen extends StatefulWidget {
   final Map<String, dynamic>? equipmentData;
-  const AddEditEquipmentScreen({Key? key, this.equipmentData}) : super(key: key);
+  const AddEditEquipmentScreen({super.key, this.equipmentData});
 
   @override
   _AddEditEquipmentScreenState createState() => _AddEditEquipmentScreenState();
@@ -31,7 +31,9 @@ class _AddEditEquipmentScreenState extends State<AddEditEquipmentScreen> {
 
   String _selectedType = 'machine';
   String _selectedStatus = 'active';
+  String? _selectedAssignedTo;
   bool _isLoading = false;
+  List<Map<String, dynamic>> _employees = [];
 
   final List<String> _types = ['machine', 'tool', 'vehicle'];
   final List<String> _statuses = ['active', 'maintenance', 'broken', 'retired'];
@@ -45,27 +47,48 @@ class _AddEditEquipmentScreenState extends State<AddEditEquipmentScreen> {
       _makeController.text = widget.equipmentData!['make'] ?? '';
       _modelController.text = widget.equipmentData!['model'] ?? '';
       _yearController.text = widget.equipmentData!['year']?.toString() ?? '';
-      _licensePlateController.text = widget.equipmentData!['licensePlate'] ?? '';
+      _licensePlateController.text =
+          widget.equipmentData!['licensePlate'] ?? '';
       _colorController.text = widget.equipmentData!['color'] ?? '';
-      _insurancePolicyController.text = widget.equipmentData!['insurance_policy'] ?? '';
+      _insurancePolicyController.text =
+          widget.equipmentData!['insurance_policy'] ?? '';
       _notesController.text = widget.equipmentData!['notes'] ?? '';
       _selectedType = widget.equipmentData!['type'] ?? 'machine';
       _selectedStatus = widget.equipmentData!['status'] ?? 'active';
       if (widget.equipmentData!['registration_expiry'] != null) {
-        _registrationExpiry = DateTime.fromMillisecondsSinceEpoch(widget.equipmentData!['registration_expiry']);
+        _registrationExpiry = DateTime.fromMillisecondsSinceEpoch(
+          widget.equipmentData!['registration_expiry'],
+        );
       }
       if (widget.equipmentData!['insurance_expiry'] != null) {
-        _insuranceExpiry = DateTime.fromMillisecondsSinceEpoch(widget.equipmentData!['insurance_expiry']);
+        _insuranceExpiry = DateTime.fromMillisecondsSinceEpoch(
+          widget.equipmentData!['insurance_expiry'],
+        );
       }
+      _selectedAssignedTo = widget.equipmentData!['assignedTo']?.toString() ?? '';
     }
+    _loadEmployees();
+  }
+
+  Future<void> _loadEmployees() async {
+    final users = await _dbHelper.query('users');
+    if (!mounted) return;
+    setState(() {
+      _employees = List<Map<String, dynamic>>.from(
+        users.where((u) => u['status'] == 'active'),
+      );
+    });
   }
 
   Future<void> _selectRegistrationExpiry(BuildContext context) async {
     final picked = await showDatePicker(
       context: context,
-      initialDate: _registrationExpiry ?? DateTime.now().add(const Duration(days: 365)),
+      initialDate:
+          _registrationExpiry ?? DateTime.now().add(const Duration(days: 365)),
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 3650)),
+      builder: (context, child) =>
+          Theme(data: ThemeData.light(), child: child!),
     );
     if (picked != null) {
       setState(() => _registrationExpiry = picked);
@@ -75,9 +98,12 @@ class _AddEditEquipmentScreenState extends State<AddEditEquipmentScreen> {
   Future<void> _selectInsuranceExpiry(BuildContext context) async {
     final picked = await showDatePicker(
       context: context,
-      initialDate: _insuranceExpiry ?? DateTime.now().add(const Duration(days: 365)),
+      initialDate:
+          _insuranceExpiry ?? DateTime.now().add(const Duration(days: 365)),
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 3650)),
+      builder: (context, child) =>
+          Theme(data: ThemeData.light(), child: child!),
     );
     if (picked != null) {
       setState(() => _insuranceExpiry = picked);
@@ -89,7 +115,9 @@ class _AddEditEquipmentScreenState extends State<AddEditEquipmentScreen> {
     setState(() => _isLoading = true);
     try {
       Map<String, dynamic> data = {
-        'id': widget.equipmentData?['id'] ?? DateTime.now().millisecondsSinceEpoch.toString(),
+        'id':
+            widget.equipmentData?['id'] ??
+            DateTime.now().millisecondsSinceEpoch.toString(),
         'name': _nameController.text.trim(),
         'type': _selectedType,
         'status': _selectedStatus,
@@ -103,7 +131,7 @@ class _AddEditEquipmentScreenState extends State<AddEditEquipmentScreen> {
         'insurance_policy': _insurancePolicyController.text.trim(),
         'insurance_expiry': _insuranceExpiry?.millisecondsSinceEpoch,
         'notes': _notesController.text.trim(),
-        'assignedTo': widget.equipmentData?['assignedTo'],
+        'assignedTo': _selectedAssignedTo == null || _selectedAssignedTo!.isEmpty ? null : _selectedAssignedTo,
       };
       if (widget.equipmentData == null) {
         await _dbHelper.insert('equipment', data);
@@ -116,7 +144,9 @@ class _AddEditEquipmentScreenState extends State<AddEditEquipmentScreen> {
       }
       if (mounted) Navigator.pop(context);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
     } finally {
       setState(() => _isLoading = false);
     }
@@ -126,7 +156,9 @@ class _AddEditEquipmentScreenState extends State<AddEditEquipmentScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.equipmentData == null ? 'Add Equipment' : 'Edit Equipment'),
+        title: Text(
+          widget.equipmentData == null ? 'Add Equipment' : 'Edit Equipment',
+        ),
         backgroundColor: AppColors.primaryRed,
       ),
       body: Container(
@@ -153,59 +185,117 @@ class _AddEditEquipmentScreenState extends State<AddEditEquipmentScreen> {
                           labelText: 'Equipment Name *',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
                           ),
                         ),
-                        validator: (value) => value == null || value.isEmpty ? 'Required' : null,
+                        validator: (value) =>
+                            value == null || value.isEmpty ? 'Required' : null,
                       ),
                       const SizedBox(height: 16),
 
                       // Type dropdown
                       DropdownButtonFormField<String>(
-                        value: _selectedType,
+                        initialValue: _selectedType,
                         dropdownColor: AppColors.backgroundStart,
                         style: const TextStyle(color: AppColors.white),
                         decoration: InputDecoration(
                           labelText: 'Type *',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
                           ),
                         ),
-                        items: _types.map((type) => DropdownMenuItem<String>(
-                          value: type,
-                          child: Text(type),
-                        )).toList(),
-                        onChanged: (value) => setState(() => _selectedType = value!),
+                        items: _types
+                            .map(
+                              (type) => DropdownMenuItem<String>(
+                                value: type,
+                                child: Text(type),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (value) =>
+                            setState(() => _selectedType = value!),
                       ),
                       const SizedBox(height: 16),
 
                       // Status dropdown
                       DropdownButtonFormField<String>(
-                        value: _selectedStatus,
+                        initialValue: _selectedStatus,
                         dropdownColor: AppColors.backgroundStart,
                         style: const TextStyle(color: AppColors.white),
                         decoration: InputDecoration(
                           labelText: 'Status *',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
                           ),
                         ),
-                        items: _statuses.map((status) => DropdownMenuItem<String>(
-                          value: status,
-                          child: Text(status),
-                        )).toList(),
-                        onChanged: (value) => setState(() => _selectedStatus = value!),
+                        items: _statuses
+                            .map(
+                              (status) => DropdownMenuItem<String>(
+                                value: status,
+                                child: Text(status),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (value) =>
+                            setState(() => _selectedStatus = value!),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // Assigned employee
+                      DropdownButtonFormField<String>(
+                        initialValue: _selectedAssignedTo,
+                        dropdownColor: AppColors.backgroundStart,
+                        style: const TextStyle(color: AppColors.white),
+                        decoration: InputDecoration(
+                          labelText: 'Assigned Employee',
+                          labelStyle: const TextStyle(color: AppColors.white),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
+                          ),
+                          focusedBorder: const OutlineInputBorder(
+                            borderSide: BorderSide(color: AppColors.white),
+                          ),
+                        ),
+                        items: [
+                          const DropdownMenuItem<String>(
+                            value: '',
+                            child: Text(
+                              'Unassigned',
+                              style: TextStyle(color: AppColors.white),
+                            ),
+                          ),
+                          ..._employees.map(
+                            (employee) => DropdownMenuItem<String>(
+                              value: employee['id']?.toString() ?? '',
+                              child: Text(
+                                employee['name'] ?? 'Unknown',
+                                style: const TextStyle(color: AppColors.white),
+                              ),
+                            ),
+                          ),
+                        ],
+                        onChanged: (value) {
+                          setState(() => _selectedAssignedTo = value);
+                        },
                       ),
                       const SizedBox(height: 16),
 
@@ -217,7 +307,9 @@ class _AddEditEquipmentScreenState extends State<AddEditEquipmentScreen> {
                           labelText: 'Serial Number',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
@@ -235,7 +327,9 @@ class _AddEditEquipmentScreenState extends State<AddEditEquipmentScreen> {
                             labelText: 'Make',
                             labelStyle: const TextStyle(color: AppColors.white),
                             enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                              borderSide: BorderSide(
+                                color: AppColors.white.withOpacity(0.3),
+                              ),
                             ),
                             focusedBorder: const OutlineInputBorder(
                               borderSide: BorderSide(color: AppColors.white),
@@ -250,7 +344,9 @@ class _AddEditEquipmentScreenState extends State<AddEditEquipmentScreen> {
                             labelText: 'Model',
                             labelStyle: const TextStyle(color: AppColors.white),
                             enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                              borderSide: BorderSide(
+                                color: AppColors.white.withOpacity(0.3),
+                              ),
                             ),
                             focusedBorder: const OutlineInputBorder(
                               borderSide: BorderSide(color: AppColors.white),
@@ -266,7 +362,9 @@ class _AddEditEquipmentScreenState extends State<AddEditEquipmentScreen> {
                             labelText: 'Year',
                             labelStyle: const TextStyle(color: AppColors.white),
                             enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                              borderSide: BorderSide(
+                                color: AppColors.white.withOpacity(0.3),
+                              ),
                             ),
                             focusedBorder: const OutlineInputBorder(
                               borderSide: BorderSide(color: AppColors.white),
@@ -281,7 +379,9 @@ class _AddEditEquipmentScreenState extends State<AddEditEquipmentScreen> {
                             labelText: 'License Plate',
                             labelStyle: const TextStyle(color: AppColors.white),
                             enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                              borderSide: BorderSide(
+                                color: AppColors.white.withOpacity(0.3),
+                              ),
                             ),
                             focusedBorder: const OutlineInputBorder(
                               borderSide: BorderSide(color: AppColors.white),
@@ -296,7 +396,9 @@ class _AddEditEquipmentScreenState extends State<AddEditEquipmentScreen> {
                             labelText: 'Color',
                             labelStyle: const TextStyle(color: AppColors.white),
                             enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                              borderSide: BorderSide(
+                                color: AppColors.white.withOpacity(0.3),
+                              ),
                             ),
                             focusedBorder: const OutlineInputBorder(
                               borderSide: BorderSide(color: AppColors.white),
@@ -314,7 +416,10 @@ class _AddEditEquipmentScreenState extends State<AddEditEquipmentScreen> {
                             style: const TextStyle(color: AppColors.white),
                           ),
                           trailing: IconButton(
-                            icon: const Icon(Icons.calendar_today, color: AppColors.white),
+                            icon: const Icon(
+                              Icons.calendar_today,
+                              color: AppColors.white,
+                            ),
                             onPressed: () => _selectRegistrationExpiry(context),
                           ),
                         ),
@@ -328,7 +433,9 @@ class _AddEditEquipmentScreenState extends State<AddEditEquipmentScreen> {
                             labelText: 'Insurance Policy Number',
                             labelStyle: const TextStyle(color: AppColors.white),
                             enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                              borderSide: BorderSide(
+                                color: AppColors.white.withOpacity(0.3),
+                              ),
                             ),
                             focusedBorder: const OutlineInputBorder(
                               borderSide: BorderSide(color: AppColors.white),
@@ -346,7 +453,10 @@ class _AddEditEquipmentScreenState extends State<AddEditEquipmentScreen> {
                             style: const TextStyle(color: AppColors.white),
                           ),
                           trailing: IconButton(
-                            icon: const Icon(Icons.calendar_today, color: AppColors.white),
+                            icon: const Icon(
+                              Icons.calendar_today,
+                              color: AppColors.white,
+                            ),
                             onPressed: () => _selectInsuranceExpiry(context),
                           ),
                         ),
@@ -362,7 +472,9 @@ class _AddEditEquipmentScreenState extends State<AddEditEquipmentScreen> {
                           labelText: 'Notes',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
@@ -382,8 +494,14 @@ class _AddEditEquipmentScreenState extends State<AddEditEquipmentScreen> {
                             foregroundColor: AppColors.white,
                           ),
                           child: _isLoading
-                              ? const CircularProgressIndicator(color: AppColors.white)
-                              : Text(widget.equipmentData == null ? 'Add Equipment' : 'Update Equipment'),
+                              ? const CircularProgressIndicator(
+                                  color: AppColors.white,
+                                )
+                              : Text(
+                                  widget.equipmentData == null
+                                      ? 'Add Equipment'
+                                      : 'Update Equipment',
+                                ),
                         ),
                       ),
                     ],

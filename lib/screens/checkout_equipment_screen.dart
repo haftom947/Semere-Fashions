@@ -7,10 +7,15 @@ import '../services/sync_service.dart';
 class CheckoutEquipmentScreen extends StatefulWidget {
   final String equipmentId;
   final String equipmentName;
-  const CheckoutEquipmentScreen({super.key, required this.equipmentId, required this.equipmentName});
+  const CheckoutEquipmentScreen({
+    super.key,
+    required this.equipmentId,
+    required this.equipmentName,
+  });
 
   @override
-  _CheckoutEquipmentScreenState createState() => _CheckoutEquipmentScreenState();
+  _CheckoutEquipmentScreenState createState() =>
+      _CheckoutEquipmentScreenState();
 }
 
 class _CheckoutEquipmentScreenState extends State<CheckoutEquipmentScreen> {
@@ -44,6 +49,8 @@ class _CheckoutEquipmentScreenState extends State<CheckoutEquipmentScreen> {
       initialDate: _checkoutDate,
       firstDate: DateTime(2020),
       lastDate: DateTime.now(),
+      builder: (context, child) =>
+          Theme(data: ThemeData.light(), child: child!),
     );
     if (picked != null) {
       setState(() => _checkoutDate = picked);
@@ -53,9 +60,12 @@ class _CheckoutEquipmentScreenState extends State<CheckoutEquipmentScreen> {
   Future<void> _selectExpectedDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: _expectedReturnDate ?? DateTime.now().add(const Duration(days: 1)),
+      initialDate:
+          _expectedReturnDate ?? DateTime.now().add(const Duration(days: 1)),
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365)),
+      builder: (context, child) =>
+          Theme(data: ThemeData.light(), child: child!),
     );
     if (picked != null) {
       setState(() => _expectedReturnDate = picked);
@@ -89,7 +99,9 @@ class _CheckoutEquipmentScreenState extends State<CheckoutEquipmentScreen> {
       }
       Navigator.pop(context);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
     } finally {
       setState(() => _isLoading = false);
     }
@@ -127,18 +139,26 @@ class _CheckoutEquipmentScreenState extends State<CheckoutEquipmentScreen> {
                     labelText: 'Select Employee *',
                     labelStyle: const TextStyle(color: AppColors.white),
                     enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                      borderSide: BorderSide(
+                        color: AppColors.white.withOpacity(0.3),
+                      ),
                     ),
                     focusedBorder: const OutlineInputBorder(
                       borderSide: BorderSide(color: AppColors.white),
                     ),
                   ),
-                  items: _employees.map((e) => DropdownMenuItem<String>(
-                    value: e['id'],
-                    child: Text(e['name'] ?? ''),
-                  )).toList(),
+                  items: _employees
+                      .map(
+                        (e) => DropdownMenuItem<String>(
+                          value: e['id'],
+                          child: Text(e['name'] ?? ''),
+                        ),
+                      )
+                      .toList(),
                   onChanged: (value) {
-                    var selected = _employees.firstWhere((e) => e['id'] == value);
+                    var selected = _employees.firstWhere(
+                      (e) => e['id'] == value,
+                    );
                     setState(() {
                       _selectedEmployeeId = value;
                       _selectedEmployeeName = selected['name'] ?? '';
@@ -154,7 +174,10 @@ class _CheckoutEquipmentScreenState extends State<CheckoutEquipmentScreen> {
                     style: const TextStyle(color: AppColors.white),
                   ),
                   trailing: IconButton(
-                    icon: const Icon(Icons.calendar_today, color: AppColors.white),
+                    icon: const Icon(
+                      Icons.calendar_today,
+                      color: AppColors.white,
+                    ),
                     onPressed: () => _selectCheckoutDate(context),
                   ),
                 ),
@@ -169,7 +192,10 @@ class _CheckoutEquipmentScreenState extends State<CheckoutEquipmentScreen> {
                     style: const TextStyle(color: AppColors.white),
                   ),
                   trailing: IconButton(
-                    icon: const Icon(Icons.calendar_today, color: AppColors.white),
+                    icon: const Icon(
+                      Icons.calendar_today,
+                      color: AppColors.white,
+                    ),
                     onPressed: () => _selectExpectedDate(context),
                   ),
                 ),
@@ -184,7 +210,9 @@ class _CheckoutEquipmentScreenState extends State<CheckoutEquipmentScreen> {
                     labelText: 'Notes',
                     labelStyle: const TextStyle(color: AppColors.white),
                     enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                      borderSide: BorderSide(
+                        color: AppColors.white.withOpacity(0.3),
+                      ),
                     ),
                     focusedBorder: const OutlineInputBorder(
                       borderSide: BorderSide(color: AppColors.white),
@@ -204,7 +232,9 @@ class _CheckoutEquipmentScreenState extends State<CheckoutEquipmentScreen> {
                       foregroundColor: AppColors.white,
                     ),
                     child: _isLoading
-                        ? const CircularProgressIndicator(color: AppColors.white)
+                        ? const CircularProgressIndicator(
+                            color: AppColors.white,
+                          )
                         : const Text('Checkout'),
                   ),
                 ),

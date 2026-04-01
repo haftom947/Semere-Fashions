@@ -3,6 +3,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import '../utils/colors.dart';
 import '../services/database_helper.dart';
 import '../services/sync_service.dart';
+import '../utils/error_handler.dart';
 
 class AddEditFuelLogScreen extends StatefulWidget {
   final String vehicleId;
@@ -19,22 +20,31 @@ class _AddEditFuelLogScreenState extends State<AddEditFuelLogScreen> {
   final _formKey = GlobalKey<FormState>();
   final _litersController = TextEditingController();
   final _costController = TextEditingController();
-  final _odometerController = TextEditingController();
-  final _notesController = TextEditingController();
 
   DateTime _selectedDate = DateTime.now();
+  String? _selectedEmployeeId;
+  String? _selectedEmployeeName;
+  List<Map<String, dynamic>> _employees = [];
   bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
+    _loadEmployees();
     if (widget.logData != null) {
       _litersController.text = widget.logData!['liters'].toString();
       _costController.text = widget.logData!['cost'].toString();
-      _odometerController.text = widget.logData!['odometer'].toString();
-      _notesController.text = widget.logData!['notes'] ?? '';
       _selectedDate = DateTime.fromMillisecondsSinceEpoch(widget.logData!['date']);
+      _selectedEmployeeId = widget.logData!['employeeId'];
+      _selectedEmployeeName = widget.logData!['employeeName'];
     }
+  }
+
+  Future<void> _loadEmployees() async {
+    var employees = await _dbHelper.query('users');
+    setState(() {
+      _employees = employees.where((e) => e['status'] == 'active').toList();
+    });
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -51,17 +61,21 @@ class _AddEditFuelLogScreenState extends State<AddEditFuelLogScreen> {
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
+    if (_selectedEmployeeId == null) {
+      ErrorHandler.showError(context, 'Please select an employee');
+      return;
+    }
     setState(() => _isLoading = true);
     try {
       String id = widget.logData?['id'] ?? DateTime.now().millisecondsSinceEpoch.toString();
       Map<String, dynamic> data = {
         'id': id,
         'vehicleId': widget.vehicleId,
+        'employeeId': _selectedEmployeeId,
+        'employeeName': _selectedEmployeeName,
         'date': _selectedDate.millisecondsSinceEpoch,
         'liters': double.tryParse(_litersController.text) ?? 0,
         'cost': double.tryParse(_costController.text) ?? 0,
-        'odometer': int.tryParse(_odometerController.text) ?? 0,
-        'notes': _notesController.text.trim(),
       };
       if (widget.logData == null) {
         await _dbHelper.insert('fuel_logs', data);
@@ -101,7 +115,37 @@ class _AddEditFuelLogScreenState extends State<AddEditFuelLogScreen> {
             key: _formKey,
             child: ListView(
               children: [
-                // Date
+                // Employee dropdown
+                DropdownButtonFormField<String>(
+                  value: _selectedEmployeeId,
+                  dropdownColor: AppColors.backgroundStart,
+                  style: const TextStyle(color: AppColors.white),
+                  decoration: InputDecoration(
+                    labelText: 'Employee *',
+                    labelStyle: const TextStyle(color: AppColors.white),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                    ),
+                    focusedBorder: const OutlineInputBorder(
+                      borderSide: BorderSide(color: AppColors.white),
+                    ),
+                  ),
+                  items: _employees.map((e) => DropdownMenuItem<String>(
+                    value: e['id'],
+                    child: Text(e['name'] ?? ''),
+                  )).toList(),
+                  onChanged: (value) {
+                    var selected = _employees.firstWhere((e) => e['id'] == value);
+                    setState(() {
+                      _selectedEmployeeId = value;
+                      _selectedEmployeeName = selected['name'];
+                    });
+                  },
+                  validator: (value) => value == null ? 'Required' : null,
+                ),
+                const SizedBox(height: 16),
+
+                // Date picker
                 ListTile(
                   title: Text(
                     'Date: ${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
@@ -149,42 +193,6 @@ class _AddEditFuelLogScreenState extends State<AddEditFuelLogScreen> {
                     ),
                   ),
                   validator: (value) => value == null || value.isEmpty ? 'Required' : null,
-                ),
-                const SizedBox(height: 16),
-
-                // Odometer
-                TextFormField(
-                  controller: _odometerController,
-                  style: const TextStyle(color: AppColors.white),
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    labelText: 'Odometer (km)',
-                    labelStyle: const TextStyle(color: AppColors.white),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
-                    ),
-                    focusedBorder: const OutlineInputBorder(
-                      borderSide: BorderSide(color: AppColors.white),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Notes
-                TextFormField(
-                  controller: _notesController,
-                  style: const TextStyle(color: AppColors.white),
-                  maxLines: 3,
-                  decoration: InputDecoration(
-                    labelText: 'Notes',
-                    labelStyle: const TextStyle(color: AppColors.white),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
-                    ),
-                    focusedBorder: const OutlineInputBorder(
-                      borderSide: BorderSide(color: AppColors.white),
-                    ),
-                  ),
                 ),
                 const SizedBox(height: 24),
 

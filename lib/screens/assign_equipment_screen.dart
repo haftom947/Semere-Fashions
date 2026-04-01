@@ -8,7 +8,11 @@ import '../services/sync_service.dart';
 class AssignEquipmentScreen extends StatefulWidget {
   final String equipmentId;
   final String? currentAssignee;
-  const AssignEquipmentScreen({super.key, required this.equipmentId, this.currentAssignee});
+  const AssignEquipmentScreen({
+    super.key,
+    required this.equipmentId,
+    this.currentAssignee,
+  });
 
   @override
   _AssignEquipmentScreenState createState() => _AssignEquipmentScreenState();
@@ -24,6 +28,7 @@ class _AssignEquipmentScreenState extends State<AssignEquipmentScreen> {
   @override
   void initState() {
     super.initState();
+    _selectedEmployeeId = widget.currentAssignee?.toString() ?? '';
     _loadEmployees();
   }
 
@@ -38,9 +43,15 @@ class _AssignEquipmentScreenState extends State<AssignEquipmentScreen> {
     setState(() => _isLoading = true);
     try {
       // Update equipment with new assignee
-      var equipment = await _dbHelper.queryById('equipment', widget.equipmentId);
+      var equipment = await _dbHelper.queryById(
+        'equipment',
+        widget.equipmentId,
+      );
       if (equipment != null) {
-        equipment['assignedTo'] = _selectedEmployeeId;
+        equipment['assignedTo'] =
+            _selectedEmployeeId == null || _selectedEmployeeId!.isEmpty
+                ? null
+                : _selectedEmployeeId;
         await _dbHelper.update('equipment', equipment);
       }
       // Record assignment history – we can add an assignments table later
@@ -77,14 +88,16 @@ class _AssignEquipmentScreenState extends State<AssignEquipmentScreen> {
           child: Column(
             children: [
               DropdownButtonFormField<String>(
-                initialValue: _selectedEmployeeId,
+                value: _selectedEmployeeId,
                 dropdownColor: AppColors.backgroundStart,
                 style: const TextStyle(color: AppColors.white),
                 decoration: InputDecoration(
                   labelText: 'Select Employee',
                   labelStyle: const TextStyle(color: AppColors.white),
                   enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                    borderSide: BorderSide(
+                      color: AppColors.white.withOpacity(0.3),
+                    ),
                   ),
                   focusedBorder: const OutlineInputBorder(
                     borderSide: BorderSide(color: AppColors.white),
@@ -92,13 +105,21 @@ class _AssignEquipmentScreenState extends State<AssignEquipmentScreen> {
                 ),
                 items: [
                   const DropdownMenuItem<String>(
-                    value: null,
-                    child: Text('Unassign (no one)', style: TextStyle(color: AppColors.white)),
+                    value: '',
+                    child: Text(
+                      'Unassign (no one)',
+                      style: TextStyle(color: AppColors.white),
+                    ),
                   ),
-                  ..._employees.map((e) => DropdownMenuItem<String>(
-                    value: e['id'],
-                    child: Text(e['name'] ?? 'Unknown', style: const TextStyle(color: AppColors.white)),
-                  )),
+                  ..._employees.map(
+                    (e) => DropdownMenuItem<String>(
+                      value: e['id']?.toString() ?? '',
+                      child: Text(
+                        e['name'] ?? 'Unknown',
+                        style: const TextStyle(color: AppColors.white),
+                      ),
+                    ),
+                  ),
                 ],
                 onChanged: (value) => setState(() => _selectedEmployeeId = value),
               ),

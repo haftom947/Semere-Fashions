@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import '../utils/colors.dart';
 import '../services/database_helper.dart';
 import '../services/sync_service.dart';
+import '../utils/error_handler.dart';
 import '../widgets/supplier_selector.dart';
 
 class CreatePurchaseOrderScreen extends StatefulWidget {
   const CreatePurchaseOrderScreen({super.key});
 
   @override
-  _CreatePurchaseOrderScreenState createState() => _CreatePurchaseOrderScreenState();
+  _CreatePurchaseOrderScreenState createState() =>
+      _CreatePurchaseOrderScreenState();
 }
 
 class _CreatePurchaseOrderScreenState extends State<CreatePurchaseOrderScreen> {
@@ -92,6 +93,8 @@ class _CreatePurchaseOrderScreenState extends State<CreatePurchaseOrderScreen> {
       initialDate: _orderDate,
       firstDate: DateTime(2020),
       lastDate: DateTime.now().add(const Duration(days: 365)),
+      builder: (context, child) =>
+          Theme(data: ThemeData.light(), child: child!),
     );
     if (picked != null) {
       setState(() => _orderDate = picked);
@@ -104,6 +107,8 @@ class _CreatePurchaseOrderScreenState extends State<CreatePurchaseOrderScreen> {
       initialDate: _expectedDate ?? DateTime.now().add(const Duration(days: 7)),
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365)),
+      builder: (context, child) =>
+          Theme(data: ThemeData.light(), child: child!),
     );
     if (picked != null) {
       setState(() => _expectedDate = picked);
@@ -112,15 +117,15 @@ class _CreatePurchaseOrderScreenState extends State<CreatePurchaseOrderScreen> {
 
   Future<void> _submit() async {
     if (_supplierId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a supplier')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please select a supplier')));
       return;
     }
     if (_items.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Add at least one item')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Add at least one item')));
       return;
     }
 
@@ -148,19 +153,15 @@ class _CreatePurchaseOrderScreenState extends State<CreatePurchaseOrderScreen> {
       }
 
       // Sync if online
-      var connectivityResult = await Connectivity().checkConnectivity();
-      if (connectivityResult != ConnectivityResult.none) {
-        _syncService.syncAll();
+      _syncService.triggerBackgroundSync();
+      if (mounted) {
+        ErrorHandler.showSuccess(context, 'Purchase order created');
+        Navigator.pop(context, true);
       }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Purchase order created')),
-      );
-      Navigator.pop(context);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      if (mounted) ErrorHandler.showError(context, 'Error: $e');
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -205,7 +206,10 @@ class _CreatePurchaseOrderScreenState extends State<CreatePurchaseOrderScreen> {
                         style: const TextStyle(color: AppColors.white),
                       ),
                       trailing: IconButton(
-                        icon: const Icon(Icons.calendar_today, color: AppColors.white),
+                        icon: const Icon(
+                          Icons.calendar_today,
+                          color: AppColors.white,
+                        ),
                         onPressed: () => _selectOrderDate(context),
                       ),
                     ),
@@ -220,7 +224,10 @@ class _CreatePurchaseOrderScreenState extends State<CreatePurchaseOrderScreen> {
                         style: const TextStyle(color: AppColors.white),
                       ),
                       trailing: IconButton(
-                        icon: const Icon(Icons.calendar_today, color: AppColors.white),
+                        icon: const Icon(
+                          Icons.calendar_today,
+                          color: AppColors.white,
+                        ),
                         onPressed: () => _selectExpectedDate(context),
                       ),
                     ),
@@ -235,7 +242,9 @@ class _CreatePurchaseOrderScreenState extends State<CreatePurchaseOrderScreen> {
                         labelText: 'Notes',
                         labelStyle: const TextStyle(color: AppColors.white),
                         enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                          borderSide: BorderSide(
+                            color: AppColors.white.withOpacity(0.3),
+                          ),
                         ),
                         focusedBorder: const OutlineInputBorder(
                           borderSide: BorderSide(color: AppColors.white),
@@ -245,7 +254,14 @@ class _CreatePurchaseOrderScreenState extends State<CreatePurchaseOrderScreen> {
                     const SizedBox(height: 24),
 
                     // Add items section
-                    const Text('Add Items', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.white)),
+                    const Text(
+                      'Add Items',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.white,
+                      ),
+                    ),
                     const SizedBox(height: 8),
 
                     // Item type toggle
@@ -253,18 +269,26 @@ class _CreatePurchaseOrderScreenState extends State<CreatePurchaseOrderScreen> {
                       children: [
                         Expanded(
                           child: RadioListTile<String>(
-                            title: const Text('Product', style: TextStyle(color: AppColors.white)),
+                            title: const Text(
+                              'Product',
+                              style: TextStyle(color: AppColors.white),
+                            ),
                             value: 'product',
                             groupValue: _itemType,
-                            onChanged: (value) => setState(() => _itemType = value!),
+                            onChanged: (value) =>
+                                setState(() => _itemType = value!),
                           ),
                         ),
                         Expanded(
                           child: RadioListTile<String>(
-                            title: const Text('Material', style: TextStyle(color: AppColors.white)),
+                            title: const Text(
+                              'Material',
+                              style: TextStyle(color: AppColors.white),
+                            ),
                             value: 'material',
                             groupValue: _itemType,
-                            onChanged: (value) => setState(() => _itemType = value!),
+                            onChanged: (value) =>
+                                setState(() => _itemType = value!),
                           ),
                         ),
                       ],
@@ -278,7 +302,9 @@ class _CreatePurchaseOrderScreenState extends State<CreatePurchaseOrderScreen> {
                         labelText: 'Item Name',
                         labelStyle: const TextStyle(color: AppColors.white),
                         enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                          borderSide: BorderSide(
+                            color: AppColors.white.withOpacity(0.3),
+                          ),
                         ),
                         focusedBorder: const OutlineInputBorder(
                           borderSide: BorderSide(color: AppColors.white),
@@ -296,9 +322,13 @@ class _CreatePurchaseOrderScreenState extends State<CreatePurchaseOrderScreen> {
                             keyboardType: TextInputType.number,
                             decoration: InputDecoration(
                               labelText: 'Quantity',
-                              labelStyle: const TextStyle(color: AppColors.white),
+                              labelStyle: const TextStyle(
+                                color: AppColors.white,
+                              ),
                               enabledBorder: OutlineInputBorder(
-                                borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                                borderSide: BorderSide(
+                                  color: AppColors.white.withOpacity(0.3),
+                                ),
                               ),
                               focusedBorder: const OutlineInputBorder(
                                 borderSide: BorderSide(color: AppColors.white),
@@ -314,9 +344,13 @@ class _CreatePurchaseOrderScreenState extends State<CreatePurchaseOrderScreen> {
                             keyboardType: TextInputType.number,
                             decoration: InputDecoration(
                               labelText: 'Unit Price',
-                              labelStyle: const TextStyle(color: AppColors.white),
+                              labelStyle: const TextStyle(
+                                color: AppColors.white,
+                              ),
                               enabledBorder: OutlineInputBorder(
-                                borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                                borderSide: BorderSide(
+                                  color: AppColors.white.withOpacity(0.3),
+                                ),
                               ),
                               focusedBorder: const OutlineInputBorder(
                                 borderSide: BorderSide(color: AppColors.white),
@@ -325,7 +359,10 @@ class _CreatePurchaseOrderScreenState extends State<CreatePurchaseOrderScreen> {
                           ),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.add_circle, color: AppColors.success),
+                          icon: const Icon(
+                            Icons.add_circle,
+                            color: AppColors.success,
+                          ),
                           onPressed: _addItem,
                         ),
                       ],
@@ -334,7 +371,12 @@ class _CreatePurchaseOrderScreenState extends State<CreatePurchaseOrderScreen> {
 
                     // Items list
                     _items.isEmpty
-                        ? const Center(child: Text('No items added', style: TextStyle(color: AppColors.white)))
+                        ? const Center(
+                            child: Text(
+                              'No items added',
+                              style: TextStyle(color: AppColors.white),
+                            ),
+                          )
                         : ListView.builder(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
@@ -344,13 +386,20 @@ class _CreatePurchaseOrderScreenState extends State<CreatePurchaseOrderScreen> {
                               return Card(
                                 child: ListTile(
                                   title: Text(item['itemName']),
-                                  subtitle: Text('Qty: ${item['quantity']} @ ${item['unitPrice']}'),
+                                  subtitle: Text(
+                                    'Qty: ${item['quantity']} @ ${item['unitPrice']}',
+                                  ),
                                   trailing: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Text('ETB ${(item['quantity'] * item['unitPrice']).toStringAsFixed(0)}'),
+                                      Text(
+                                        'ETB ${(item['quantity'] * item['unitPrice']).toStringAsFixed(0)}',
+                                      ),
                                       IconButton(
-                                        icon: const Icon(Icons.delete, color: AppColors.error),
+                                        icon: const Icon(
+                                          Icons.delete,
+                                          color: AppColors.error,
+                                        ),
                                         onPressed: () => _removeItem(index),
                                       ),
                                     ],
@@ -365,8 +414,22 @@ class _CreatePurchaseOrderScreenState extends State<CreatePurchaseOrderScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Total:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.white)),
-                        Text('ETB ${_total.toStringAsFixed(2)}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.white)),
+                        const Text(
+                          'Total:',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.white,
+                          ),
+                        ),
+                        Text(
+                          'ETB ${_total.toStringAsFixed(2)}',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.white,
+                          ),
+                        ),
                       ],
                     ),
                     const SizedBox(height: 24),

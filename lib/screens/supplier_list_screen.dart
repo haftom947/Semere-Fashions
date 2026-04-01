@@ -32,7 +32,9 @@ class _SupplierListScreenState extends State<SupplierListScreen> {
 
   Future<void> _loadSuppliers() async {
     setState(() => _isLoading = true);
-    var suppliers = await _dbHelper.query('suppliers');
+    var suppliers = List<Map<String, dynamic>>.from(
+      await _dbHelper.query('suppliers'),
+    );
     suppliers.sort((a, b) => (a['name'] ?? '').compareTo(b['name'] ?? ''));
     setState(() {
       _suppliers = suppliers;
@@ -52,7 +54,7 @@ class _SupplierListScreenState extends State<SupplierListScreen> {
     setState(() {
       _uiSuppliers = _suppliers.where((s) {
         return (s['name'] ?? '').toLowerCase().contains(lowerQuery) ||
-               (s['phone'] ?? '').contains(query);
+            (s['phone'] ?? '').contains(query);
       }).toList();
     });
   }
@@ -60,16 +62,25 @@ class _SupplierListScreenState extends State<SupplierListScreen> {
   Future<void> _deleteSupplier(String id, String name) async {
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Supplier'),
-        content: Text('Are you sure you want to delete $name?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete', style: TextStyle(color: AppColors.error)),
-          ),
-        ],
+      builder: (context) => Theme(
+        data: ThemeData.light(),
+        child: AlertDialog(
+          title: const Text('Delete Supplier'),
+          content: Text('Are you sure you want to delete $name?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text(
+                'Delete',
+                style: TextStyle(color: AppColors.error),
+              ),
+            ),
+          ],
+        ),
       ),
     );
     if (confirm != true) return;
@@ -104,7 +115,9 @@ class _SupplierListScreenState extends State<SupplierListScreen> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const AddEditSupplierScreen()),
+                MaterialPageRoute(
+                  builder: (context) => const AddEditSupplierScreen(),
+                ),
               ).then((_) => _loadSuppliers());
             },
           ),
@@ -145,71 +158,100 @@ class _SupplierListScreenState extends State<SupplierListScreen> {
           child: _isLoading
               ? const Center(child: CircularProgressIndicator())
               : _uiSuppliers.isEmpty
-                  ? const Center(
-                      child: Text('No suppliers found.', style: TextStyle(color: AppColors.white)),
-                    )
-                  : ListView.separated(
-                      padding: const EdgeInsets.all(8),
-                      itemCount: _uiSuppliers.length,
-                      separatorBuilder: (_, __) => const Divider(color: AppColors.white, height: 0.5),
-                      itemBuilder: (context, index) {
-                        var supplier = _uiSuppliers[index];
-                        return ListTile(
-                          leading: CircleAvatar(
-                            radius: 18,
-                            backgroundColor: AppColors.primaryRed,
-                            child: Text(
-                              (supplier['name'] ?? '?')[0].toUpperCase(),
-                              style: const TextStyle(color: AppColors.white, fontSize: 14),
+              ? const Center(
+                  child: Text(
+                    'No suppliers found.',
+                    style: TextStyle(color: AppColors.white),
+                  ),
+                )
+              : ListView.separated(
+                  padding: const EdgeInsets.all(8),
+                  itemCount: _uiSuppliers.length,
+                  separatorBuilder: (_, __) =>
+                      const Divider(color: AppColors.white, height: 0.5),
+                  itemBuilder: (context, index) {
+                    var supplier = _uiSuppliers[index];
+                    return ListTile(
+                      leading: CircleAvatar(
+                        radius: 18,
+                        backgroundColor: AppColors.primaryRed,
+                        child: Text(
+                          (supplier['name'] ?? '?')[0].toUpperCase(),
+                          style: const TextStyle(
+                            color: AppColors.white,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                      title: Text(
+                        supplier['name'] ?? 'Unnamed',
+                        style: const TextStyle(
+                          color: AppColors.white,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      subtitle: supplier['phone'] != null
+                          ? Text(
+                              supplier['phone'],
+                              style: TextStyle(
+                                color: AppColors.white.withOpacity(0.7),
+                              ),
+                            )
+                          : null,
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(
+                              Icons.link,
+                              color: AppColors.info,
+                              size: 20,
+                            ),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => SupplierMaterialsScreen(
+                                    supplierId: supplier['id'],
+                                    supplierName: supplier['name'] ?? '',
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                          IconButton(
+                            icon: const Icon(
+                              Icons.edit,
+                              color: AppColors.primaryRed,
+                              size: 20,
+                            ),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => AddEditSupplierScreen(
+                                    supplierData: supplier,
+                                  ),
+                                ),
+                              ).then((_) => _loadSuppliers());
+                            },
+                          ),
+                          IconButton(
+                            icon: const Icon(
+                              Icons.delete,
+                              color: AppColors.error,
+                              size: 20,
+                            ),
+                            onPressed: () => _deleteSupplier(
+                              supplier['id'],
+                              supplier['name'] ?? '',
                             ),
                           ),
-                          title: Text(
-                            supplier['name'] ?? 'Unnamed',
-                            style: const TextStyle(color: AppColors.white, fontWeight: FontWeight.w500),
-                          ),
-                          subtitle: supplier['phone'] != null
-                              ? Text(
-                                  supplier['phone'],
-                                  style: TextStyle(color: AppColors.white.withOpacity(0.7)),
-                                )
-                              : null,
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.link, color: AppColors.info, size: 20),
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => SupplierMaterialsScreen(
-                                        supplierId: supplier['id'],
-                                        supplierName: supplier['name'] ?? '',
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.edit, color: AppColors.primaryRed, size: 20),
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => AddEditSupplierScreen(supplierData: supplier),
-                                    ),
-                                  ).then((_) => _loadSuppliers());
-                                },
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.delete, color: AppColors.error, size: 20),
-                                onPressed: () => _deleteSupplier(supplier['id'], supplier['name'] ?? ''),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
         ),
       ),
     );

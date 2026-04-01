@@ -13,7 +13,8 @@ class VehicleDetailsScreen extends StatefulWidget {
   _VehicleDetailsScreenState createState() => _VehicleDetailsScreenState();
 }
 
-class _VehicleDetailsScreenState extends State<VehicleDetailsScreen> with SingleTickerProviderStateMixin {
+class _VehicleDetailsScreenState extends State<VehicleDetailsScreen>
+    with SingleTickerProviderStateMixin {
   final DatabaseHelper _dbHelper = DatabaseHelper();
   final SyncService _syncService = SyncService();
   Map<String, dynamic>? _vehicle;
@@ -58,37 +59,44 @@ class _VehicleDetailsScreenState extends State<VehicleDetailsScreen> with Single
         child: _isLoading
             ? const Center(child: CircularProgressIndicator())
             : _vehicle == null
-                ? const Center(child: Text('Vehicle not found', style: TextStyle(color: AppColors.white)))
-                : Column(
-                    children: [
-                      // Vehicle summary card
-                      Card(
-                        margin: const EdgeInsets.all(16),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Make: ${_vehicle!['make'] ?? 'N/A'}'),
-                              Text('Model: ${_vehicle!['model'] ?? 'N/A'}'),
-                              Text('Year: ${_vehicle!['year'] ?? 'N/A'}'),
-                              Text('License: ${_vehicle!['licensePlate'] ?? 'N/A'}'),
-                              Text('Status: ${_vehicle!['status']}'),
-                            ],
+            ? const Center(
+                child: Text(
+                  'Vehicle not found',
+                  style: TextStyle(color: AppColors.white),
+                ),
+              )
+            : Column(
+                children: [
+                  // Vehicle summary card
+                  Card(
+                    margin: const EdgeInsets.all(16),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Make: ${_vehicle!['make'] ?? 'N/A'}'),
+                          Text('Model: ${_vehicle!['model'] ?? 'N/A'}'),
+                          Text('Year: ${_vehicle!['year'] ?? 'N/A'}'),
+                          Text(
+                            'License: ${_vehicle!['licensePlate'] ?? 'N/A'}',
                           ),
-                        ),
+                          Text('Status: ${_vehicle!['status']}'),
+                        ],
                       ),
-                      Expanded(
-                        child: TabBarView(
-                          controller: _tabController,
-                          children: [
-                            FuelLogsScreen(vehicleId: widget.vehicleId),
-                            MaintenanceLogsScreen(vehicleId: widget.vehicleId),
-                          ],
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
+                  Expanded(
+                    child: TabBarView(
+                      controller: _tabController,
+                      children: [
+                        FuelLogsScreen(vehicleId: widget.vehicleId),
+                        MaintenanceLogsScreen(vehicleId: widget.vehicleId),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
       ),
     );
   }

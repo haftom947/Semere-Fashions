@@ -4,7 +4,7 @@ import '../utils/colors.dart';
 import '../screens/orders_list_screen.dart';
 
 class RecentOrdersChips extends StatefulWidget {
-  const RecentOrdersChips({Key? key}) : super(key: key);
+  const RecentOrdersChips({super.key});
 
   @override
   _RecentOrdersChipsState createState() => _RecentOrdersChipsState();
@@ -22,7 +22,9 @@ class _RecentOrdersChipsState extends State<RecentOrdersChips> {
 
   Future<void> _loadRecentOrders() async {
     var orders = await _dbHelper.query('orders');
-    orders.sort((a, b) => (b['createdAt'] as int).compareTo(a['createdAt'] as int));
+    orders.sort(
+      (a, b) => (b['createdAt'] as int).compareTo(a['createdAt'] as int),
+    );
     setState(() {
       _recentOrders = orders.take(3).toList(); // only 3
     });
@@ -30,11 +32,16 @@ class _RecentOrdersChipsState extends State<RecentOrdersChips> {
 
   Color _getStatusColor(String? status) {
     switch (status) {
-      case 'pending': return AppColors.warning;
-      case 'processing': return AppColors.info;
-      case 'delivered': return AppColors.success;
-      case 'cancelled': return AppColors.error;
-      default: return AppColors.mediumGrey;
+      case 'pending':
+        return AppColors.warning;
+      case 'processing':
+        return AppColors.info;
+      case 'delivered':
+        return AppColors.success;
+      case 'cancelled':
+        return AppColors.error;
+      default:
+        return AppColors.mediumGrey;
     }
   }
 
@@ -58,7 +65,9 @@ class _RecentOrdersChipsState extends State<RecentOrdersChips> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const OrdersListScreen()),
+                  MaterialPageRoute(
+                    builder: (context) => const OrdersListScreen(),
+                  ),
                 );
               },
               child: const Text(
@@ -71,7 +80,10 @@ class _RecentOrdersChipsState extends State<RecentOrdersChips> {
         const SizedBox(height: 12),
         _recentOrders.isEmpty
             ? const Center(
-                child: Text('No recent orders', style: TextStyle(color: AppColors.white)),
+                child: Text(
+                  'No recent orders',
+                  style: TextStyle(color: AppColors.white),
+                ),
               )
             : Wrap(
                 spacing: 8,
@@ -80,14 +92,20 @@ class _RecentOrdersChipsState extends State<RecentOrdersChips> {
                   return ActionChip(
                     label: Text(
                       '${order['customerName'] ?? 'Unknown'} • ETB ${(order['totalAmount'] as num?)?.toStringAsFixed(0) ?? '0'}',
-                      style: const TextStyle(color: AppColors.white, fontSize: 12),
+                      style: const TextStyle(
+                        color: AppColors.white,
+                        fontSize: 12,
+                      ),
                     ),
-                    backgroundColor: _getStatusColor(order['status']).withOpacity(0.2),
+                    backgroundColor: _getStatusColor(
+                      order['status'],
+                    ).withOpacity(0.2),
                     onPressed: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => OrdersListScreen(initialStatus: order['status']),
+                          builder: (context) =>
+                              OrdersListScreen(initialStatus: order['status']),
                         ),
                       );
                     },

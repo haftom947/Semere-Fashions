@@ -5,7 +5,7 @@ import '../services/sync_service.dart';
 import '../utils/colors.dart';
 
 class MeasurementTypesScreen extends StatefulWidget {
-  const MeasurementTypesScreen({Key? key}) : super(key: key);
+  const MeasurementTypesScreen({super.key});
 
   @override
   _MeasurementTypesScreenState createState() => _MeasurementTypesScreenState();
@@ -30,7 +30,9 @@ class _MeasurementTypesScreenState extends State<MeasurementTypesScreen> {
 
   Future<void> _loadTypes() async {
     setState(() => _isLoading = true);
-    var types = await _dbHelper.query('measurement_types');
+    var types = List<Map<String, dynamic>>.from(
+      await _dbHelper.query('measurement_types'),
+    );
     types.sort((a, b) => (a['sortOrder'] ?? 0).compareTo(b['sortOrder'] ?? 0));
     setState(() {
       _types = types;
@@ -50,7 +52,7 @@ class _MeasurementTypesScreenState extends State<MeasurementTypesScreen> {
     setState(() {
       _filteredTypes = _types.where((t) {
         return (t['name'] ?? '').toLowerCase().contains(lowerQuery) ||
-               (t['unit'] ?? '').toLowerCase().contains(lowerQuery);
+            (t['unit'] ?? '').toLowerCase().contains(lowerQuery);
       }).toList();
     });
   }
@@ -76,20 +78,26 @@ class _MeasurementTypesScreenState extends State<MeasurementTypesScreen> {
                 const SizedBox(height: 12),
                 TextField(
                   controller: nameController,
+                  style: const TextStyle(color: AppColors.black), // ← dark text
                   decoration: const InputDecoration(
                     labelText: 'Name *',
                     hintText: 'e.g., Chest, Waist, Height',
                     border: OutlineInputBorder(),
+                    labelStyle: TextStyle(color: AppColors.darkGrey),
+                    hintStyle: TextStyle(color: AppColors.mediumGrey),
                   ),
                   autofocus: true,
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: unitController,
+                  style: const TextStyle(color: AppColors.black), // ← dark text
                   decoration: const InputDecoration(
                     labelText: 'Unit (optional)',
                     hintText: 'e.g., cm, inches',
                     border: OutlineInputBorder(),
+                    labelStyle: TextStyle(color: AppColors.darkGrey),
+                    hintStyle: TextStyle(color: AppColors.mediumGrey),
                   ),
                 ),
               ],
@@ -113,7 +121,11 @@ class _MeasurementTypesScreenState extends State<MeasurementTypesScreen> {
       },
     );
     if (result == true) {
-      int maxSort = _types.isEmpty ? 0 : (_types.map((e) => e['sortOrder'] as int? ?? 0).reduce((a, b) => a > b ? a : b));
+      int maxSort = _types.isEmpty
+          ? 0
+          : (_types
+                .map((e) => e['sortOrder'] as int? ?? 0)
+                .reduce((a, b) => a > b ? a : b));
       await _dbHelper.insert('measurement_types', {
         'id': DateTime.now().millisecondsSinceEpoch.toString(),
         'name': nameController.text.trim(),
@@ -139,23 +151,32 @@ class _MeasurementTypesScreenState extends State<MeasurementTypesScreen> {
               children: [
                 TextField(
                   controller: nameController,
+                  style: const TextStyle(color: AppColors.black), // ← dark text
                   decoration: const InputDecoration(
                     labelText: 'Name *',
                     border: OutlineInputBorder(),
+                    labelStyle: TextStyle(color: AppColors.darkGrey),
+                    hintStyle: TextStyle(color: AppColors.mediumGrey),
                   ),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: unitController,
+                  style: const TextStyle(color: AppColors.black), // ← dark text
                   decoration: const InputDecoration(
                     labelText: 'Unit (optional)',
                     border: OutlineInputBorder(),
+                    labelStyle: TextStyle(color: AppColors.darkGrey),
+                    hintStyle: TextStyle(color: AppColors.mediumGrey),
                   ),
                 ),
               ],
             ),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
               ElevatedButton(
                 onPressed: () {
                   if (nameController.text.isNotEmpty) {
@@ -180,16 +201,27 @@ class _MeasurementTypesScreenState extends State<MeasurementTypesScreen> {
   Future<void> _deleteType(String id) async {
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Type'),
-        content: const Text('Are you sure? This will also delete all measurements of this type.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete', style: TextStyle(color: AppColors.error)),
+      builder: (context) => Theme(
+        data: ThemeData.light(),
+        child: AlertDialog(
+          title: const Text('Delete Type'),
+          content: const Text(
+            'Are you sure? This will also delete all measurements of this type.',
           ),
-        ],
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text(
+                'Delete',
+                style: TextStyle(color: AppColors.error),
+              ),
+            ),
+          ],
+        ),
       ),
     );
     if (confirm == true) {
@@ -257,42 +289,64 @@ class _MeasurementTypesScreenState extends State<MeasurementTypesScreen> {
         child: _isLoading
             ? const Center(child: CircularProgressIndicator())
             : _filteredTypes.isEmpty
-                ? const Center(
-                    child: Text('No measurement types found.', style: TextStyle(color: AppColors.white)),
-                  )
-                : ReorderableListView(
-                    padding: const EdgeInsets.all(8),
-                    onReorder: _onReorder,
-                    children: _filteredTypes.map((type) {
-                      return Card(
-                        key: ValueKey(type['id']),
-                        margin: const EdgeInsets.only(bottom: 8),
-                        child: ListTile(
-                          leading: const Icon(Icons.drag_handle, color: AppColors.white),
-                          title: Text(
-                            type['name'],
-                            style: const TextStyle(color: AppColors.white, fontWeight: FontWeight.w500),
-                          ),
-                          subtitle: type['unit']?.isNotEmpty == true
-                              ? Text('Unit: ${type['unit']}', style: TextStyle(color: AppColors.white.withOpacity(0.7)))
-                              : null,
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.edit, color: AppColors.primaryRed, size: 20),
-                                onPressed: () => _editType(type),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.delete, color: AppColors.error, size: 20),
-                                onPressed: () => _deleteType(type['id']),
-                              ),
-                            ],
-                          ),
+            ? const Center(
+                child: Text(
+                  'No measurement types found.',
+                  style: TextStyle(color: AppColors.white),
+                ),
+              )
+            : ReorderableListView(
+                padding: const EdgeInsets.all(8),
+                onReorder: _onReorder,
+                children: _filteredTypes.map((type) {
+                  return Card(
+                    key: ValueKey(type['id']),
+                    margin: const EdgeInsets.only(bottom: 8),
+                    child: ListTile(
+                      leading: const Icon(
+                        Icons.drag_handle,
+                        color: AppColors.white,
+                      ),
+                      title: Text(
+                        type['name'],
+                        style: const TextStyle(
+                          color: AppColors.white,
+                          fontWeight: FontWeight.w500,
                         ),
-                      );
-                    }).toList(),
-                  ),
+                      ),
+                      subtitle: type['unit']?.isNotEmpty == true
+                          ? Text(
+                              'Unit: ${type['unit']}',
+                              style: TextStyle(
+                                color: AppColors.white.withOpacity(0.7),
+                              ),
+                            )
+                          : null,
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(
+                              Icons.edit,
+                              color: AppColors.primaryRed,
+                              size: 20,
+                            ),
+                            onPressed: () => _editType(type),
+                          ),
+                          IconButton(
+                            icon: const Icon(
+                              Icons.delete,
+                              color: AppColors.error,
+                              size: 20,
+                            ),
+                            onPressed: () => _deleteType(type['id']),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _addType,

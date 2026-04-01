@@ -35,12 +35,19 @@ class ErrorHandler {
     );
   }
 
-  static Future<T?> tryCatch<T>(BuildContext context, Future<T> Function() operation, {String? errorMessage}) async {
+  static Future<T?> tryCatch<T>(
+    BuildContext context,
+    Future<T> Function() operation, {
+    String? errorMessage,
+  }) async {
     try {
       return await operation();
     } catch (e) {
       if (context.mounted) {
-        showError(context, errorMessage ?? 'An error occurred: ${e.toString()}');
+        showError(
+          context,
+          errorMessage ?? 'An error occurred: ${e.toString()}',
+        );
       }
       return null;
     }

@@ -24,7 +24,9 @@ class _AddMeasurementScreenState extends State<AddMeasurementScreen> {
   }
 
   Future<void> _loadTypes() async {
-    var types = await _dbHelper.query('measurement_types');
+    var types = List<Map<String, dynamic>>.from(
+      await _dbHelper.query('measurement_types'),
+    );
     types.sort((a, b) => (a['sortOrder'] ?? 0).compareTo(b['sortOrder'] ?? 0));
     setState(() {
       _types = types;
@@ -41,6 +43,8 @@ class _AddMeasurementScreenState extends State<AddMeasurementScreen> {
       initialDate: _selectedDate,
       firstDate: DateTime(2020),
       lastDate: DateTime.now(),
+      builder: (context, child) =>
+          Theme(data: ThemeData.light(), child: child!),
     );
     if (picked != null) {
       setState(() => _selectedDate = picked);
@@ -82,59 +86,67 @@ class _AddMeasurementScreenState extends State<AddMeasurementScreen> {
         child: _isLoading
             ? const Center(child: CircularProgressIndicator())
             : _types.isEmpty
-                ? const Center(
-                    child: Text('No measurement types defined. Please add them in settings.',
-                        style: TextStyle(color: AppColors.white)),
-                  )
-                : Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: ListView(
-                      children: [
-                        // Date picker
-                        ListTile(
-                          title: Text(
-                            'Date: ${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
-                            style: const TextStyle(color: AppColors.white),
-                          ),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.calendar_today, color: AppColors.white),
-                            onPressed: () => _selectDate(context),
-                          ),
+            ? const Center(
+                child: Text(
+                  'No measurement types defined. Please add them in settings.',
+                  style: TextStyle(color: AppColors.white),
+                ),
+              )
+            : Padding(
+                padding: const EdgeInsets.all(16),
+                child: ListView(
+                  children: [
+                    // Date picker
+                    ListTile(
+                      title: Text(
+                        'Date: ${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}',
+                        style: const TextStyle(color: AppColors.white),
+                      ),
+                      trailing: IconButton(
+                        icon: const Icon(
+                          Icons.calendar_today,
+                          color: AppColors.white,
                         ),
-                        const SizedBox(height: 16),
-                        // Dynamic fields for each type
-                        ..._types.map((type) {
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
-                            child: TextFormField(
-                              controller: _controllers[type['id']],
-                              keyboardType: TextInputType.number,
-                              style: const TextStyle(color: AppColors.white),
-                              decoration: InputDecoration(
-                                labelText: '${type['name']} (${type['unit'] ?? ''})',
-                                labelStyle: const TextStyle(color: AppColors.white),
-                                enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
-                                ),
-                                focusedBorder: const OutlineInputBorder(
-                                  borderSide: BorderSide(color: AppColors.white),
-                                ),
+                        onPressed: () => _selectDate(context),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    // Dynamic fields for each type
+                    ..._types.map((type) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: TextFormField(
+                          controller: _controllers[type['id']],
+                          keyboardType: TextInputType.number,
+                          style: const TextStyle(color: AppColors.white),
+                          decoration: InputDecoration(
+                            labelText:
+                                '${type['name']} (${type['unit'] ?? ''})',
+                            labelStyle: const TextStyle(color: AppColors.white),
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: AppColors.white.withOpacity(0.3),
                               ),
                             ),
-                          );
-                        }),
-                        const SizedBox(height: 24),
-                        ElevatedButton(
-                          onPressed: _save,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.success,
-                            foregroundColor: AppColors.white,
+                            focusedBorder: const OutlineInputBorder(
+                              borderSide: BorderSide(color: AppColors.white),
+                            ),
                           ),
-                          child: const Text('Save Measurements'),
                         ),
-                      ],
+                      );
+                    }),
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: _save,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.success,
+                        foregroundColor: AppColors.white,
+                      ),
+                      child: const Text('Save Measurements'),
                     ),
-                  ),
+                  ],
+                ),
+              ),
       ),
     );
   }

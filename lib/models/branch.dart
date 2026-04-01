@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-
 class Branch {
   final String id;
   final String name;
@@ -28,11 +27,6 @@ class Branch {
   }
 
   Map<String, dynamic> toMap() {
-    return {
-      'name': name,
-      'location': location,
-      'phone': phone,
-      'email': email,
-    };
+    return {'name': name, 'location': location, 'phone': phone, 'email': email};
   }
 }

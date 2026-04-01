@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import '../services/database_helper.dart';
 import '../services/sync_service.dart';
 import '../utils/colors.dart';
@@ -7,7 +6,7 @@ import '../utils/error_handler.dart';
 
 class AddEditProductScreen extends StatefulWidget {
   final Map<String, dynamic>? productData;
-  const AddEditProductScreen({Key? key, this.productData}) : super(key: key);
+  const AddEditProductScreen({super.key, this.productData});
 
   @override
   _AddEditProductScreenState createState() => _AddEditProductScreenState();
@@ -31,10 +30,13 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
     if (widget.productData != null) {
       _nameController.text = widget.productData!['name'] ?? '';
       _categoryController.text = widget.productData!['category'] ?? '';
-      _costPriceController.text = widget.productData!['costPrice']?.toString() ?? '';
-      _sellingPriceController.text = widget.productData!['sellingPrice']?.toString() ?? '';
+      _costPriceController.text =
+          widget.productData!['costPrice']?.toString() ?? '';
+      _sellingPriceController.text =
+          widget.productData!['sellingPrice']?.toString() ?? '';
       _stockController.text = widget.productData!['stock']?.toString() ?? '';
-      _minLevelController.text = widget.productData!['minimumLevel']?.toString() ?? '';
+      _minLevelController.text =
+          widget.productData!['minimumLevel']?.toString() ?? '';
     }
   }
 
@@ -43,7 +45,9 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
     if (mounted) setState(() => _isLoading = true);
     try {
       Map<String, dynamic> data = {
-        'id': widget.productData?['id'] ?? DateTime.now().millisecondsSinceEpoch.toString(),
+        'id':
+            widget.productData?['id'] ??
+            DateTime.now().millisecondsSinceEpoch.toString(),
         'name': _nameController.text.trim(),
         'category': _categoryController.text.trim(),
         'costPrice': double.tryParse(_costPriceController.text) ?? 0,
@@ -56,11 +60,14 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
       } else {
         await _dbHelper.update('products', data);
       }
-      var connectivityResult = await Connectivity().checkConnectivity();
-      if (connectivityResult != ConnectivityResult.none) {
-        _syncService.syncAll();
+      if (mounted) {
+        _syncService.triggerBackgroundSync();
+        ErrorHandler.showSuccess(
+          context,
+          widget.productData == null ? 'Product saved' : 'Product updated',
+        );
+        ErrorHandler.safePop(context, true);
       }
-      if (mounted) ErrorHandler.safePop(context);
     } catch (e) {
       if (mounted) ErrorHandler.showError(context, 'Error: $e');
     } finally {
@@ -72,7 +79,9 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.productData == null ? 'Add Product' : 'Edit Product'),
+        title: Text(
+          widget.productData == null ? 'Add Product' : 'Edit Product',
+        ),
         backgroundColor: AppColors.primaryRed,
       ),
       body: Container(
@@ -99,13 +108,16 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
                           labelText: 'Product Name *',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
                           ),
                         ),
-                        validator: (value) => value == null || value.isEmpty ? 'Required' : null,
+                        validator: (value) =>
+                            value == null || value.isEmpty ? 'Required' : null,
                       ),
                       const SizedBox(height: 16),
 
@@ -117,7 +129,9 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
                           labelText: 'Category',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
@@ -135,7 +149,9 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
                           labelText: 'Cost Price (ETB)',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
@@ -153,7 +169,9 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
                           labelText: 'Selling Price (ETB)',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
@@ -171,7 +189,9 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
                           labelText: 'Stock',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
@@ -189,7 +209,9 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
                           labelText: 'Minimum Level',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
@@ -209,8 +231,14 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
                             foregroundColor: AppColors.white,
                           ),
                           child: _isLoading
-                              ? const CircularProgressIndicator(color: AppColors.white)
-                              : Text(widget.productData == null ? 'Add Product' : 'Update Product'),
+                              ? const CircularProgressIndicator(
+                                  color: AppColors.white,
+                                )
+                              : Text(
+                                  widget.productData == null
+                                      ? 'Add Product'
+                                      : 'Update Product',
+                                ),
                         ),
                       ),
                     ],

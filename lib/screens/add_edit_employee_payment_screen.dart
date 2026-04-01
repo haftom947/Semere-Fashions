@@ -9,13 +9,20 @@ class AddEditEmployeePaymentScreen extends StatefulWidget {
   final String employeeId;
   final String employeeName;
   final Map<String, dynamic>? paymentData;
-  const AddEditEmployeePaymentScreen({Key? key, required this.employeeId, required this.employeeName, this.paymentData}) : super(key: key);
+  const AddEditEmployeePaymentScreen({
+    Key? key,
+    required this.employeeId,
+    required this.employeeName,
+    this.paymentData,
+  }) : super(key: key);
 
   @override
-  _AddEditEmployeePaymentScreenState createState() => _AddEditEmployeePaymentScreenState();
+  _AddEditEmployeePaymentScreenState createState() =>
+      _AddEditEmployeePaymentScreenState();
 }
 
-class _AddEditEmployeePaymentScreenState extends State<AddEditEmployeePaymentScreen> {
+class _AddEditEmployeePaymentScreenState
+    extends State<AddEditEmployeePaymentScreen> {
   final DatabaseHelper _dbHelper = DatabaseHelper();
   final SyncService _syncService = SyncService();
   final _formKey = GlobalKey<FormState>();
@@ -37,7 +44,9 @@ class _AddEditEmployeePaymentScreenState extends State<AddEditEmployeePaymentScr
       _amountController.text = widget.paymentData!['amount']?.toString() ?? '';
       _monthController.text = widget.paymentData!['month'] ?? '';
       _notesController.text = widget.paymentData!['notes'] ?? '';
-      _selectedDate = DateTime.fromMillisecondsSinceEpoch(widget.paymentData!['datePaid']);
+      _selectedDate = DateTime.fromMillisecondsSinceEpoch(
+        widget.paymentData!['datePaid'],
+      );
     }
   }
 
@@ -47,6 +56,8 @@ class _AddEditEmployeePaymentScreenState extends State<AddEditEmployeePaymentScr
       initialDate: _selectedDate,
       firstDate: DateTime(2020),
       lastDate: DateTime.now(),
+      builder: (context, child) =>
+          Theme(data: ThemeData.light(), child: child!),
     );
     if (picked != null) {
       setState(() => _selectedDate = picked);
@@ -58,12 +69,16 @@ class _AddEditEmployeePaymentScreenState extends State<AddEditEmployeePaymentScr
     setState(() => _isLoading = true);
     try {
       Map<String, dynamic> data = {
-        'id': widget.paymentData?['id'] ?? DateTime.now().millisecondsSinceEpoch.toString(),
+        'id':
+            widget.paymentData?['id'] ??
+            DateTime.now().millisecondsSinceEpoch.toString(),
         'employeeId': widget.employeeId,
         'employeeName': widget.employeeName,
         'type': _selectedType,
         'amount': double.tryParse(_amountController.text) ?? 0,
-        'month': _monthController.text.trim().isEmpty ? null : _monthController.text.trim(),
+        'month': _monthController.text.trim().isEmpty
+            ? null
+            : _monthController.text.trim(),
         'datePaid': _selectedDate.millisecondsSinceEpoch,
         'notes': _notesController.text.trim(),
       };
@@ -88,7 +103,9 @@ class _AddEditEmployeePaymentScreenState extends State<AddEditEmployeePaymentScr
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.paymentData == null ? 'Add Payment' : 'Edit Payment'),
+        title: Text(
+          widget.paymentData == null ? 'Add Payment' : 'Edit Payment',
+        ),
         backgroundColor: AppColors.primaryRed,
       ),
       body: Container(
@@ -116,17 +133,24 @@ class _AddEditEmployeePaymentScreenState extends State<AddEditEmployeePaymentScr
                           labelText: 'Payment Type *',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
                           ),
                         ),
-                        items: _types.map((type) => DropdownMenuItem<String>(
-                          value: type,
-                          child: Text(type),
-                        )).toList(),
-                        onChanged: (value) => setState(() => _selectedType = value!),
+                        items: _types
+                            .map(
+                              (type) => DropdownMenuItem<String>(
+                                value: type,
+                                child: Text(type),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (value) =>
+                            setState(() => _selectedType = value!),
                       ),
                       const SizedBox(height: 16),
 
@@ -139,13 +163,16 @@ class _AddEditEmployeePaymentScreenState extends State<AddEditEmployeePaymentScr
                           labelText: 'Amount (ETB) *',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
                           ),
                         ),
-                        validator: (value) => value == null || value.isEmpty ? 'Required' : null,
+                        validator: (value) =>
+                            value == null || value.isEmpty ? 'Required' : null,
                       ),
                       const SizedBox(height: 16),
 
@@ -158,9 +185,13 @@ class _AddEditEmployeePaymentScreenState extends State<AddEditEmployeePaymentScr
                             labelText: 'Month (YYYY-MM)',
                             labelStyle: const TextStyle(color: AppColors.white),
                             hintText: 'e.g., 2025-03',
-                            hintStyle: TextStyle(color: AppColors.white.withOpacity(0.5)),
+                            hintStyle: TextStyle(
+                              color: AppColors.white.withOpacity(0.5),
+                            ),
                             enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                              borderSide: BorderSide(
+                                color: AppColors.white.withOpacity(0.3),
+                              ),
                             ),
                             focusedBorder: const OutlineInputBorder(
                               borderSide: BorderSide(color: AppColors.white),
@@ -175,7 +206,10 @@ class _AddEditEmployeePaymentScreenState extends State<AddEditEmployeePaymentScr
                           style: const TextStyle(color: AppColors.white),
                         ),
                         trailing: IconButton(
-                          icon: const Icon(Icons.calendar_today, color: AppColors.white),
+                          icon: const Icon(
+                            Icons.calendar_today,
+                            color: AppColors.white,
+                          ),
                           onPressed: () => _selectDate(context),
                         ),
                       ),
@@ -190,7 +224,9 @@ class _AddEditEmployeePaymentScreenState extends State<AddEditEmployeePaymentScr
                           labelText: 'Notes',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
@@ -210,8 +246,14 @@ class _AddEditEmployeePaymentScreenState extends State<AddEditEmployeePaymentScr
                             foregroundColor: AppColors.white,
                           ),
                           child: _isLoading
-                              ? const CircularProgressIndicator(color: AppColors.white)
-                              : Text(widget.paymentData == null ? 'Add Payment' : 'Update Payment'),
+                              ? const CircularProgressIndicator(
+                                  color: AppColors.white,
+                                )
+                              : Text(
+                                  widget.paymentData == null
+                                      ? 'Add Payment'
+                                      : 'Update Payment',
+                                ),
                         ),
                       ),
                     ],

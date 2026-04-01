@@ -48,7 +48,11 @@ class RecentOrderCard extends StatelessWidget {
       child: ListTile(
         leading: CircleAvatar(
           backgroundColor: AppColors.primaryRed.withOpacity(0.1),
-          child: Icon(Icons.shopping_bag, color: AppColors.primaryRed, size: 20),
+          child: Icon(
+            Icons.shopping_bag,
+            color: AppColors.primaryRed,
+            size: 20,
+          ),
         ),
         title: Text(
           orderId.length > 8 ? '#${orderId.substring(0, 8)}' : orderId,

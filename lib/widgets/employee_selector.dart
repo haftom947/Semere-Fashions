@@ -3,9 +3,14 @@ import '../utils/colors.dart';
 import '../services/database_helper.dart';
 
 class EmployeeSelector extends StatefulWidget {
-  final Function(String employeeId, String employeeName, String role) onEmployeeSelected;
+  final Function(String employeeId, String employeeName, String role)
+  onEmployeeSelected;
   final String? initialRole; // optional role filter
-  const EmployeeSelector({super.key, required this.onEmployeeSelected, this.initialRole});
+  const EmployeeSelector({
+    super.key,
+    required this.onEmployeeSelected,
+    this.initialRole,
+  });
 
   @override
   _EmployeeSelectorState createState() => _EmployeeSelectorState();
@@ -40,10 +45,15 @@ class _EmployeeSelectorState extends State<EmployeeSelector> {
       if (query.isEmpty) {
         _filtered = _employees;
       } else {
-        _filtered = _employees.where((e) =>
-          (e['name'] ?? '').toLowerCase().contains(query.toLowerCase()) ||
-          (e['role'] ?? '').toLowerCase().contains(query.toLowerCase())
-        ).toList();
+        _filtered = _employees
+            .where(
+              (e) =>
+                  (e['name'] ?? '').toLowerCase().contains(
+                    query.toLowerCase(),
+                  ) ||
+                  (e['role'] ?? '').toLowerCase().contains(query.toLowerCase()),
+            )
+            .toList();
       }
     });
   }
@@ -87,10 +97,20 @@ class _EmployeeSelectorState extends State<EmployeeSelector> {
               itemBuilder: (context, index) {
                 var emp = _filtered[index];
                 return ListTile(
-                  title: Text(emp['name'] ?? '', style: const TextStyle(color: AppColors.white)),
-                  subtitle: Text(emp['role'] ?? '', style: TextStyle(color: AppColors.white.withOpacity(0.7))),
+                  title: Text(
+                    emp['name'] ?? '',
+                    style: const TextStyle(color: AppColors.white),
+                  ),
+                  subtitle: Text(
+                    emp['role'] ?? '',
+                    style: TextStyle(color: AppColors.white.withOpacity(0.7)),
+                  ),
                   onTap: () {
-                    widget.onEmployeeSelected(emp['id'], emp['name'] ?? '', emp['role'] ?? '');
+                    widget.onEmployeeSelected(
+                      emp['id'],
+                      emp['name'] ?? '',
+                      emp['role'] ?? '',
+                    );
                   },
                 );
               },

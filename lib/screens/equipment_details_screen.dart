@@ -6,7 +6,7 @@ import 'assign_equipment_screen.dart';
 
 class EquipmentDetailsScreen extends StatefulWidget {
   final String equipmentId;
-  const EquipmentDetailsScreen({Key? key, required this.equipmentId}) : super(key: key);
+  const EquipmentDetailsScreen({super.key, required this.equipmentId});
 
   @override
   _EquipmentDetailsScreenState createState() => _EquipmentDetailsScreenState();
@@ -63,84 +63,122 @@ class _EquipmentDetailsScreenState extends State<EquipmentDetailsScreen> {
         child: _isLoading
             ? const Center(child: CircularProgressIndicator())
             : _equipment == null
-                ? const Center(child: Text('Equipment not found', style: TextStyle(color: AppColors.white)))
-                : ListView(
-                    padding: const EdgeInsets.all(16),
-                    children: [
-                      Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Name: ${_equipment!['name']}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                              const SizedBox(height: 8),
-                              Text('Type: ${_equipment!['type']}'),
-                              Text('Status: ${_equipment!['status']}'),
-                              if (_equipment!['serialNumber'] != null) Text('Serial: ${_equipment!['serialNumber']}'),
-                              if (_equipment!['make'] != null) Text('Make: ${_equipment!['make']}'),
-                              if (_equipment!['model'] != null) Text('Model: ${_equipment!['model']}'),
-                              if (_equipment!['year'] != null) Text('Year: ${_equipment!['year']}'),
-                              if (_equipment!['licensePlate'] != null) Text('License: ${_equipment!['licensePlate']}'),
-                              if (_equipment!['color'] != null) Text('Color: ${_equipment!['color']}'),
-                              // New fields
-                              if (_equipment!['registration_expiry'] != null)
-                                Text('Registration Expiry: ${_formatDate(_equipment!['registration_expiry'])}'),
-                              if (_equipment!['insurance_policy'] != null)
-                                Text('Insurance Policy: ${_equipment!['insurance_policy']}'),
-                              if (_equipment!['insurance_expiry'] != null)
-                                Text('Insurance Expiry: ${_formatDate(_equipment!['insurance_expiry'])}'),
-                              if (_equipment!['notes'] != null) Text('Notes: ${_equipment!['notes']}'),
-                            ],
+            ? const Center(
+                child: Text(
+                  'Equipment not found',
+                  style: TextStyle(color: AppColors.white),
+                ),
+              )
+            : ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Name: ${_equipment!['name']}',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        ),
+                          const SizedBox(height: 8),
+                          Text('Type: ${_equipment!['type']}'),
+                          Text('Status: ${_equipment!['status']}'),
+                          if (_equipment!['serialNumber'] != null)
+                            Text('Serial: ${_equipment!['serialNumber']}'),
+                          if (_equipment!['make'] != null)
+                            Text('Make: ${_equipment!['make']}'),
+                          if (_equipment!['model'] != null)
+                            Text('Model: ${_equipment!['model']}'),
+                          if (_equipment!['year'] != null)
+                            Text('Year: ${_equipment!['year']}'),
+                          if (_equipment!['licensePlate'] != null)
+                            Text('License: ${_equipment!['licensePlate']}'),
+                          if (_equipment!['color'] != null)
+                            Text('Color: ${_equipment!['color']}'),
+                          // New fields
+                          if (_equipment!['registration_expiry'] != null)
+                            Text(
+                              'Registration Expiry: ${_formatDate(_equipment!['registration_expiry'])}',
+                            ),
+                          if (_equipment!['insurance_policy'] != null)
+                            Text(
+                              'Insurance Policy: ${_equipment!['insurance_policy']}',
+                            ),
+                          if (_equipment!['insurance_expiry'] != null)
+                            Text(
+                              'Insurance Expiry: ${_formatDate(_equipment!['insurance_expiry'])}',
+                            ),
+                          if (_equipment!['notes'] != null)
+                            Text('Notes: ${_equipment!['notes']}'),
+                        ],
                       ),
-                      const SizedBox(height: 16),
-                      Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text('Assignment', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                              const SizedBox(height: 8),
-                              FutureBuilder<String>(
-                                future: _getEmployeeName(_equipment!['assignedTo']),
-                                builder: (context, snap) {
-                                  return Text('Currently assigned to: ${snap.data ?? 'No one'}');
-                                },
-                              ),
-                              const SizedBox(height: 12),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: ElevatedButton(
-                                      onPressed: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => AssignEquipmentScreen(
-                                              equipmentId: widget.equipmentId,
-                                              currentAssignee: _equipment!['assignedTo'],
-                                            ),
-                                          ),
-                                        ).then((_) => _loadData());
-                                      },
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: AppColors.info,
-                                        foregroundColor: AppColors.white,
-                                      ),
-                                      child: Text(_equipment!['assignedTo'] == null ? 'Assign' : 'Reassign'),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
+                  const SizedBox(height: 16),
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Assignment',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          FutureBuilder<String>(
+                            future: _getEmployeeName(_equipment!['assignedTo']),
+                            builder: (context, snap) {
+                              return Text(
+                                'Currently assigned to: ${snap.data ?? 'No one'}',
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: ElevatedButton(
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            AssignEquipmentScreen(
+                                              equipmentId: widget.equipmentId,
+                                              currentAssignee:
+                                                  _equipment!['assignedTo'],
+                                            ),
+                                      ),
+                                    ).then((_) => _loadData());
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.info,
+                                    foregroundColor: AppColors.white,
+                                  ),
+                                  child: Text(
+                                    _equipment!['assignedTo'] == null
+                                        ? 'Assign'
+                                        : 'Reassign',
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
       ),
     );
   }

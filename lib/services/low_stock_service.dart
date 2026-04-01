@@ -27,13 +27,12 @@ class LowStockService {
 
     if (lowStockItems.isNotEmpty) {
       final title = 'Low Stock Alert';
-      final body = lowStockItems.take(3).join('\n') +
-          (lowStockItems.length > 3 ? '\n+${lowStockItems.length - 3} more' : '');
-      await _notifService.showNotification(
-        id: 1,
-        title: title,
-        body: body,
-      );
+      final body =
+          lowStockItems.take(3).join('\n') +
+          (lowStockItems.length > 3
+              ? '\n+${lowStockItems.length - 3} more'
+              : '');
+      await _notifService.showNotification(id: 1, title: title, body: body);
     }
   }
 }

@@ -6,7 +6,7 @@ import '../utils/colors.dart';
 
 class AddEditSupplierScreen extends StatefulWidget {
   final Map<String, dynamic>? supplierData;
-  const AddEditSupplierScreen({Key? key, this.supplierData}) : super(key: key);
+  const AddEditSupplierScreen({super.key, this.supplierData});
 
   @override
   _AddEditSupplierScreenState createState() => _AddEditSupplierScreenState();
@@ -34,7 +34,9 @@ class _AddEditSupplierScreenState extends State<AddEditSupplierScreen> {
     setState(() => _isLoading = true);
     try {
       Map<String, dynamic> data = {
-        'id': widget.supplierData?['id'] ?? DateTime.now().millisecondsSinceEpoch.toString(),
+        'id':
+            widget.supplierData?['id'] ??
+            DateTime.now().millisecondsSinceEpoch.toString(),
         'name': _nameController.text.trim(),
         'phone': _phoneController.text.trim(),
       };
@@ -49,7 +51,9 @@ class _AddEditSupplierScreenState extends State<AddEditSupplierScreen> {
       }
       if (mounted) Navigator.pop(context);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
     } finally {
       setState(() => _isLoading = false);
     }
@@ -59,7 +63,9 @@ class _AddEditSupplierScreenState extends State<AddEditSupplierScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.supplierData == null ? 'Add Supplier' : 'Edit Supplier'),
+        title: Text(
+          widget.supplierData == null ? 'Add Supplier' : 'Edit Supplier',
+        ),
         backgroundColor: AppColors.primaryRed,
       ),
       body: Container(
@@ -86,13 +92,16 @@ class _AddEditSupplierScreenState extends State<AddEditSupplierScreen> {
                           labelText: 'Supplier Name *',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
                           ),
                         ),
-                        validator: (value) => value == null || value.isEmpty ? 'Required' : null,
+                        validator: (value) =>
+                            value == null || value.isEmpty ? 'Required' : null,
                       ),
                       const SizedBox(height: 16),
 
@@ -105,7 +114,9 @@ class _AddEditSupplierScreenState extends State<AddEditSupplierScreen> {
                           labelText: 'Phone',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
@@ -125,8 +136,14 @@ class _AddEditSupplierScreenState extends State<AddEditSupplierScreen> {
                             foregroundColor: AppColors.white,
                           ),
                           child: _isLoading
-                              ? const CircularProgressIndicator(color: AppColors.white)
-                              : Text(widget.supplierData == null ? 'Add Supplier' : 'Update Supplier'),
+                              ? const CircularProgressIndicator(
+                                  color: AppColors.white,
+                                )
+                              : Text(
+                                  widget.supplierData == null
+                                      ? 'Add Supplier'
+                                      : 'Update Supplier',
+                                ),
                         ),
                       ),
                     ],

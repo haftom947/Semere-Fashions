@@ -1,17 +1,23 @@
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import '../services/database_helper.dart';
 import '../utils/colors.dart';
 import '../utils/error_handler.dart';
+import '../utils/device_helper.dart';
 
 class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
   @override
   _LoginScreenState createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  final DatabaseHelper _dbHelper = DatabaseHelper();
   final TextEditingController _pinController = TextEditingController();
   final FocusNode _pinFocusNode = FocusNode();
   final FocusNode _rawKeyboardFocusNode = FocusNode();
@@ -55,8 +61,54 @@ class _LoginScreenState extends State<LoginScreen> {
         throw Exception('User data not found. Please contact admin.');
       }
 
+      final userData = userDoc.data() as Map<String, dynamic>?;
       String role = userDoc.get('role');
       print('User role: "$role"');
+
+      final currentDeviceId = await DeviceHelper.getDeviceId();
+      final storedDeviceId = userData?['deviceId']?.toString();
+      if (storedDeviceId != null &&
+          storedDeviceId.isNotEmpty &&
+          storedDeviceId != currentDeviceId) {
+        await FirebaseAuth.instance.signOut();
+        throw Exception('Account is locked to another device');
+      }
+
+      if (storedDeviceId == null || storedDeviceId.isEmpty) {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userCredential.user!.uid)
+            .set({'deviceId': currentDeviceId}, SetOptions(merge: true));
+      }
+      final localUser = await _dbHelper.queryById(
+        'users',
+        userCredential.user!.uid,
+      );
+      if (localUser == null) {
+        await _dbHelper.insert(
+          'users',
+          {
+            'id': userCredential.user!.uid,
+            'device_id': currentDeviceId,
+          },
+          markSynced: true,
+          changedFields: {'device_id': currentDeviceId},
+        );
+      } else {
+        await _dbHelper.update(
+          'users',
+          {
+            'id': userCredential.user!.uid,
+            'device_id': currentDeviceId,
+          },
+          markSynced: true,
+          changedFields: {'device_id': currentDeviceId},
+        );
+      }
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('userRole', role);
+      await prefs.setString('userId', userCredential.user!.uid);
 
       // FCM token and topic subscription
       FirebaseMessaging messaging = FirebaseMessaging.instance;
@@ -84,16 +136,32 @@ class _LoginScreenState extends State<LoginScreen> {
 
       switch (role) {
         case 'admin':
-          Navigator.pushNamedAndRemoveUntil(context, '/admin', (route) => false);
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            '/admin',
+            (route) => false,
+          );
           break;
         case 'manager':
-          Navigator.pushNamedAndRemoveUntil(context, '/manager', (route) => false);
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            '/manager',
+            (route) => false,
+          );
           break;
         case 'sales':
-          Navigator.pushNamedAndRemoveUntil(context, '/sales', (route) => false);
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            '/sales',
+            (route) => false,
+          );
           break;
         case 'tailor':
-          Navigator.pushNamedAndRemoveUntil(context, '/tailor', (route) => false);
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            '/tailor',
+            (route) => false,
+          );
           break;
         default:
           ErrorHandler.showError(context, 'Invalid role: "$role"');
@@ -140,7 +208,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 RawKeyboardListener(
                   focusNode: _rawKeyboardFocusNode,
                   onKey: (event) {
-                    if (event.isKeyPressed(LogicalKeyboardKey.enter) && !_isLoading) {
+                    if (event.isKeyPressed(LogicalKeyboardKey.enter) &&
+                        !_isLoading) {
                       _login();
                     }
                   },
@@ -155,14 +224,21 @@ class _LoginScreenState extends State<LoginScreen> {
                       keyboardType: TextInputType.number,
                       obscureText: _obscurePin,
                       maxLength: 6,
+                      textInputAction: TextInputAction.go,
+                      onFieldSubmitted: (_) => _login(),
                       style: const TextStyle(color: AppColors.white),
                       decoration: InputDecoration(
                         labelText: 'Enter your 6-digit PIN',
                         labelStyle: const TextStyle(color: AppColors.white),
-                        prefixIcon: const Icon(Icons.lock, color: AppColors.white),
+                        prefixIcon: const Icon(
+                          Icons.lock,
+                          color: AppColors.white,
+                        ),
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _obscurePin ? Icons.visibility_off : Icons.visibility,
+                            _obscurePin
+                                ? Icons.visibility_off
+                                : Icons.visibility,
                             color: AppColors.white,
                           ),
                           onPressed: () {
@@ -172,8 +248,10 @@ class _LoginScreenState extends State<LoginScreen> {
                           },
                         ),
                         border: InputBorder.none,
-                        contentPadding:
-                            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 16,
+                        ),
                       ),
                     ),
                   ),
@@ -192,11 +270,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     child: _isLoading
-                        ? const CircularProgressIndicator(color: AppColors.white)
-                        : const Text(
-                            'Login',
-                            style: TextStyle(fontSize: 18),
-                          ),
+                        ? const CircularProgressIndicator(
+                            color: AppColors.white,
+                          )
+                        : const Text('Login', style: TextStyle(fontSize: 18)),
                   ),
                 ),
               ],

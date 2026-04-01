@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import '../services/database_helper.dart';
 import '../services/sync_service.dart';
 import '../utils/colors.dart';
@@ -15,6 +16,7 @@ class MaterialListScreen extends StatefulWidget {
 class _MaterialListScreenState extends State<MaterialListScreen> {
   final DatabaseHelper _dbHelper = DatabaseHelper();
   final SyncService _syncService = SyncService();
+  StreamSubscription<bool>? _dataChangedSubscription;
   List<Map<String, dynamic>> _materials = [];
   List<Map<String, dynamic>> _uiMaterials = [];
   bool _isLoading = true;
@@ -24,23 +26,28 @@ class _MaterialListScreenState extends State<MaterialListScreen> {
   void initState() {
     super.initState();
     _loadMaterials();
-    _syncService.dataChangedStream.listen((_) {
-      _loadMaterials();
+    _dataChangedSubscription = _syncService.dataChangedStream.listen((_) {
+      if (mounted) _loadMaterials();
     });
+  }
+
+  @override
+  void dispose() {
+    _dataChangedSubscription?.cancel();
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadMaterials() async {
     setState(() => _isLoading = true);
     var materials = await _dbHelper.query('materials');
-    materials.sort((a, b) => (a['name'] ?? '').compareTo(b['name'] ?? ''));
-    setState(() {
-      _materials = materials;
-      _uiMaterials = materials;
-      _isLoading = false;
-    });
+    _materials = List<Map<String, dynamic>>.from(materials);
+    _applyFilters();
+    setState(() => _isLoading = false);
   }
 
-  void _filterMaterials(String query) {
+  void _applyFilters() {
+    final query = _searchController.text.trim();
     if (query.isEmpty) {
       setState(() {
         _uiMaterials = _materials;
@@ -51,9 +58,13 @@ class _MaterialListScreenState extends State<MaterialListScreen> {
     setState(() {
       _uiMaterials = _materials.where((m) {
         return (m['name'] ?? '').toLowerCase().contains(lowerQuery) ||
-               (m['category'] ?? '').toLowerCase().contains(lowerQuery);
+            (m['category'] ?? '').toLowerCase().contains(lowerQuery);
       }).toList();
     });
+  }
+
+  void _filterMaterials(String query) {
+    _applyFilters();
   }
 
   Color _getStockColor(int stock, int minLevel) {
@@ -65,16 +76,25 @@ class _MaterialListScreenState extends State<MaterialListScreen> {
   Future<void> _deleteMaterial(String id, String name) async {
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Material'),
-        content: Text('Are you sure you want to delete $name?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete', style: TextStyle(color: AppColors.error)),
-          ),
-        ],
+      builder: (context) => Theme(
+        data: ThemeData.light(),
+        child: AlertDialog(
+          title: const Text('Delete Material'),
+          content: Text('Are you sure you want to delete $name?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text(
+                'Delete',
+                style: TextStyle(color: AppColors.error),
+              ),
+            ),
+          ],
+        ),
       ),
     );
     if (confirm != true) return;
@@ -100,29 +120,44 @@ class _MaterialListScreenState extends State<MaterialListScreen> {
   Future<void> _decrementStock(Map<String, dynamic> material) async {
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Use Material'),
-        content: Text('Mark one unit of ${material['name']} as used?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Use'),
-          ),
-        ],
+      builder: (context) => Theme(
+        data: ThemeData.light(),
+        child: AlertDialog(
+          title: const Text('Use Material', style: TextStyle(color: Colors.black)),
+          content: Text('Mark one unit of ${material['name']} as used?', style: TextStyle(color: Colors.black)),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel', style: TextStyle(color: Colors.blue))),
+            TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Use')),
+          ],
+        ),
       ),
     );
     if (confirm == true) {
       int currentStock = material['stock'] ?? 0;
       if (currentStock > 0) {
-        material['stock'] = currentStock - 1;
-        await _dbHelper.update('materials', material);
+        var updatedMaterial = Map<String, dynamic>.from(material);
+        updatedMaterial['stock'] = currentStock - 1;
+        await _dbHelper.update('materials', updatedMaterial);
+
+        double costPerUnit = (material['cost_per_unit'] ?? 0).toDouble();
+        if (costPerUnit > 0) {
+          await _dbHelper.insert('material_usage', {
+            'id': DateTime.now().millisecondsSinceEpoch.toString(),
+            'material_id': material['id'],
+            'quantity': 1,
+            'cost': costPerUnit,
+            'date': DateTime.now().millisecondsSinceEpoch,
+            'notes': 'Used 1 unit of ${material['name']}',
+          });
+        }
+
         _loadMaterials();
       } else {
         ErrorHandler.showError(context, 'Stock already zero');
       }
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -136,7 +171,9 @@ class _MaterialListScreenState extends State<MaterialListScreen> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const AddEditMaterialScreen()),
+                MaterialPageRoute(
+                  builder: (context) => const AddEditMaterialScreen(),
+                ),
               ).then((_) => _loadMaterials());
             },
           ),
@@ -178,12 +215,16 @@ class _MaterialListScreenState extends State<MaterialListScreen> {
               ? const Center(child: CircularProgressIndicator())
               : _uiMaterials.isEmpty
                   ? const Center(
-                      child: Text('No materials found.', style: TextStyle(color: AppColors.white)),
+                      child: Text(
+                        'No materials found.',
+                        style: TextStyle(color: AppColors.white),
+                      ),
                     )
                   : ListView.separated(
                       padding: const EdgeInsets.all(8),
                       itemCount: _uiMaterials.length,
-                      separatorBuilder: (_, __) => const Divider(color: AppColors.white, height: 0.5),
+                      separatorBuilder: (_, __) =>
+                          const Divider(color: AppColors.white, height: 0.5),
                       itemBuilder: (context, index) {
                         var material = _uiMaterials[index];
                         int stock = material['stock'] ?? 0;
@@ -201,13 +242,17 @@ class _MaterialListScreenState extends State<MaterialListScreen> {
                           title: Text(
                             material['name'] ?? 'Unnamed',
                             style: const TextStyle(color: AppColors.white, fontWeight: FontWeight.w500),
+                            overflow: TextOverflow.ellipsis,
                           ),
                           subtitle: Row(
                             children: [
                               if (material['category'] != null)
-                                Text(
-                                  '${material['category']} · ',
-                                  style: TextStyle(color: AppColors.white.withOpacity(0.7)),
+                                Flexible(
+                                  child: Text(
+                                    '${material['category']} · ',
+                                    style: TextStyle(color: AppColors.white.withOpacity(0.7)),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
                               Text(
                                 'Stock: $stock $unit',
@@ -222,26 +267,47 @@ class _MaterialListScreenState extends State<MaterialListScreen> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               if (stock < minLevel)
-                                const Icon(Icons.warning, color: AppColors.warning, size: 16),
+                                const Icon(
+                                  Icons.warning,
+                                  color: AppColors.warning,
+                                  size: 16,
+                                ),
                               const SizedBox(width: 4),
                               IconButton(
-                                icon: const Icon(Icons.remove_circle, color: AppColors.warning, size: 20),
+                                icon: const Icon(
+                                  Icons.remove_circle,
+                                  color: AppColors.warning,
+                                  size: 20,
+                                ),
                                 onPressed: () => _decrementStock(material),
                               ),
                               IconButton(
-                                icon: const Icon(Icons.edit, color: AppColors.primaryRed, size: 20),
+                                icon: const Icon(
+                                  Icons.edit,
+                                  color: AppColors.primaryRed,
+                                  size: 20,
+                                ),
                                 onPressed: () {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => AddEditMaterialScreen(materialData: material),
+                                      builder: (context) => AddEditMaterialScreen(
+                                        materialData: material,
+                                      ),
                                     ),
                                   ).then((_) => _loadMaterials());
                                 },
                               ),
                               IconButton(
-                                icon: const Icon(Icons.delete, color: AppColors.error, size: 20),
-                                onPressed: () => _deleteMaterial(material['id'], material['name'] ?? ''),
+                                icon: const Icon(
+                                  Icons.delete,
+                                  color: AppColors.error,
+                                  size: 20,
+                                ),
+                                onPressed: () => _deleteMaterial(
+                                  material['id'],
+                                  material['name'] ?? '',
+                                ),
                               ),
                             ],
                           ),

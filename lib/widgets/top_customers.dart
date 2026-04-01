@@ -4,7 +4,7 @@ import '../utils/colors.dart';
 import '../screens/customers_screen.dart';
 
 class TopCustomers extends StatelessWidget {
-  const TopCustomers({Key? key}) : super(key: key);
+  const TopCustomers({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +26,9 @@ class TopCustomers extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const CustomersScreen()),
+                  MaterialPageRoute(
+                    builder: (context) => const CustomersScreen(),
+                  ),
                 );
               },
               child: const Text(
@@ -38,9 +40,7 @@ class TopCustomers extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-          stream: FirebaseFirestore.instance
-              .collection('orders')
-              .snapshots(),
+          stream: FirebaseFirestore.instance.collection('orders').snapshots(),
           builder: (context, snapshot) {
             if (!snapshot.hasData) {
               return const Center(child: CircularProgressIndicator());
@@ -60,17 +60,25 @@ class TopCustomers extends StatelessWidget {
                   'total': 0.0,
                 };
               }
-              customerMap[customerId]!['orders'] = (customerMap[customerId]!['orders'] as int) + 1;
-              customerMap[customerId]!['total'] = (customerMap[customerId]!['total'] as double) + amount;
+              customerMap[customerId]!['orders'] =
+                  (customerMap[customerId]!['orders'] as int) + 1;
+              customerMap[customerId]!['total'] =
+                  (customerMap[customerId]!['total'] as double) + amount;
             }
             // Convert to list and sort by order count
-            var customerList = customerMap.entries.map((e) => {
-              'id': e.key,
-              'name': e.value['name'],
-              'orders': e.value['orders'],
-              'total': e.value['total'],
-            }).toList();
-            customerList.sort((a, b) => (b['orders'] as int).compareTo(a['orders'] as int));
+            var customerList = customerMap.entries
+                .map(
+                  (e) => {
+                    'id': e.key,
+                    'name': e.value['name'],
+                    'orders': e.value['orders'],
+                    'total': e.value['total'],
+                  },
+                )
+                .toList();
+            customerList.sort(
+              (a, b) => (b['orders'] as int).compareTo(a['orders'] as int),
+            );
             var topCustomers = customerList.take(3).toList();
 
             if (topCustomers.isEmpty) {
@@ -92,11 +100,14 @@ class TopCustomers extends StatelessWidget {
                   labelStyle: const TextStyle(color: AppColors.white),
                   avatar: CircleAvatar(
                     backgroundColor: AppColors.primaryRed,
+                    radius: 14,
                     child: Text(
                       (c['name'][0]).toUpperCase(),
-                      style: const TextStyle(color: AppColors.white, fontSize: 12),
+                      style: const TextStyle(
+                        color: AppColors.white,
+                        fontSize: 12,
+                      ),
                     ),
-                    radius: 14,
                   ),
                 );
               }).toList(),

@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../services/database_helper.dart';
 import '../services/sync_service.dart';
+import '../utils/app_date_filter.dart';
 import '../utils/colors.dart';
+import '../utils/currency_helper.dart';
 
 class CashFlowScreen extends StatefulWidget {
-  const CashFlowScreen({Key? key}) : super(key: key);
+  const CashFlowScreen({super.key});
 
   @override
   _CashFlowScreenState createState() => _CashFlowScreenState();
@@ -19,23 +21,38 @@ class _CashFlowScreenState extends State<CashFlowScreen> {
   List<Map<String, dynamic>> _accounts = [];
   bool _isLoading = true;
   String _selectedAccountId = 'all';
-  DateTime? _startDate;
-  DateTime? _endDate;
   final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
+    AppDateFilter.instance.rangeNotifier.addListener(_onGlobalRangeChanged);
     _loadData();
     _syncService.dataChangedStream.listen((_) {
       _loadData();
     });
   }
 
+  @override
+  void dispose() {
+    AppDateFilter.instance.rangeNotifier.removeListener(_onGlobalRangeChanged);
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onGlobalRangeChanged() {
+    if (!mounted) return;
+    setState(_applyFilters);
+  }
+
   Future<void> _loadData() async {
     setState(() => _isLoading = true);
-    var accounts = await _dbHelper.query('accounts');
-    var transactions = await _dbHelper.query('transactions');
+    var accounts = List<Map<String, dynamic>>.from(
+      await _dbHelper.query('accounts'),
+    );
+    var transactions = List<Map<String, dynamic>>.from(
+      await _dbHelper.query('transactions'),
+    );
     transactions.sort((a, b) => (b['date'] as int).compareTo(a['date'] as int));
     setState(() {
       _accounts = accounts;
@@ -47,30 +64,46 @@ class _CashFlowScreenState extends State<CashFlowScreen> {
 
   void _applyFilters() {
     var filtered = _transactions;
-    
+
+    final globalRange = AppDateFilter.instance.range;
+    if (globalRange != null) {
+      final start = DateTime(
+        globalRange.start.year,
+        globalRange.start.month,
+        globalRange.start.day,
+      ).millisecondsSinceEpoch;
+      final end = DateTime(
+        globalRange.end.year,
+        globalRange.end.month,
+        globalRange.end.day,
+        23,
+        59,
+        59,
+        999,
+      ).millisecondsSinceEpoch;
+      filtered = filtered.where((t) {
+        final date = (t['date'] as int?) ?? 0;
+        return date >= start && date <= end;
+      }).toList();
+    }
+
     // Account filter
     if (_selectedAccountId != 'all') {
-      filtered = filtered.where((t) => t['account_id'] == _selectedAccountId).toList();
+      filtered = filtered
+          .where((t) => t['account_id'] == _selectedAccountId)
+          .toList();
     }
-    
-    // Date range filter
-    if (_startDate != null) {
-      filtered = filtered.where((t) => (t['date'] as int) >= _startDate!.millisecondsSinceEpoch).toList();
-    }
-    if (_endDate != null) {
-      filtered = filtered.where((t) => (t['date'] as int) <= _endDate!.millisecondsSinceEpoch + 86400000).toList();
-    }
-    
+
     // Search filter
     if (_searchController.text.isNotEmpty) {
       final query = _searchController.text.toLowerCase();
       filtered = filtered.where((t) {
         return (t['description'] ?? '').toLowerCase().contains(query) ||
-               (t['category'] ?? '').toLowerCase().contains(query) ||
-               (t['reference_id'] ?? '').toLowerCase().contains(query);
+            (t['category'] ?? '').toLowerCase().contains(query) ||
+            (t['reference_id'] ?? '').toLowerCase().contains(query);
       }).toList();
     }
-    
+
     setState(() {
       _filteredTransactions = filtered;
     });
@@ -96,40 +129,16 @@ class _CashFlowScreenState extends State<CashFlowScreen> {
   }
 
   Future<void> _selectStartDate(BuildContext context) async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _startDate ?? DateTime.now(),
-      firstDate: DateTime(2020),
-      lastDate: DateTime.now(),
-    );
-    if (picked != null) {
-      setState(() {
-        _startDate = picked;
-        _applyFilters();
-      });
-    }
+    AppDateFilter.instance.clear();
   }
 
   Future<void> _selectEndDate(BuildContext context) async {
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _endDate ?? DateTime.now(),
-      firstDate: DateTime(2020),
-      lastDate: DateTime.now(),
-    );
-    if (picked != null) {
-      setState(() {
-        _endDate = picked;
-        _applyFilters();
-      });
-    }
+    AppDateFilter.instance.clear();
   }
 
   void _clearFilters() {
     setState(() {
       _selectedAccountId = 'all';
-      _startDate = null;
-      _endDate = null;
       _searchController.clear();
       _applyFilters();
     });
@@ -147,10 +156,7 @@ class _CashFlowScreenState extends State<CashFlowScreen> {
             icon: const Icon(Icons.filter_list),
             onPressed: _showFilterDialog,
           ),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadData,
-          ),
+          IconButton(icon: const Icon(Icons.refresh), onPressed: _loadData),
         ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(60),
@@ -202,34 +208,68 @@ class _CashFlowScreenState extends State<CashFlowScreen> {
                         children: [
                           const Text(
                             'Running Balance',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                           Text(
-                            'ETB ${balance.toStringAsFixed(2)}',
+                            CurrencyHelper.formatAmount(balance, null),
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
-                              color: balance >= 0 ? AppColors.success : AppColors.error,
+                              color: balance >= 0
+                                  ? AppColors.success
+                                  : AppColors.error,
                             ),
                           ),
                         ],
                       ),
                     ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: ValueListenableBuilder<DateTimeRange?>(
+                        valueListenable: AppDateFilter.instance.rangeNotifier,
+                        builder: (context, range, _) {
+                          return Text(
+                            range == null
+                                ? 'Global date filter: All dates'
+                                : 'Global date filter: ${range.start.day}/${range.start.month}/${range.start.year} - ${range.end.day}/${range.end.month}/${range.end.year}',
+                            style: const TextStyle(color: AppColors.white),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 8),
                     // Transactions list
                     Expanded(
                       child: _filteredTransactions.isEmpty
                           ? const Center(
-                              child: Text('No transactions found.', style: TextStyle(color: AppColors.white)),
+                              child: Text(
+                                'No transactions found.',
+                                style: TextStyle(color: AppColors.white),
+                              ),
                             )
                           : ListView.separated(
-                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
                               itemCount: _filteredTransactions.length,
-                              separatorBuilder: (_, __) => const Divider(color: AppColors.white, height: 0.5),
+                              separatorBuilder: (_, _) => const Divider(
+                                color: AppColors.white,
+                                height: 0.5,
+                              ),
                               itemBuilder: (context, index) {
                                 var t = _filteredTransactions[index];
-                                DateTime date = DateTime.fromMillisecondsSinceEpoch(t['date']);
-                                String dateStr = DateFormat('dd/MM/yy HH:mm').format(date);
-                                double amount = (t['amount'] as num?)?.toDouble() ?? 0;
+                                DateTime date =
+                                    DateTime.fromMillisecondsSinceEpoch(
+                                      t['date'],
+                                    );
+                                String dateStr = DateFormat(
+                                  'dd/MM/yy HH:mm',
+                                ).format(date);
+                                double amount =
+                                    (t['amount'] as num?)?.toDouble() ?? 0;
                                 var account = _accounts.firstWhere(
                                   (a) => a['id'] == t['account_id'],
                                   orElse: () => {'name': 'Unknown'},
@@ -237,9 +277,13 @@ class _CashFlowScreenState extends State<CashFlowScreen> {
                                 return ListTile(
                                   leading: CircleAvatar(
                                     radius: 18,
-                                    backgroundColor: amount >= 0 ? AppColors.success : AppColors.error,
+                                    backgroundColor: amount >= 0
+                                        ? AppColors.success
+                                        : AppColors.error,
                                     child: Icon(
-                                      amount >= 0 ? Icons.arrow_upward : Icons.arrow_downward,
+                                      amount >= 0
+                                          ? Icons.arrow_upward
+                                          : Icons.arrow_downward,
                                       color: AppColors.white,
                                       size: 16,
                                     ),
@@ -248,30 +292,47 @@ class _CashFlowScreenState extends State<CashFlowScreen> {
                                     children: [
                                       Expanded(
                                         child: Text(
-                                          t['description'] ?? t['category'] ?? 'Transaction',
-                                          style: const TextStyle(color: AppColors.white, fontWeight: FontWeight.w500),
+                                          t['description'] ??
+                                              t['category'] ??
+                                              'Transaction',
+                                          style: const TextStyle(
+                                            color: AppColors.white,
+                                            fontWeight: FontWeight.w500,
+                                          ),
                                         ),
                                       ),
                                       Text(
-                                        '${amount >= 0 ? '+' : '-'} ETB ${amount.abs().toStringAsFixed(2)}',
+                                        '${amount >= 0 ? '+' : '-'} ${CurrencyHelper.formatAmount(amount.abs(), null)}',
                                         style: TextStyle(
-                                          color: amount >= 0 ? AppColors.success : AppColors.error,
+                                          color: amount >= 0
+                                              ? AppColors.success
+                                              : AppColors.error,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
                                     ],
                                   ),
                                   subtitle: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         '${account['name']} · $dateStr',
-                                        style: TextStyle(color: AppColors.white.withOpacity(0.7)),
+                                        style: TextStyle(
+                                          color: AppColors.white.withOpacity(
+                                            0.7,
+                                          ),
+                                        ),
                                       ),
                                       if (t['reference_id'] != null)
                                         Text(
                                           'Ref: ${t['reference_id']}',
-                                          style: TextStyle(color: AppColors.white.withOpacity(0.5), fontSize: 12),
+                                          style: TextStyle(
+                                            color: AppColors.white.withOpacity(
+                                              0.5,
+                                            ),
+                                            fontSize: 12,
+                                          ),
                                         ),
                                     ],
                                   ),
@@ -289,86 +350,53 @@ class _CashFlowScreenState extends State<CashFlowScreen> {
   void _showFilterDialog() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Filter Transactions'),
-        content: StatefulBuilder(
-          builder: (context, setState) {
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                DropdownButtonFormField<String>(
-                  value: _selectedAccountId,
-                  dropdownColor: AppColors.backgroundStart,
-                  decoration: const InputDecoration(labelText: 'Account'),
-                  items: [
-                    const DropdownMenuItem(value: 'all', child: Text('All Accounts')),
-                    ..._accounts.map((a) => DropdownMenuItem(
-                      value: a['id'],
-                      child: Text(a['name']),
-                    )),
-                  ],
-                  onChanged: (value) {
-                    setState(() => _selectedAccountId = value!);
-                    this.setState(() {});
-                  },
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(_startDate == null
-                          ? 'Start date'
-                          : DateFormat('dd/MM/yyyy').format(_startDate!)),
-                    ),
-                    TextButton(
-                      onPressed: () async {
-                        final picked = await showDatePicker(
-                          context: context,
-                          initialDate: _startDate ?? DateTime.now(),
-                          firstDate: DateTime(2020),
-                          lastDate: DateTime.now(),
-                        );
-                        if (picked != null) {
-                          setState(() => _startDate = picked);
-                          this.setState(() {});
-                        }
-                      },
-                      child: const Text('Pick'),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(_endDate == null
-                          ? 'End date'
-                          : DateFormat('dd/MM/yyyy').format(_endDate!)),
-                    ),
-                    TextButton(
-                      onPressed: () async {
-                        final picked = await showDatePicker(
-                          context: context,
-                          initialDate: _endDate ?? DateTime.now(),
-                          firstDate: DateTime(2020),
-                          lastDate: DateTime.now(),
-                        );
-                        if (picked != null) {
-                          setState(() => _endDate = picked);
-                          this.setState(() {});
-                        }
-                      },
-                      child: const Text('Pick'),
-                    ),
-                  ],
-                ),
-              ],
-            );
-          },
+      builder: (context) => Theme(
+        data: ThemeData.light(),
+        child: AlertDialog(
+          title: const Text('Filter Transactions'),
+          content: StatefulBuilder(
+            builder: (context, setState) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  DropdownButtonFormField<String>(
+                    initialValue: _selectedAccountId,
+                    dropdownColor: AppColors.backgroundStart,
+                    decoration: const InputDecoration(labelText: 'Account'),
+                    items: [
+                      const DropdownMenuItem(
+                        value: 'all',
+                        child: Text('All Accounts'),
+                      ),
+                      ..._accounts.map(
+                        (a) => DropdownMenuItem(
+                          value: a['id'],
+                          child: Text(a['name']),
+                        ),
+                      ),
+                    ],
+                    onChanged: (value) {
+                      setState(() => _selectedAccountId = value!);
+                      this.setState(() {});
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Date range comes from the global dashboard picker.',
+                    style: TextStyle(fontSize: 12),
+                  ),
+                ],
+              );
+            },
+          ),
+          actions: [
+            TextButton(onPressed: _clearFilters, child: const Text('Clear')),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Close'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(onPressed: _clearFilters, child: const Text('Clear')),
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close')),
-        ],
       ),
     );
   }

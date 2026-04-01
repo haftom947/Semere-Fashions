@@ -11,7 +11,8 @@ class ReportsScreen extends StatefulWidget {
   _ReportsScreenState createState() => _ReportsScreenState();
 }
 
-class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProviderStateMixin {
+class _ReportsScreenState extends State<ReportsScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -51,11 +52,7 @@ class _ReportsScreenState extends State<ReportsScreen> with SingleTickerProvider
         ),
         child: TabBarView(
           controller: _tabController,
-          children: const [
-            SalesReport(),
-            ProductsReport(),
-            EmployeesReport(),
-          ],
+          children: const [SalesReport(), ProductsReport(), EmployeesReport()],
         ),
       ),
     );

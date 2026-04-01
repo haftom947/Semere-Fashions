@@ -7,7 +7,7 @@ import '../services/sync_service.dart';
 
 class EditEmployeeScreen extends StatefulWidget {
   final Map<String, dynamic> employeeData;
-  const EditEmployeeScreen({Key? key, required this.employeeData}) : super(key: key);
+  const EditEmployeeScreen({super.key, required this.employeeData});
 
   @override
   _EditEmployeeScreenState createState() => _EditEmployeeScreenState();
@@ -39,7 +39,8 @@ class _EditEmployeeScreenState extends State<EditEmployeeScreen> {
     _selectedRole = widget.employeeData['role'] ?? 'sales';
     _selectedBranchId = widget.employeeData['branchId'];
     if (widget.employeeData['commissionRate'] != null) {
-      _commissionRateController.text = widget.employeeData['commissionRate'].toString();
+      _commissionRateController.text = widget.employeeData['commissionRate']
+          .toString();
     }
     if (widget.employeeData['tailorCut'] != null) {
       _tailorCutController.text = widget.employeeData['tailorCut'].toString();
@@ -48,14 +49,18 @@ class _EditEmployeeScreenState extends State<EditEmployeeScreen> {
       _deliveryCommissionType = widget.employeeData['delivery_commission_type'];
     }
     if (widget.employeeData['delivery_commission_value'] != null) {
-      _deliveryCommissionController.text = widget.employeeData['delivery_commission_value'].toString();
+      _deliveryCommissionController.text = widget
+          .employeeData['delivery_commission_value']
+          .toString();
     }
   }
 
   Future<void> _loadBranches() async {
     var branches = await _dbHelper.query('branches');
     setState(() {
-      _branches = branches.map((b) => {'id': b['id'], 'name': b['name']}).toList();
+      _branches = branches
+          .map((b) => {'id': b['id'], 'name': b['name']})
+          .toList();
     });
   }
 
@@ -75,12 +80,14 @@ class _EditEmployeeScreenState extends State<EditEmployeeScreen> {
       };
 
       if (_selectedRole == 'sales') {
-        data['commissionRate'] = double.tryParse(_commissionRateController.text) ?? 0.0;
+        data['commissionRate'] =
+            double.tryParse(_commissionRateController.text) ?? 0.0;
       } else if (_selectedRole == 'tailor') {
         data['tailorCut'] = double.tryParse(_tailorCutController.text) ?? 0.0;
       } else if (_selectedRole == 'delivery') {
         data['delivery_commission_type'] = _deliveryCommissionType;
-        data['delivery_commission_value'] = double.tryParse(_deliveryCommissionController.text) ?? 0.0;
+        data['delivery_commission_value'] =
+            double.tryParse(_deliveryCommissionController.text) ?? 0.0;
       }
 
       await _dbHelper.update('users', data);
@@ -92,7 +99,9 @@ class _EditEmployeeScreenState extends State<EditEmployeeScreen> {
 
       if (mounted) Navigator.pop(context);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
     } finally {
       setState(() => _isLoading = false);
     }
@@ -127,13 +136,16 @@ class _EditEmployeeScreenState extends State<EditEmployeeScreen> {
                     labelText: 'Full Name *',
                     labelStyle: const TextStyle(color: AppColors.white),
                     enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                      borderSide: BorderSide(
+                        color: AppColors.white.withOpacity(0.3),
+                      ),
                     ),
                     focusedBorder: const OutlineInputBorder(
                       borderSide: BorderSide(color: AppColors.white),
                     ),
                   ),
-                  validator: (value) => value == null || value.isEmpty ? 'Required' : null,
+                  validator: (value) =>
+                      value == null || value.isEmpty ? 'Required' : null,
                 ),
                 const SizedBox(height: 16),
 
@@ -145,7 +157,9 @@ class _EditEmployeeScreenState extends State<EditEmployeeScreen> {
                     labelText: 'Phone',
                     labelStyle: const TextStyle(color: AppColors.white),
                     enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                      borderSide: BorderSide(
+                        color: AppColors.white.withOpacity(0.3),
+                      ),
                     ),
                     focusedBorder: const OutlineInputBorder(
                       borderSide: BorderSide(color: AppColors.white),
@@ -156,14 +170,16 @@ class _EditEmployeeScreenState extends State<EditEmployeeScreen> {
 
                 // Role dropdown
                 DropdownButtonFormField<String>(
-                  value: _selectedRole,
+                  initialValue: _selectedRole,
                   dropdownColor: AppColors.backgroundStart,
                   style: const TextStyle(color: AppColors.white),
                   decoration: InputDecoration(
                     labelText: 'Role *',
                     labelStyle: const TextStyle(color: AppColors.white),
                     enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                      borderSide: BorderSide(
+                        color: AppColors.white.withOpacity(0.3),
+                      ),
                     ),
                     focusedBorder: const OutlineInputBorder(
                       borderSide: BorderSide(color: AppColors.white),
@@ -174,7 +190,10 @@ class _EditEmployeeScreenState extends State<EditEmployeeScreen> {
                     DropdownMenuItem(value: 'manager', child: Text('Manager')),
                     DropdownMenuItem(value: 'sales', child: Text('Sales')),
                     DropdownMenuItem(value: 'tailor', child: Text('Tailor')),
-                    DropdownMenuItem(value: 'delivery', child: Text('Delivery')),
+                    DropdownMenuItem(
+                      value: 'delivery',
+                      child: Text('Delivery'),
+                    ),
                   ],
                   onChanged: (value) => setState(() => _selectedRole = value!),
                 ),
@@ -182,24 +201,31 @@ class _EditEmployeeScreenState extends State<EditEmployeeScreen> {
 
                 // Branch dropdown
                 DropdownButtonFormField<String>(
-                  value: _selectedBranchId,
+                  initialValue: _selectedBranchId,
                   dropdownColor: AppColors.backgroundStart,
                   style: const TextStyle(color: AppColors.white),
                   decoration: InputDecoration(
                     labelText: 'Branch *',
                     labelStyle: const TextStyle(color: AppColors.white),
                     enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                      borderSide: BorderSide(
+                        color: AppColors.white.withOpacity(0.3),
+                      ),
                     ),
                     focusedBorder: const OutlineInputBorder(
                       borderSide: BorderSide(color: AppColors.white),
                     ),
                   ),
-                  items: _branches.map<DropdownMenuItem<String>>((b) => DropdownMenuItem<String>(
-                    value: b['id'] as String,
-                    child: Text(b['name'] ?? ''),
-                  )).toList(),
-                  onChanged: (value) => setState(() => _selectedBranchId = value),
+                  items: _branches
+                      .map<DropdownMenuItem<String>>(
+                        (b) => DropdownMenuItem<String>(
+                          value: b['id'] as String,
+                          child: Text(b['name'] ?? ''),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (value) =>
+                      setState(() => _selectedBranchId = value),
                   validator: (value) => value == null ? 'Select branch' : null,
                 ),
                 const SizedBox(height: 16),
@@ -214,7 +240,9 @@ class _EditEmployeeScreenState extends State<EditEmployeeScreen> {
                       labelText: 'Commission Rate (%)',
                       labelStyle: const TextStyle(color: AppColors.white),
                       enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                        borderSide: BorderSide(
+                          color: AppColors.white.withOpacity(0.3),
+                        ),
                       ),
                       focusedBorder: const OutlineInputBorder(
                         borderSide: BorderSide(color: AppColors.white),
@@ -234,7 +262,9 @@ class _EditEmployeeScreenState extends State<EditEmployeeScreen> {
                       labelText: 'Default Tailor Cut (ETB)',
                       labelStyle: const TextStyle(color: AppColors.white),
                       enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                        borderSide: BorderSide(
+                          color: AppColors.white.withOpacity(0.3),
+                        ),
                       ),
                       focusedBorder: const OutlineInputBorder(
                         borderSide: BorderSide(color: AppColors.white),
@@ -247,14 +277,16 @@ class _EditEmployeeScreenState extends State<EditEmployeeScreen> {
                 // Delivery commission fields (only for delivery)
                 if (_selectedRole == 'delivery') ...[
                   DropdownButtonFormField<String>(
-                    value: _deliveryCommissionType,
+                    initialValue: _deliveryCommissionType,
                     dropdownColor: AppColors.backgroundStart,
                     style: const TextStyle(color: AppColors.white),
                     decoration: InputDecoration(
                       labelText: 'Commission Type',
                       labelStyle: const TextStyle(color: AppColors.white),
                       enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                        borderSide: BorderSide(
+                          color: AppColors.white.withOpacity(0.3),
+                        ),
                       ),
                       focusedBorder: const OutlineInputBorder(
                         borderSide: BorderSide(color: AppColors.white),
@@ -262,9 +294,13 @@ class _EditEmployeeScreenState extends State<EditEmployeeScreen> {
                     ),
                     items: const [
                       DropdownMenuItem(value: 'fixed', child: Text('Fixed')),
-                      DropdownMenuItem(value: 'percentage', child: Text('Percentage')),
+                      DropdownMenuItem(
+                        value: 'percentage',
+                        child: Text('Percentage'),
+                      ),
                     ],
-                    onChanged: (value) => setState(() => _deliveryCommissionType = value!),
+                    onChanged: (value) =>
+                        setState(() => _deliveryCommissionType = value!),
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
@@ -275,7 +311,9 @@ class _EditEmployeeScreenState extends State<EditEmployeeScreen> {
                       labelText: 'Commission Value',
                       labelStyle: const TextStyle(color: AppColors.white),
                       enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                        borderSide: BorderSide(
+                          color: AppColors.white.withOpacity(0.3),
+                        ),
                       ),
                       focusedBorder: const OutlineInputBorder(
                         borderSide: BorderSide(color: AppColors.white),
@@ -298,7 +336,9 @@ class _EditEmployeeScreenState extends State<EditEmployeeScreen> {
                       foregroundColor: AppColors.white,
                     ),
                     child: _isLoading
-                        ? const CircularProgressIndicator(color: AppColors.white)
+                        ? const CircularProgressIndicator(
+                            color: AppColors.white,
+                          )
                         : const Text('Update Employee'),
                   ),
                 ),

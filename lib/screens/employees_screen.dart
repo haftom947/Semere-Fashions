@@ -11,9 +11,7 @@ class EmployeesScreen extends StatelessWidget {
         title: Text('Employees'),
         backgroundColor: AppColors.primaryRed,
       ),
-      body: Center(
-        child: Text('Employees Screen - Coming Soon'),
-      ),
+      body: Center(child: Text('Employees Screen - Coming Soon')),
     );
   }
 }

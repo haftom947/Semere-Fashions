@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import '../services/database_helper.dart';
 import '../services/sync_service.dart';
 import '../utils/colors.dart';
+import '../utils/error_handler.dart';
 
 class AddEditBranchScreen extends StatefulWidget {
   final Map<String, dynamic>? branchData;
@@ -43,7 +43,9 @@ class _AddEditBranchScreenState extends State<AddEditBranchScreen> {
     setState(() => _isLoading = true);
     try {
       Map<String, dynamic> data = {
-        'id': widget.branchData?['id'] ?? DateTime.now().millisecondsSinceEpoch.toString(),
+        'id':
+            widget.branchData?['id'] ??
+            DateTime.now().millisecondsSinceEpoch.toString(),
         'name': _nameController.text.trim(),
         'location': _locationController.text.trim(),
         'phone': _phoneController.text.trim(),
@@ -55,15 +57,18 @@ class _AddEditBranchScreenState extends State<AddEditBranchScreen> {
       } else {
         await _dbHelper.update('branches', data);
       }
-      var connectivityResult = await Connectivity().checkConnectivity();
-      if (connectivityResult != ConnectivityResult.none) {
-        _syncService.syncAll();
+      if (mounted) {
+        _syncService.triggerBackgroundSync();
+        ErrorHandler.showSuccess(
+          context,
+          widget.branchData == null ? 'Branch saved' : 'Branch updated',
+        );
+        Navigator.pop(context, true);
       }
-      if (mounted) Navigator.pop(context);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      if (mounted) ErrorHandler.showError(context, 'Error: $e');
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -98,13 +103,16 @@ class _AddEditBranchScreenState extends State<AddEditBranchScreen> {
                           labelText: 'Branch Name *',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
                           ),
                         ),
-                        validator: (value) => value == null || value.isEmpty ? 'Required' : null,
+                        validator: (value) =>
+                            value == null || value.isEmpty ? 'Required' : null,
                       ),
                       const SizedBox(height: 16),
 
@@ -116,7 +124,9 @@ class _AddEditBranchScreenState extends State<AddEditBranchScreen> {
                           labelText: 'Location',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
@@ -134,7 +144,9 @@ class _AddEditBranchScreenState extends State<AddEditBranchScreen> {
                           labelText: 'Phone',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
@@ -152,7 +164,9 @@ class _AddEditBranchScreenState extends State<AddEditBranchScreen> {
                           labelText: 'Email',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
@@ -170,17 +184,24 @@ class _AddEditBranchScreenState extends State<AddEditBranchScreen> {
                           labelText: 'Currency',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
                           ),
                         ),
-                        items: _currencies.map((c) => DropdownMenuItem<String>(
-                          value: c,
-                          child: Text(c),
-                        )).toList(),
-                        onChanged: (value) => setState(() => _selectedCurrency = value!),
+                        items: _currencies
+                            .map(
+                              (c) => DropdownMenuItem<String>(
+                                value: c,
+                                child: Text(c),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (value) =>
+                            setState(() => _selectedCurrency = value!),
                       ),
                       const SizedBox(height: 24),
 
@@ -195,8 +216,14 @@ class _AddEditBranchScreenState extends State<AddEditBranchScreen> {
                             foregroundColor: AppColors.white,
                           ),
                           child: _isLoading
-                              ? const CircularProgressIndicator(color: AppColors.white)
-                              : Text(widget.branchData == null ? 'Add Branch' : 'Update Branch'),
+                              ? const CircularProgressIndicator(
+                                  color: AppColors.white,
+                                )
+                              : Text(
+                                  widget.branchData == null
+                                      ? 'Add Branch'
+                                      : 'Update Branch',
+                                ),
                         ),
                       ),
                     ],

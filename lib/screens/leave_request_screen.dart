@@ -51,6 +51,8 @@ class _LeaveRequestScreenState extends State<LeaveRequestScreen> {
       initialDate: DateTime.now(),
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365)),
+      builder: (context, child) =>
+          Theme(data: ThemeData.light(), child: child!),
     );
     if (picked != null) {
       setState(() => _startDate = picked);
@@ -67,6 +69,8 @@ class _LeaveRequestScreenState extends State<LeaveRequestScreen> {
       initialDate: _startDate!.add(const Duration(days: 1)),
       firstDate: _startDate!.add(const Duration(days: 1)),
       lastDate: _startDate!.add(const Duration(days: 30)),
+      builder: (context, child) =>
+          Theme(data: ThemeData.light(), child: child!),
     );
     if (picked != null) {
       setState(() => _endDate = picked);
@@ -145,7 +149,10 @@ class _LeaveRequestScreenState extends State<LeaveRequestScreen> {
                           style: const TextStyle(color: AppColors.white),
                         ),
                         trailing: IconButton(
-                          icon: const Icon(Icons.calendar_today, color: AppColors.white),
+                          icon: const Icon(
+                            Icons.calendar_today,
+                            color: AppColors.white,
+                          ),
                           onPressed: () => _selectStartDate(context),
                         ),
                       ),
@@ -160,7 +167,10 @@ class _LeaveRequestScreenState extends State<LeaveRequestScreen> {
                           style: const TextStyle(color: AppColors.white),
                         ),
                         trailing: IconButton(
-                          icon: const Icon(Icons.calendar_today, color: AppColors.white),
+                          icon: const Icon(
+                            Icons.calendar_today,
+                            color: AppColors.white,
+                          ),
                           onPressed: () => _selectEndDate(context),
                         ),
                       ),
@@ -174,13 +184,16 @@ class _LeaveRequestScreenState extends State<LeaveRequestScreen> {
                           labelText: 'Reason *',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
                           ),
                         ),
-                        validator: (value) => value == null || value.isEmpty ? 'Required' : null,
+                        validator: (value) =>
+                            value == null || value.isEmpty ? 'Required' : null,
                       ),
                       const SizedBox(height: 16),
 
@@ -193,7 +206,9 @@ class _LeaveRequestScreenState extends State<LeaveRequestScreen> {
                           labelText: 'Additional Notes',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),

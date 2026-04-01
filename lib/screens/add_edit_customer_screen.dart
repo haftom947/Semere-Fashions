@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import '../services/database_helper.dart';
 import '../services/sync_service.dart';
 import '../utils/colors.dart';
+import '../utils/error_handler.dart';
 
 class AddEditCustomerScreen extends StatefulWidget {
   final Map<String, dynamic>? customerData;
-  const AddEditCustomerScreen({Key? key, this.customerData}) : super(key: key);
+  const AddEditCustomerScreen({super.key, this.customerData});
 
   @override
   _AddEditCustomerScreenState createState() => _AddEditCustomerScreenState();
@@ -38,27 +38,35 @@ class _AddEditCustomerScreenState extends State<AddEditCustomerScreen> {
     setState(() => _isLoading = true);
     try {
       Map<String, dynamic> data = {
-        'id': widget.customerData?['id'] ?? DateTime.now().millisecondsSinceEpoch.toString(),
+        'id':
+            widget.customerData?['id'] ??
+            DateTime.now().millisecondsSinceEpoch.toString(),
         'name': _nameController.text.trim(),
         'phone': _phoneController.text.trim(),
         'email': _emailController.text.trim(),
         'address': _addressController.text.trim(),
-        if (widget.customerData == null) 'createdAt': DateTime.now().millisecondsSinceEpoch,
+        if (widget.customerData == null)
+          'createdAt': DateTime.now().millisecondsSinceEpoch,
       };
       if (widget.customerData == null) {
         await _dbHelper.insert('customers', data);
       } else {
         await _dbHelper.update('customers', data);
       }
-      var connectivityResult = await Connectivity().checkConnectivity();
-      if (connectivityResult != ConnectivityResult.none) {
-        _syncService.syncAll();
+      if (mounted) {
+        _syncService.triggerBackgroundSync();
+        ErrorHandler.showSuccess(
+          context,
+          widget.customerData == null
+              ? 'Customer saved'
+              : 'Customer updated',
+        );
+        Navigator.pop(context, true);
       }
-      if (mounted) Navigator.pop(context);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      if (mounted) ErrorHandler.showError(context, 'Error: $e');
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -66,7 +74,9 @@ class _AddEditCustomerScreenState extends State<AddEditCustomerScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.customerData == null ? 'Add Customer' : 'Edit Customer'),
+        title: Text(
+          widget.customerData == null ? 'Add Customer' : 'Edit Customer',
+        ),
         backgroundColor: AppColors.primaryRed,
       ),
       body: Container(
@@ -90,13 +100,16 @@ class _AddEditCustomerScreenState extends State<AddEditCustomerScreen> {
                     labelText: 'Full Name *',
                     labelStyle: const TextStyle(color: AppColors.white),
                     enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                      borderSide: BorderSide(
+                        color: AppColors.white.withOpacity(0.3),
+                      ),
                     ),
                     focusedBorder: const OutlineInputBorder(
                       borderSide: BorderSide(color: AppColors.white),
                     ),
                   ),
-                  validator: (value) => value == null || value.isEmpty ? 'Required' : null,
+                  validator: (value) =>
+                      value == null || value.isEmpty ? 'Required' : null,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
@@ -107,7 +120,9 @@ class _AddEditCustomerScreenState extends State<AddEditCustomerScreen> {
                     labelText: 'Phone',
                     labelStyle: const TextStyle(color: AppColors.white),
                     enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                      borderSide: BorderSide(
+                        color: AppColors.white.withOpacity(0.3),
+                      ),
                     ),
                     focusedBorder: const OutlineInputBorder(
                       borderSide: BorderSide(color: AppColors.white),
@@ -123,7 +138,9 @@ class _AddEditCustomerScreenState extends State<AddEditCustomerScreen> {
                     labelText: 'Email',
                     labelStyle: const TextStyle(color: AppColors.white),
                     enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                      borderSide: BorderSide(
+                        color: AppColors.white.withOpacity(0.3),
+                      ),
                     ),
                     focusedBorder: const OutlineInputBorder(
                       borderSide: BorderSide(color: AppColors.white),
@@ -139,7 +156,9 @@ class _AddEditCustomerScreenState extends State<AddEditCustomerScreen> {
                     labelText: 'Address',
                     labelStyle: const TextStyle(color: AppColors.white),
                     enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                      borderSide: BorderSide(
+                        color: AppColors.white.withOpacity(0.3),
+                      ),
                     ),
                     focusedBorder: const OutlineInputBorder(
                       borderSide: BorderSide(color: AppColors.white),
@@ -157,8 +176,14 @@ class _AddEditCustomerScreenState extends State<AddEditCustomerScreen> {
                       foregroundColor: AppColors.white,
                     ),
                     child: _isLoading
-                        ? const CircularProgressIndicator(color: AppColors.white)
-                        : Text(widget.customerData == null ? 'Add Customer' : 'Update Customer'),
+                        ? const CircularProgressIndicator(
+                            color: AppColors.white,
+                          )
+                        : Text(
+                            widget.customerData == null
+                                ? 'Add Customer'
+                                : 'Update Customer',
+                          ),
                   ),
                 ),
               ],

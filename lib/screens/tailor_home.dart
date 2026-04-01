@@ -3,12 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../utils/colors.dart';
+import '../utils/currency_helper.dart';
 import '../widgets/drawer_menu.dart';
 import '../services/database_helper.dart';
 import '../services/sync_service.dart';
 
 class TailorHome extends StatefulWidget {
-  const TailorHome({Key? key}) : super(key: key);
+  const TailorHome({super.key});
 
   @override
   _TailorHomeState createState() => _TailorHomeState();
@@ -17,18 +18,32 @@ class TailorHome extends StatefulWidget {
 class _TailorHomeState extends State<TailorHome> {
   final DatabaseHelper _dbHelper = DatabaseHelper();
   final SyncService _syncService = SyncService();
+  StreamSubscription<bool>? _dataChangedSubscription;
   String _tailorName = 'Tailor';
   String _tailorId = '';
   bool _isLoading = true;
   List<Map<String, dynamic>> _assignedOrders = [];
+  bool _initialSyncTriggered = false;
 
   @override
   void initState() {
     super.initState();
     _loadTailorData();
-    _syncService.dataChangedStream.listen((_) {
+    _dataChangedSubscription = _syncService.dataChangedStream.listen((_) {
       _loadAssignedOrders();
     });
+  }
+
+  @override
+  void dispose() {
+    _dataChangedSubscription?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _triggerInitialSync() async {
+    if (_initialSyncTriggered) return;
+    _initialSyncTriggered = true;
+    await _syncService.syncAll();
   }
 
   Future<void> _loadTailorData() async {
@@ -40,12 +55,13 @@ class _TailorHomeState extends State<TailorHome> {
             .collection('users')
             .doc(user.uid)
             .get();
-        
+
         if (userDoc.exists) {
           setState(() {
             _tailorName = userDoc.get('name') ?? 'Tailor';
           });
         }
+        await _triggerInitialSync();
       }
     } catch (e) {
       print('Error loading tailor data: $e');
@@ -56,20 +72,32 @@ class _TailorHomeState extends State<TailorHome> {
 
   Future<void> _loadAssignedOrders() async {
     if (_tailorId.isEmpty) return;
-    var orders = await _dbHelper.query('orders');
+    var orders = List<Map<String, dynamic>>.from(
+      await _dbHelper.query('orders'),
+    );
     // Look for assignments where this tailor is assigned
     // We need to fetch order_assignments for tailor role
-    var allAssignments = await _dbHelper.query('order_assignments');
-    var tailorAssignments = allAssignments.where((a) => 
-      a['employeeId'] == _tailorId && a['role'] == 'tailor'
-    ).map((a) => a['orderId']).toSet();
-    
-    var assigned = orders.where((o) => 
-      tailorAssignments.contains(o['id']) &&
-      (o['status'] == 'pending' || o['status'] == 'processing' || o['status'] == 'out_for_delivery')
-    ).toList();
-    
-    assigned.sort((a, b) => (b['createdAt'] as int).compareTo(a['createdAt'] as int));
+    var allAssignments = List<Map<String, dynamic>>.from(
+      await _dbHelper.query('order_assignments'),
+    );
+    var tailorAssignments = allAssignments
+        .where((a) => a['employeeId'] == _tailorId && a['role'] == 'tailor')
+        .map((a) => a['orderId'])
+        .toSet();
+
+    var assigned = orders
+        .where(
+          (o) =>
+              tailorAssignments.contains(o['id']) &&
+              (o['status'] == 'pending' ||
+                  o['status'] == 'processing' ||
+                  o['status'] == 'out_for_delivery'),
+        )
+        .toList();
+
+    assigned.sort(
+      (a, b) => (b['createdAt'] as int).compareTo(a['createdAt'] as int),
+    );
     setState(() {
       _assignedOrders = assigned;
       _isLoading = false;
@@ -79,26 +107,28 @@ class _TailorHomeState extends State<TailorHome> {
   Future<void> _logout() async {
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Logout'),
-        content: const Text('Are you sure you want to logout?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Logout'),
-          ),
-        ],
+      builder: (context) => Theme(
+        data: ThemeData.light(),
+        child: AlertDialog(
+          title: const Text('Logout'),
+          content: const Text('Are you sure you want to logout?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Logout'),
+            ),
+          ],
+        ),
       ),
     );
     if (confirm == true) {
       await FirebaseAuth.instance.signOut();
       if (mounted) {
-        Navigator.pushNamedAndRemoveUntil(
-          context, 
-          '/login', 
-          (route) => false
-        );
+        Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
       }
     }
   }
@@ -141,12 +171,10 @@ class _TailorHomeState extends State<TailorHome> {
                       ),
                     ],
                     flexibleSpace: FlexibleSpaceBar(
-                      background: Container(
-                        color: Colors.transparent,
-                      ),
+                      background: Container(color: Colors.transparent),
                     ),
                   ),
-                  
+
                   SliverPadding(
                     padding: const EdgeInsets.all(16.0),
                     sliver: SliverList(
@@ -189,7 +217,7 @@ class _TailorHomeState extends State<TailorHome> {
                           ),
                         ),
                         const SizedBox(height: 24),
-                        
+
                         // My Assigned Orders
                         const Text(
                           'My Assigned Orders',
@@ -200,7 +228,7 @@ class _TailorHomeState extends State<TailorHome> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        
+
                         _assignedOrders.isEmpty
                             ? Container(
                                 padding: const EdgeInsets.all(20),
@@ -211,7 +239,9 @@ class _TailorHomeState extends State<TailorHome> {
                                 child: const Center(
                                   child: Text(
                                     'No assigned orders',
-                                    style: TextStyle(color: AppColors.mediumGrey),
+                                    style: TextStyle(
+                                      color: AppColors.mediumGrey,
+                                    ),
                                   ),
                                 ),
                               )
@@ -228,18 +258,27 @@ class _TailorHomeState extends State<TailorHome> {
                                         backgroundColor: AppColors.primaryRed,
                                         child: Text(
                                           '${index + 1}',
-                                          style: const TextStyle(color: AppColors.white),
+                                          style: const TextStyle(
+                                            color: AppColors.white,
+                                          ),
                                         ),
                                       ),
                                       title: Text(
                                         'Order #${order['id'].substring(0, 8)}',
-                                        style: const TextStyle(fontWeight: FontWeight.bold),
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
                                       subtitle: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
-                                          Text('Customer: ${order['customerName'] ?? 'Unknown'}'),
-                                          Text('Amount: ETB ${(order['totalAmount'] as num?)?.toStringAsFixed(0) ?? '0'}'),
+                                          Text(
+                                            'Customer: ${order['customerName'] ?? 'Unknown'}',
+                                          ),
+                                          Text(
+                                            'Amount: ${CurrencyHelper.formatAmount((order['totalAmount'] as num?)?.toDouble(), order['currency'])}',
+                                          ),
                                         ],
                                       ),
                                       trailing: Chip(
@@ -250,11 +289,12 @@ class _TailorHomeState extends State<TailorHome> {
                                             fontSize: 12,
                                           ),
                                         ),
-                                        backgroundColor: order['status'] == 'pending'
+                                        backgroundColor:
+                                            order['status'] == 'pending'
                                             ? AppColors.warning
                                             : order['status'] == 'processing'
-                                                ? AppColors.info
-                                                : AppColors.accent,
+                                            ? AppColors.info
+                                            : AppColors.accent,
                                       ),
                                     ),
                                   );

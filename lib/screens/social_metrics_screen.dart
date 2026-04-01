@@ -8,7 +8,11 @@ import 'add_edit_metrics_screen.dart';
 class SocialMetricsScreen extends StatefulWidget {
   final String accountId;
   final String accountName;
-  const SocialMetricsScreen({Key? key, required this.accountId, required this.accountName}) : super(key: key);
+  const SocialMetricsScreen({
+    super.key,
+    required this.accountId,
+    required this.accountName,
+  });
 
   @override
   _SocialMetricsScreenState createState() => _SocialMetricsScreenState();
@@ -33,8 +37,12 @@ class _SocialMetricsScreenState extends State<SocialMetricsScreen> {
 
   Future<void> _loadMetrics() async {
     setState(() => _isLoading = true);
-    var allMetrics = await _dbHelper.query('social_metrics');
-    var filtered = allMetrics.where((m) => m['accountId'] == widget.accountId).toList();
+    var allMetrics = List<Map<String, dynamic>>.from(
+      await _dbHelper.query('social_metrics'),
+    );
+    var filtered = allMetrics
+        .where((m) => m['accountId'] == widget.accountId)
+        .toList();
     filtered.sort((a, b) => (b['date'] as int).compareTo(a['date'] as int));
     setState(() {
       _metrics = filtered;
@@ -53,10 +61,12 @@ class _SocialMetricsScreenState extends State<SocialMetricsScreen> {
     final lowerQuery = query.toLowerCase();
     setState(() {
       _filteredMetrics = _metrics.where((m) {
-        final dateStr = DateFormat('dd/MM/yyyy').format(DateTime.fromMillisecondsSinceEpoch(m['date']));
+        final dateStr = DateFormat(
+          'dd/MM/yyyy',
+        ).format(DateTime.fromMillisecondsSinceEpoch(m['date']));
         return dateStr.contains(query) ||
-               (m['followers']?.toString() ?? '').contains(query) ||
-               (m['likes']?.toString() ?? '').contains(query);
+            (m['followers']?.toString() ?? '').contains(query) ||
+            (m['likes']?.toString() ?? '').contains(query);
       }).toList();
     });
   }
@@ -64,16 +74,27 @@ class _SocialMetricsScreenState extends State<SocialMetricsScreen> {
   Future<void> _deleteMetric(String id) async {
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Entry'),
-        content: const Text('Are you sure you want to delete this metrics entry?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete', style: TextStyle(color: AppColors.error)),
+      builder: (context) => Theme(
+        data: ThemeData.light(),
+        child: AlertDialog(
+          title: const Text('Delete Entry'),
+          content: const Text(
+            'Are you sure you want to delete this metrics entry?',
           ),
-        ],
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text(
+                'Delete',
+                style: TextStyle(color: AppColors.error),
+              ),
+            ),
+          ],
+        ),
       ),
     );
     if (confirm == true) {
@@ -95,7 +116,8 @@ class _SocialMetricsScreenState extends State<SocialMetricsScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => AddEditMetricsScreen(accountId: widget.accountId),
+                  builder: (context) =>
+                      AddEditMetricsScreen(accountId: widget.accountId),
                 ),
               ).then((_) => _loadMetrics());
             },
@@ -137,56 +159,72 @@ class _SocialMetricsScreenState extends State<SocialMetricsScreen> {
           child: _isLoading
               ? const Center(child: CircularProgressIndicator())
               : _filteredMetrics.isEmpty
-                  ? const Center(
-                      child: Text('No metrics found.', style: TextStyle(color: AppColors.white)),
-                    )
-                  : ListView.separated(
-                      padding: const EdgeInsets.all(8),
-                      itemCount: _filteredMetrics.length,
-                      separatorBuilder: (_, __) => const Divider(color: AppColors.white, height: 0.5),
-                      itemBuilder: (context, index) {
-                        var m = _filteredMetrics[index];
-                        DateTime date = DateTime.fromMillisecondsSinceEpoch(m['date']);
-                        String dateStr = DateFormat('dd/MM/yy').format(date);
-                        return Card(
-                          margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          child: Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+              ? const Center(
+                  child: Text(
+                    'No metrics found.',
+                    style: TextStyle(color: AppColors.white),
+                  ),
+                )
+              : ListView.separated(
+                  padding: const EdgeInsets.all(8),
+                  itemCount: _filteredMetrics.length,
+                  separatorBuilder: (_, _) =>
+                      const Divider(color: AppColors.white, height: 0.5),
+                  itemBuilder: (context, index) {
+                    var m = _filteredMetrics[index];
+                    DateTime date = DateTime.fromMillisecondsSinceEpoch(
+                      m['date'],
+                    );
+                    String dateStr = DateFormat('dd/MM/yy').format(date);
+                    return Card(
+                      margin: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      dateStr,
-                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                                    ),
-                                    IconButton(
-                                      icon: const Icon(Icons.delete, color: AppColors.error, size: 20),
-                                      onPressed: () => _deleteMetric(m['id']),
-                                    ),
-                                  ],
+                                Text(
+                                  dateStr,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
                                 ),
-                                const SizedBox(height: 8),
-                                Wrap(
-                                  spacing: 16,
-                                  runSpacing: 8,
-                                  children: [
-                                    _buildMetricChip('👥', m['followers'] ?? 0),
-                                    _buildMetricChip('📝', m['posts'] ?? 0),
-                                    _buildMetricChip('❤️', m['likes'] ?? 0),
-                                    _buildMetricChip('💬', m['comments'] ?? 0),
-                                    _buildMetricChip('🔄', m['shares'] ?? 0),
-                                    _buildMetricChip('👀', m['views'] ?? 0),
-                                  ],
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.delete,
+                                    color: AppColors.error,
+                                    size: 20,
+                                  ),
+                                  onPressed: () => _deleteMetric(m['id']),
                                 ),
                               ],
                             ),
-                          ),
-                        );
-                      },
-                    ),
+                            const SizedBox(height: 8),
+                            Wrap(
+                              spacing: 16,
+                              runSpacing: 8,
+                              children: [
+                                _buildMetricChip('👥', m['followers'] ?? 0),
+                                _buildMetricChip('📝', m['posts'] ?? 0),
+                                _buildMetricChip('❤️', m['likes'] ?? 0),
+                                _buildMetricChip('💬', m['comments'] ?? 0),
+                                _buildMetricChip('🔄', m['shares'] ?? 0),
+                                _buildMetricChip('👀', m['views'] ?? 0),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
         ),
       ),
     );

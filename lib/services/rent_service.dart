@@ -11,7 +11,9 @@ class RentService {
 
     // Check if we have already generated dues for this month (by looking at rent_dues table)
     final allDues = await _dbHelper.query('rent_dues');
-    final hasCurrentMonthDues = allDues.any((due) => due['dueMonth'] == currentMonth);
+    final hasCurrentMonthDues = allDues.any(
+      (due) => due['dueMonth'] == currentMonth,
+    );
     if (hasCurrentMonthDues) return;
 
     // Get all active tenants
@@ -19,7 +21,8 @@ class RentService {
     if (tenants.isEmpty) return;
 
     for (var tenant in tenants) {
-      final dueId = DateTime.now().millisecondsSinceEpoch.toString() + tenant['id'];
+      final dueId =
+          DateTime.now().millisecondsSinceEpoch.toString() + tenant['id'];
       final dueDate = DateTime(now.year, now.month, 5); // due on 5th
       await _dbHelper.insert('rent_dues', {
         'id': dueId,

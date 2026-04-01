@@ -6,13 +6,15 @@ import '../utils/colors.dart';
 
 class AddEditSocialAccountScreen extends StatefulWidget {
   final Map<String, dynamic>? accountData;
-  const AddEditSocialAccountScreen({Key? key, this.accountData}) : super(key: key);
+  const AddEditSocialAccountScreen({super.key, this.accountData});
 
   @override
-  _AddEditSocialAccountScreenState createState() => _AddEditSocialAccountScreenState();
+  _AddEditSocialAccountScreenState createState() =>
+      _AddEditSocialAccountScreenState();
 }
 
-class _AddEditSocialAccountScreenState extends State<AddEditSocialAccountScreen> {
+class _AddEditSocialAccountScreenState
+    extends State<AddEditSocialAccountScreen> {
   final DatabaseHelper _dbHelper = DatabaseHelper();
   final SyncService _syncService = SyncService();
   final _formKey = GlobalKey<FormState>();
@@ -24,7 +26,12 @@ class _AddEditSocialAccountScreenState extends State<AddEditSocialAccountScreen>
   String? _selectedEmployeeName;
   bool _isLoading = false;
 
-  final List<String> _platforms = ['TikTok', 'Instagram', 'Facebook', 'YouTube'];
+  final List<String> _platforms = [
+    'TikTok',
+    'Instagram',
+    'Facebook',
+    'YouTube',
+  ];
   List<Map<String, dynamic>> _employees = [];
 
   @override
@@ -52,7 +59,9 @@ class _AddEditSocialAccountScreenState extends State<AddEditSocialAccountScreen>
     setState(() => _isLoading = true);
     try {
       Map<String, dynamic> data = {
-        'id': widget.accountData?['id'] ?? DateTime.now().millisecondsSinceEpoch.toString(),
+        'id':
+            widget.accountData?['id'] ??
+            DateTime.now().millisecondsSinceEpoch.toString(),
         'platform': _selectedPlatform,
         'accountName': _accountNameController.text.trim(),
         'accountUrl': _accountUrlController.text.trim(),
@@ -70,7 +79,9 @@ class _AddEditSocialAccountScreenState extends State<AddEditSocialAccountScreen>
       }
       if (mounted) Navigator.pop(context);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
     } finally {
       setState(() => _isLoading = false);
     }
@@ -80,7 +91,11 @@ class _AddEditSocialAccountScreenState extends State<AddEditSocialAccountScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.accountData == null ? 'Add Social Account' : 'Edit Social Account'),
+        title: Text(
+          widget.accountData == null
+              ? 'Add Social Account'
+              : 'Edit Social Account',
+        ),
         backgroundColor: AppColors.primaryRed,
       ),
       body: Container(
@@ -101,24 +116,31 @@ class _AddEditSocialAccountScreenState extends State<AddEditSocialAccountScreen>
                     children: [
                       // Platform dropdown
                       DropdownButtonFormField<String>(
-                        value: _selectedPlatform,
+                        initialValue: _selectedPlatform,
                         dropdownColor: AppColors.backgroundStart,
                         style: const TextStyle(color: AppColors.white),
                         decoration: InputDecoration(
                           labelText: 'Platform *',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
                           ),
                         ),
-                        items: _platforms.map((p) => DropdownMenuItem<String>(
-                          value: p,
-                          child: Text(p),
-                        )).toList(),
-                        onChanged: (value) => setState(() => _selectedPlatform = value!),
+                        items: _platforms
+                            .map(
+                              (p) => DropdownMenuItem<String>(
+                                value: p,
+                                child: Text(p),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (value) =>
+                            setState(() => _selectedPlatform = value!),
                       ),
                       const SizedBox(height: 16),
 
@@ -130,13 +152,16 @@ class _AddEditSocialAccountScreenState extends State<AddEditSocialAccountScreen>
                           labelText: 'Account Name/Handle *',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
                           ),
                         ),
-                        validator: (value) => value == null || value.isEmpty ? 'Required' : null,
+                        validator: (value) =>
+                            value == null || value.isEmpty ? 'Required' : null,
                       ),
                       const SizedBox(height: 16),
 
@@ -148,7 +173,9 @@ class _AddEditSocialAccountScreenState extends State<AddEditSocialAccountScreen>
                           labelText: 'Profile URL',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
@@ -159,14 +186,16 @@ class _AddEditSocialAccountScreenState extends State<AddEditSocialAccountScreen>
 
                       // Employee assignment (optional)
                       DropdownButtonFormField<String>(
-                        value: _selectedEmployeeId,
+                        initialValue: _selectedEmployeeId,
                         dropdownColor: AppColors.backgroundStart,
                         style: const TextStyle(color: AppColors.white),
                         decoration: InputDecoration(
                           labelText: 'Assigned Employee',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
@@ -177,10 +206,12 @@ class _AddEditSocialAccountScreenState extends State<AddEditSocialAccountScreen>
                             value: null,
                             child: Text('None (unassigned)'),
                           ),
-                          ..._employees.map((e) => DropdownMenuItem<String>(
-                            value: e['id'],
-                            child: Text(e['name'] ?? 'Unknown'),
-                          )),
+                          ..._employees.map(
+                            (e) => DropdownMenuItem<String>(
+                              value: e['id'],
+                              child: Text(e['name'] ?? 'Unknown'),
+                            ),
+                          ),
                         ],
                         onChanged: (value) {
                           if (value == null) {
@@ -189,7 +220,9 @@ class _AddEditSocialAccountScreenState extends State<AddEditSocialAccountScreen>
                               _selectedEmployeeName = null;
                             });
                           } else {
-                            var emp = _employees.firstWhere((e) => e['id'] == value);
+                            var emp = _employees.firstWhere(
+                              (e) => e['id'] == value,
+                            );
                             setState(() {
                               _selectedEmployeeId = value;
                               _selectedEmployeeName = emp['name'];
@@ -210,8 +243,14 @@ class _AddEditSocialAccountScreenState extends State<AddEditSocialAccountScreen>
                             foregroundColor: AppColors.white,
                           ),
                           child: _isLoading
-                              ? const CircularProgressIndicator(color: AppColors.white)
-                              : Text(widget.accountData == null ? 'Add Account' : 'Update Account'),
+                              ? const CircularProgressIndicator(
+                                  color: AppColors.white,
+                                )
+                              : Text(
+                                  widget.accountData == null
+                                      ? 'Add Account'
+                                      : 'Update Account',
+                                ),
                         ),
                       ),
                     ],

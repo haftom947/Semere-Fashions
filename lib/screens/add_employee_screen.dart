@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import '../utils/colors.dart';
 import '../services/database_helper.dart';
 import '../services/sync_service.dart';
+import '../utils/error_handler.dart';
 
 class AddEmployeeScreen extends StatefulWidget {
   const AddEmployeeScreen({Key? key}) : super(key: key);
@@ -31,7 +30,13 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
 
   String _deliveryCommissionType = 'fixed';
 
-  final List<String> _roles = ['admin', 'manager', 'sales', 'tailor', 'delivery'];
+  final List<String> _roles = [
+    'admin',
+    'manager',
+    'sales',
+    'tailor',
+    'delivery',
+  ];
   List<Map<String, dynamic>> _branches = [];
 
   @override
@@ -43,16 +48,18 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
   Future<void> _loadBranches() async {
     var branches = await _dbHelper.query('branches');
     setState(() {
-      _branches = branches.map((b) => {'id': b['id'], 'name': b['name']}).toList();
+      _branches = branches
+          .map((b) => {'id': b['id'], 'name': b['name']})
+          .toList();
     });
   }
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedBranchId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a branch')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please select a branch')));
       return;
     }
 
@@ -81,26 +88,24 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
 
       // Add role-specific fields
       if (_selectedRole == 'sales') {
-        userData['commissionRate'] = double.tryParse(_commissionRateController.text) ?? 0.0;
+        userData['commissionRate'] =
+            double.tryParse(_commissionRateController.text) ?? 0.0;
       } else if (_selectedRole == 'tailor') {
-        userData['tailorCut'] = double.tryParse(_tailorCutController.text) ?? 0.0;
+        userData['tailorCut'] =
+            double.tryParse(_tailorCutController.text) ?? 0.0;
       } else if (_selectedRole == 'delivery') {
         userData['delivery_commission_type'] = _deliveryCommissionType;
-        userData['delivery_commission_value'] = double.tryParse(_deliveryCommissionController.text) ?? 0.0;
+        userData['delivery_commission_value'] =
+            double.tryParse(_deliveryCommissionController.text) ?? 0.0;
       }
 
       await _dbHelper.insert('users', userData);
 
-      // Trigger sync if online
-      var connectivityResult = await Connectivity().checkConnectivity();
-      if (connectivityResult != ConnectivityResult.none) {
-        _syncService.syncAll();
+      if (mounted) {
+        _syncService.triggerBackgroundSync();
+        ErrorHandler.showSuccess(context, 'Employee added successfully!');
+        Navigator.pop(context, true);
       }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Employee added successfully!')),
-      );
-      Navigator.pop(context);
     } on FirebaseAuthException catch (e) {
       String message = 'Failed to create employee';
       if (e.code == 'email-already-in-use') {
@@ -108,13 +113,15 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
       } else if (e.code == 'weak-password') {
         message = 'PIN too weak (use 6 digits)';
       }
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+      if (mounted) {
+        ErrorHandler.showError(context, message);
+      }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
-      );
+      if (mounted) {
+        ErrorHandler.showError(context, 'Error: ${e.toString()}');
+      }
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -149,13 +156,16 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                           labelText: 'Full Name *',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
                           ),
                         ),
-                        validator: (value) => value == null || value.isEmpty ? 'Required' : null,
+                        validator: (value) =>
+                            value == null || value.isEmpty ? 'Required' : null,
                       ),
                       const SizedBox(height: 16),
 
@@ -167,7 +177,9 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                           labelText: 'Phone',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
@@ -185,17 +197,24 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                           labelText: 'Role *',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
                           ),
                         ),
-                        items: _roles.map<DropdownMenuItem<String>>((role) => DropdownMenuItem<String>(
-                          value: role,
-                          child: Text(role.toUpperCase()),
-                        )).toList(),
-                        onChanged: (value) => setState(() => _selectedRole = value!),
+                        items: _roles
+                            .map<DropdownMenuItem<String>>(
+                              (role) => DropdownMenuItem<String>(
+                                value: role,
+                                child: Text(role.toUpperCase()),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (value) =>
+                            setState(() => _selectedRole = value!),
                       ),
                       const SizedBox(height: 16),
 
@@ -208,18 +227,26 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                           labelText: 'Branch *',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
                           ),
                         ),
-                        items: _branches.map<DropdownMenuItem<String>>((branch) => DropdownMenuItem<String>(
-                          value: branch['id'] as String,
-                          child: Text(branch['name']),
-                        )).toList(),
-                        onChanged: (value) => setState(() => _selectedBranchId = value),
-                        validator: (value) => value == null ? 'Select branch' : null,
+                        items: _branches
+                            .map<DropdownMenuItem<String>>(
+                              (branch) => DropdownMenuItem<String>(
+                                value: branch['id'] as String,
+                                child: Text(branch['name']),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (value) =>
+                            setState(() => _selectedBranchId = value),
+                        validator: (value) =>
+                            value == null ? 'Select branch' : null,
                       ),
                       const SizedBox(height: 16),
 
@@ -233,7 +260,9 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                             labelText: 'Commission Rate (%)',
                             labelStyle: const TextStyle(color: AppColors.white),
                             enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                              borderSide: BorderSide(
+                                color: AppColors.white.withOpacity(0.3),
+                              ),
                             ),
                             focusedBorder: const OutlineInputBorder(
                               borderSide: BorderSide(color: AppColors.white),
@@ -253,7 +282,9 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                             labelText: 'Default Tailor Cut (ETB)',
                             labelStyle: const TextStyle(color: AppColors.white),
                             enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                              borderSide: BorderSide(
+                                color: AppColors.white.withOpacity(0.3),
+                              ),
                             ),
                             focusedBorder: const OutlineInputBorder(
                               borderSide: BorderSide(color: AppColors.white),
@@ -273,17 +304,26 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                             labelText: 'Commission Type',
                             labelStyle: const TextStyle(color: AppColors.white),
                             enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                              borderSide: BorderSide(
+                                color: AppColors.white.withOpacity(0.3),
+                              ),
                             ),
                             focusedBorder: const OutlineInputBorder(
                               borderSide: BorderSide(color: AppColors.white),
                             ),
                           ),
                           items: const [
-                            DropdownMenuItem(value: 'fixed', child: Text('Fixed')),
-                            DropdownMenuItem(value: 'percentage', child: Text('Percentage')),
+                            DropdownMenuItem(
+                              value: 'fixed',
+                              child: Text('Fixed'),
+                            ),
+                            DropdownMenuItem(
+                              value: 'percentage',
+                              child: Text('Percentage'),
+                            ),
                           ],
-                          onChanged: (value) => setState(() => _deliveryCommissionType = value!),
+                          onChanged: (value) =>
+                              setState(() => _deliveryCommissionType = value!),
                         ),
                         const SizedBox(height: 16),
                         TextFormField(
@@ -294,7 +334,9 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                             labelText: 'Commission Value',
                             labelStyle: const TextStyle(color: AppColors.white),
                             enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                              borderSide: BorderSide(
+                                color: AppColors.white.withOpacity(0.3),
+                              ),
                             ),
                             focusedBorder: const OutlineInputBorder(
                               borderSide: BorderSide(color: AppColors.white),
@@ -316,20 +358,26 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                           labelStyle: const TextStyle(color: AppColors.white),
                           suffixIcon: IconButton(
                             icon: Icon(
-                              _obscurePin ? Icons.visibility_off : Icons.visibility,
+                              _obscurePin
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
                               color: AppColors.white,
                             ),
-                            onPressed: () => setState(() => _obscurePin = !_obscurePin),
+                            onPressed: () =>
+                                setState(() => _obscurePin = !_obscurePin),
                           ),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
                           ),
                         ),
                         validator: (value) {
-                          if (value == null || value.isEmpty) return 'Enter PIN';
+                          if (value == null || value.isEmpty)
+                            return 'Enter PIN';
                           if (value.length != 6) return 'PIN must be 6 digits';
                           return null;
                         },
@@ -347,7 +395,9 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
                             foregroundColor: AppColors.white,
                           ),
                           child: _isLoading
-                              ? const CircularProgressIndicator(color: AppColors.white)
+                              ? const CircularProgressIndicator(
+                                  color: AppColors.white,
+                                )
                               : const Text('Add Employee'),
                         ),
                       ),

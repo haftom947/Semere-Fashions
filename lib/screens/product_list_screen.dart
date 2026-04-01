@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import '../services/database_helper.dart';
 import '../services/sync_service.dart';
 import '../utils/colors.dart';
+import '../utils/currency_helper.dart';
 import 'add_edit_product_screen.dart';
 
 class ProductListScreen extends StatefulWidget {
-  const ProductListScreen({Key? key}) : super(key: key);
+  const ProductListScreen({super.key});
 
   @override
   _ProductListScreenState createState() => _ProductListScreenState();
@@ -30,7 +31,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
 
   Future<void> _loadProducts() async {
     setState(() => _isLoading = true);
-    var products = await _dbHelper.query('products');
+    var products = List<Map<String, dynamic>>.from(
+      await _dbHelper.query('products'),
+    );
     products.sort((a, b) => (a['name'] ?? '').compareTo(b['name'] ?? ''));
     setState(() {
       _products = products;
@@ -50,7 +53,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
     setState(() {
       _filteredProducts = _products.where((p) {
         return (p['name'] ?? '').toLowerCase().contains(lowerQuery) ||
-               (p['category'] ?? '').toLowerCase().contains(lowerQuery);
+            (p['category'] ?? '').toLowerCase().contains(lowerQuery);
       }).toList();
     });
   }
@@ -64,16 +67,25 @@ class _ProductListScreenState extends State<ProductListScreen> {
   Future<void> _deleteProduct(String id, String name) async {
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Product'),
-        content: Text('Are you sure you want to delete $name?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete', style: TextStyle(color: AppColors.error)),
-          ),
-        ],
+      builder: (context) => Theme(
+        data: ThemeData.light(),
+        child: AlertDialog(
+          title: const Text('Delete Product'),
+          content: Text('Are you sure you want to delete $name?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text(
+                'Delete',
+                style: TextStyle(color: AppColors.error),
+              ),
+            ),
+          ],
+        ),
       ),
     );
     if (confirm == true) {
@@ -94,7 +106,9 @@ class _ProductListScreenState extends State<ProductListScreen> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const AddEditProductScreen()),
+                MaterialPageRoute(
+                  builder: (context) => const AddEditProductScreen(),
+                ),
               ).then((_) => _loadProducts());
             },
           ),
@@ -135,77 +149,112 @@ class _ProductListScreenState extends State<ProductListScreen> {
           child: _isLoading
               ? const Center(child: CircularProgressIndicator())
               : _filteredProducts.isEmpty
-                  ? const Center(
-                      child: Text('No products found.', style: TextStyle(color: AppColors.white)),
-                    )
-                  : ListView.separated(
-                      padding: const EdgeInsets.all(8),
-                      itemCount: _filteredProducts.length,
-                      separatorBuilder: (_, __) => const Divider(color: AppColors.white, height: 0.5),
-                      itemBuilder: (context, index) {
-                        var product = _filteredProducts[index];
-                        int stock = product['stock'] ?? 0;
-                        int minLevel = product['minimumLevel'] ?? 5;
-                        return ListTile(
-                          leading: CircleAvatar(
-                            radius: 18,
-                            backgroundColor: _getStockColor(stock, minLevel),
-                            child: Text(
-                              (product['name'] ?? '?')[0].toUpperCase(),
-                              style: const TextStyle(color: AppColors.white, fontSize: 14),
+              ? const Center(
+                  child: Text(
+                    'No products found.',
+                    style: TextStyle(color: AppColors.white),
+                  ),
+                )
+              : ListView.separated(
+                  padding: const EdgeInsets.all(8),
+                  itemCount: _filteredProducts.length,
+                  separatorBuilder: (_, _) =>
+                      const Divider(color: AppColors.white, height: 0.5),
+                  itemBuilder: (context, index) {
+                    var product = _filteredProducts[index];
+                    int stock = product['stock'] ?? 0;
+                    int minLevel = product['minimumLevel'] ?? 5;
+                    return ListTile(
+                      leading: CircleAvatar(
+                        radius: 18,
+                        backgroundColor: _getStockColor(stock, minLevel),
+                        child: Text(
+                          (product['name'] ?? '?')[0].toUpperCase(),
+                          style: const TextStyle(
+                            color: AppColors.white,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                      title: Text(
+                        product['name'] ?? 'Unnamed',
+                        style: const TextStyle(
+                          color: AppColors.white,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      subtitle: Row(
+                        children: [
+                          if (product['category'] != null)
+                            Text(
+                              '${product['category']} · ',
+                              style: TextStyle(
+                                color: AppColors.white.withOpacity(0.7),
+                              ),
+                            ),
+                          Text(
+                            'Stock: $stock',
+                            style: TextStyle(
+                              color: _getStockColor(stock, minLevel),
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
-                          title: Text(
-                            product['name'] ?? 'Unnamed',
-                            style: const TextStyle(color: AppColors.white, fontWeight: FontWeight.w500),
+                        ],
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (stock < minLevel)
+                            const Icon(
+                              Icons.warning,
+                              color: AppColors.warning,
+                              size: 16,
+                            ),
+                          const SizedBox(width: 4),
+                          Text(
+                            CurrencyHelper.formatAmount(
+                              (product['sellingPrice'] as num?)?.toDouble(),
+                              null,
+                            ),
+                            style: const TextStyle(
+                              color: AppColors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                          subtitle: Row(
-                            children: [
-                              if (product['category'] != null)
-                                Text(
-                                  '${product['category']} · ',
-                                  style: TextStyle(color: AppColors.white.withOpacity(0.7)),
+                          const SizedBox(width: 8),
+                          IconButton(
+                            icon: const Icon(
+                              Icons.edit,
+                              color: AppColors.primaryRed,
+                              size: 20,
+                            ),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => AddEditProductScreen(
+                                    productData: product,
+                                  ),
                                 ),
-                              Text(
-                                'Stock: $stock',
-                                style: TextStyle(
-                                  color: _getStockColor(stock, minLevel),
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
+                              ).then((_) => _loadProducts());
+                            },
                           ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (stock < minLevel)
-                                const Icon(Icons.warning, color: AppColors.warning, size: 16),
-                              const SizedBox(width: 4),
-                              Text(
-                                'ETB ${(product['sellingPrice'] ?? 0).toStringAsFixed(0)}',
-                                style: const TextStyle(color: AppColors.white, fontWeight: FontWeight.bold),
-                              ),
-                              const SizedBox(width: 8),
-                              IconButton(
-                                icon: const Icon(Icons.edit, color: AppColors.primaryRed, size: 20),
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => AddEditProductScreen(productData: product),
-                                    ),
-                                  ).then((_) => _loadProducts());
-                                },
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.delete, color: AppColors.error, size: 20),
-                                onPressed: () => _deleteProduct(product['id'], product['name'] ?? ''),
-                              ),
-                            ],
+                          IconButton(
+                            icon: const Icon(
+                              Icons.delete,
+                              color: AppColors.error,
+                              size: 20,
+                            ),
+                            onPressed: () => _deleteProduct(
+                              product['id'],
+                              product['name'] ?? '',
+                            ),
                           ),
-                        );
-                      },
-                    ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
         ),
       ),
     );

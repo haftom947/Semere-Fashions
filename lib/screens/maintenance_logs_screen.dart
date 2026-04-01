@@ -8,7 +8,8 @@ import 'add_edit_maintenance_log_screen.dart';
 
 class MaintenanceLogsScreen extends StatefulWidget {
   final String vehicleId;
-  const MaintenanceLogsScreen({Key? key, required this.vehicleId}) : super(key: key);
+  const MaintenanceLogsScreen({Key? key, required this.vehicleId})
+    : super(key: key);
 
   @override
   _MaintenanceLogsScreenState createState() => _MaintenanceLogsScreenState();
@@ -33,8 +34,12 @@ class _MaintenanceLogsScreenState extends State<MaintenanceLogsScreen> {
 
   Future<void> _loadLogs() async {
     setState(() => _isLoading = true);
-    var allLogs = await _dbHelper.query('maintenance_logs');
-    var filtered = allLogs.where((l) => l['vehicleId'] == widget.vehicleId).toList();
+    var allLogs = List<Map<String, dynamic>>.from(
+      await _dbHelper.query('maintenance_logs'),
+    );
+    var filtered = allLogs
+        .where((l) => l['vehicleId'] == widget.vehicleId)
+        .toList();
     filtered.sort((a, b) => (b['date'] as int).compareTo(a['date'] as int));
     setState(() {
       _logs = filtered;
@@ -54,9 +59,11 @@ class _MaintenanceLogsScreenState extends State<MaintenanceLogsScreen> {
     setState(() {
       _uiLogs = _logs.where((l) {
         return (l['type'] ?? '').toLowerCase().contains(lowerQuery) ||
-               (l['description'] ?? '').toLowerCase().contains(lowerQuery) ||
-               (l['notes'] ?? '').toLowerCase().contains(lowerQuery) ||
-               DateFormat('dd/MM/yyyy').format(DateTime.fromMillisecondsSinceEpoch(l['date'])).contains(query);
+            (l['description'] ?? '').toLowerCase().contains(lowerQuery) ||
+            (l['notes'] ?? '').toLowerCase().contains(lowerQuery) ||
+            DateFormat('dd/MM/yyyy')
+                .format(DateTime.fromMillisecondsSinceEpoch(l['date']))
+                .contains(query);
       }).toList();
     });
   }
@@ -64,16 +71,25 @@ class _MaintenanceLogsScreenState extends State<MaintenanceLogsScreen> {
   Future<void> _deleteLog(String id) async {
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Maintenance Record'),
-        content: const Text('Are you sure?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete', style: TextStyle(color: AppColors.error)),
-          ),
-        ],
+      builder: (context) => Theme(
+        data: ThemeData.light(),
+        child: AlertDialog(
+          title: const Text('Delete Maintenance Record'),
+          content: const Text('Are you sure?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text(
+                'Delete',
+                style: TextStyle(color: AppColors.error),
+              ),
+            ),
+          ],
+        ),
       ),
     );
     if (confirm != true) return;
@@ -109,7 +125,8 @@ class _MaintenanceLogsScreenState extends State<MaintenanceLogsScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => AddEditMaintenanceLogScreen(vehicleId: widget.vehicleId),
+                  builder: (context) =>
+                      AddEditMaintenanceLogScreen(vehicleId: widget.vehicleId),
                 ),
               ).then((_) => _loadLogs());
             },
@@ -151,81 +168,110 @@ class _MaintenanceLogsScreenState extends State<MaintenanceLogsScreen> {
           child: _isLoading
               ? const Center(child: CircularProgressIndicator())
               : _uiLogs.isEmpty
-                  ? const Center(
-                      child: Text('No maintenance logs found.', style: TextStyle(color: AppColors.white)),
-                    )
-                  : ListView.separated(
-                      padding: const EdgeInsets.all(8),
-                      itemCount: _uiLogs.length,
-                      separatorBuilder: (_, __) => const Divider(color: AppColors.white, height: 0.5),
-                      itemBuilder: (context, index) {
-                        var log = _uiLogs[index];
-                        DateTime date = DateTime.fromMillisecondsSinceEpoch(log['date']);
-                        String dateStr = DateFormat('dd/MM/yy').format(date);
-                        bool isCompleted = log['completed'] ?? false;
-                        return ListTile(
-                          leading: CircleAvatar(
-                            radius: 18,
-                            backgroundColor: isCompleted ? AppColors.success : AppColors.warning,
-                            child: Icon(
-                              isCompleted ? Icons.check : Icons.build,
-                              color: AppColors.white,
-                              size: 16,
+              ? const Center(
+                  child: Text(
+                    'No maintenance logs found.',
+                    style: TextStyle(color: AppColors.white),
+                  ),
+                )
+              : ListView.separated(
+                  padding: const EdgeInsets.all(8),
+                  itemCount: _uiLogs.length,
+                  separatorBuilder: (_, __) =>
+                      const Divider(color: AppColors.white, height: 0.5),
+                  itemBuilder: (context, index) {
+                    var log = _uiLogs[index];
+                    DateTime date = DateTime.fromMillisecondsSinceEpoch(
+                      log['date'],
+                    );
+                    String dateStr = DateFormat('dd/MM/yy').format(date);
+                    bool isCompleted = log['completed'] ?? false;
+                    return ListTile(
+                      leading: CircleAvatar(
+                        radius: 18,
+                        backgroundColor: isCompleted
+                            ? AppColors.success
+                            : AppColors.warning,
+                        child: Icon(
+                          isCompleted ? Icons.check : Icons.build,
+                          color: AppColors.white,
+                          size: 16,
+                        ),
+                      ),
+                      title: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              log['type'] ?? 'Maintenance',
+                              style: const TextStyle(
+                                color: AppColors.white,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
                           ),
-                          title: Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  log['type'] ?? 'Maintenance',
-                                  style: const TextStyle(color: AppColors.white, fontWeight: FontWeight.w500),
-                                ),
+                          if (!isCompleted)
+                            IconButton(
+                              icon: const Icon(
+                                Icons.check_circle,
+                                color: AppColors.success,
+                                size: 18,
                               ),
-                              if (!isCompleted)
-                                IconButton(
-                                  icon: const Icon(Icons.check_circle, color: AppColors.success, size: 18),
-                                  onPressed: () async {
-                                    log['completed'] = true;
-                                    await _dbHelper.update('maintenance_logs', log);
-                                    _loadLogs();
-                                  },
-                                ),
-                            ],
-                          ),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              if (log['description'] != null)
-                                Text(
-                                  log['description'],
-                                  style: TextStyle(color: AppColors.white.withOpacity(0.7)),
-                                ),
-                              Row(
-                                children: [
-                                  Text(
-                                    'Cost: ETB ${(log['cost'] ?? 0).toStringAsFixed(0)} · Odo: ${log['odometer'] ?? 0} km',
-                                    style: TextStyle(color: AppColors.white.withOpacity(0.7)),
-                                  ),
-                                ],
+                              onPressed: () async {
+                                log['completed'] = true;
+                                await _dbHelper.update('maintenance_logs', log);
+                                _loadLogs();
+                              },
+                            ),
+                        ],
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (log['description'] != null)
+                            Text(
+                              log['description'],
+                              style: TextStyle(
+                                color: AppColors.white.withOpacity(0.7),
                               ),
-                              if (log['nextDue'] != null)
-                                Text(
-                                  'Next due: ${DateFormat('dd/MM/yy').format(DateTime.fromMillisecondsSinceEpoch(log['nextDue']))}',
-                                  style: const TextStyle(color: AppColors.info, fontSize: 12),
-                                ),
+                            ),
+                          Row(
+                            children: [
                               Text(
-                                dateStr,
-                                style: TextStyle(color: AppColors.white.withOpacity(0.5), fontSize: 10),
+                                'Cost: ETB ${(log['cost'] ?? 0).toStringAsFixed(0)} · Odo: ${log['odometer'] ?? 0} km',
+                                style: TextStyle(
+                                  color: AppColors.white.withOpacity(0.7),
+                                ),
                               ),
                             ],
                           ),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.delete, color: AppColors.error, size: 20),
-                            onPressed: () => _deleteLog(log['id']),
+                          if (log['nextDue'] != null)
+                            Text(
+                              'Next due: ${DateFormat('dd/MM/yy').format(DateTime.fromMillisecondsSinceEpoch(log['nextDue']))}',
+                              style: const TextStyle(
+                                color: AppColors.info,
+                                fontSize: 12,
+                              ),
+                            ),
+                          Text(
+                            dateStr,
+                            style: TextStyle(
+                              color: AppColors.white.withOpacity(0.5),
+                              fontSize: 10,
+                            ),
                           ),
-                        );
-                      },
-                    ),
+                        ],
+                      ),
+                      trailing: IconButton(
+                        icon: const Icon(
+                          Icons.delete,
+                          color: AppColors.error,
+                          size: 20,
+                        ),
+                        onPressed: () => _deleteLog(log['id']),
+                      ),
+                    );
+                  },
+                ),
         ),
       ),
     );

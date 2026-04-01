@@ -13,11 +13,15 @@ class NotificationService {
         AndroidInitializationSettings('@mipmap/ic_launcher');
     const DarwinInitializationSettings initializationSettingsIOS =
         DarwinInitializationSettings();
-    const InitializationSettings initializationSettings = InitializationSettings(
-      android: initializationSettingsAndroid,
-      iOS: initializationSettingsIOS,
+    const InitializationSettings initializationSettings =
+        InitializationSettings(
+          android: initializationSettingsAndroid,
+          iOS: initializationSettingsIOS,
+        );
+    // ✅ Correct: named parameter 'settings'
+    await _flutterLocalNotificationsPlugin.initialize(
+      settings: initializationSettings,
     );
-    await _flutterLocalNotificationsPlugin.initialize(initializationSettings);
   }
 
   Future<void> showNotification({
@@ -27,19 +31,20 @@ class NotificationService {
   }) async {
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
-      'low_stock_channel',
-      'Low Stock Alerts',
-      importance: Importance.high,
-      priority: Priority.high,
-    );
+          'low_stock_channel',
+          'Low Stock Alerts',
+          importance: Importance.high,
+          priority: Priority.high,
+        );
     const NotificationDetails platformChannelSpecifics = NotificationDetails(
       android: androidPlatformChannelSpecifics,
     );
+    // ✅ Correct: named parameters
     await _flutterLocalNotificationsPlugin.show(
-      id,
-      title,
-      body,
-      platformChannelSpecifics,
+      id: id,
+      title: title,
+      body: body,
+      notificationDetails: platformChannelSpecifics,
     );
   }
 }

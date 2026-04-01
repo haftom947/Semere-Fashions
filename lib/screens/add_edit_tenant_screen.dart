@@ -7,7 +7,11 @@ import '../utils/colors.dart';
 class AddEditTenantScreen extends StatefulWidget {
   final String propertyId;
   final Map<String, dynamic>? tenantData;
-  const AddEditTenantScreen({Key? key, required this.propertyId, this.tenantData}) : super(key: key);
+  const AddEditTenantScreen({
+    super.key,
+    required this.propertyId,
+    this.tenantData,
+  });
 
   @override
   _AddEditTenantScreenState createState() => _AddEditTenantScreenState();
@@ -28,7 +32,8 @@ class _AddEditTenantScreenState extends State<AddEditTenantScreen> {
     if (widget.tenantData != null) {
       _nameController.text = widget.tenantData!['name'] ?? '';
       _phoneController.text = widget.tenantData!['phone'] ?? '';
-      _monthlyRentController.text = widget.tenantData!['monthlyRent']?.toString() ?? '';
+      _monthlyRentController.text =
+          widget.tenantData!['monthlyRent']?.toString() ?? '';
     }
   }
 
@@ -37,7 +42,9 @@ class _AddEditTenantScreenState extends State<AddEditTenantScreen> {
     setState(() => _isLoading = true);
     try {
       Map<String, dynamic> data = {
-        'id': widget.tenantData?['id'] ?? DateTime.now().millisecondsSinceEpoch.toString(),
+        'id':
+            widget.tenantData?['id'] ??
+            DateTime.now().millisecondsSinceEpoch.toString(),
         'propertyId': widget.propertyId,
         'name': _nameController.text.trim(),
         'phone': _phoneController.text.trim(),
@@ -54,7 +61,9 @@ class _AddEditTenantScreenState extends State<AddEditTenantScreen> {
       }
       if (mounted) Navigator.pop(context);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
     } finally {
       setState(() => _isLoading = false);
     }
@@ -91,13 +100,16 @@ class _AddEditTenantScreenState extends State<AddEditTenantScreen> {
                           labelText: 'Tenant Name *',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
                           ),
                         ),
-                        validator: (value) => value == null || value.isEmpty ? 'Required' : null,
+                        validator: (value) =>
+                            value == null || value.isEmpty ? 'Required' : null,
                       ),
                       const SizedBox(height: 16),
 
@@ -110,7 +122,9 @@ class _AddEditTenantScreenState extends State<AddEditTenantScreen> {
                           labelText: 'Phone',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
@@ -128,13 +142,16 @@ class _AddEditTenantScreenState extends State<AddEditTenantScreen> {
                           labelText: 'Monthly Rent (ETB) *',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
                           ),
                         ),
-                        validator: (value) => value == null || value.isEmpty ? 'Required' : null,
+                        validator: (value) =>
+                            value == null || value.isEmpty ? 'Required' : null,
                       ),
                       const SizedBox(height: 24),
 
@@ -149,8 +166,14 @@ class _AddEditTenantScreenState extends State<AddEditTenantScreen> {
                             foregroundColor: AppColors.white,
                           ),
                           child: _isLoading
-                              ? const CircularProgressIndicator(color: AppColors.white)
-                              : Text(widget.tenantData == null ? 'Add Tenant' : 'Update Tenant'),
+                              ? const CircularProgressIndicator(
+                                  color: AppColors.white,
+                                )
+                              : Text(
+                                  widget.tenantData == null
+                                      ? 'Add Tenant'
+                                      : 'Update Tenant',
+                                ),
                         ),
                       ),
                     ],

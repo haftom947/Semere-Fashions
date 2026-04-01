@@ -35,7 +35,9 @@ class _EquipmentListScreenState extends State<EquipmentListScreen> {
 
   Future<void> _loadEquipment() async {
     setState(() => _isLoading = true);
-    var equipment = await _dbHelper.query('equipment');
+    var equipment = List<Map<String, dynamic>>.from(
+      await _dbHelper.query('equipment'),
+    );
     equipment.sort((a, b) => (a['name'] ?? '').compareTo(b['name'] ?? ''));
     setState(() {
       _equipment = equipment;
@@ -46,22 +48,22 @@ class _EquipmentListScreenState extends State<EquipmentListScreen> {
 
   void _applyFilters() {
     var filtered = _equipment;
-    
+
     // Apply type filter
     if (_filterType != 'all') {
       filtered = filtered.where((e) => e['type'] == _filterType).toList();
     }
-    
+
     // Apply search filter
     if (_searchController.text.isNotEmpty) {
       final query = _searchController.text.toLowerCase();
       filtered = filtered.where((e) {
         return (e['name'] ?? '').toLowerCase().contains(query) ||
-               (e['serialNumber'] ?? '').toLowerCase().contains(query) ||
-               (e['licensePlate'] ?? '').toLowerCase().contains(query);
+            (e['serialNumber'] ?? '').toLowerCase().contains(query) ||
+            (e['licensePlate'] ?? '').toLowerCase().contains(query);
       }).toList();
     }
-    
+
     setState(() {
       _uiEquipment = filtered;
     });
@@ -80,10 +82,14 @@ class _EquipmentListScreenState extends State<EquipmentListScreen> {
 
   Color _getTypeColor(String? type) {
     switch (type) {
-      case 'machine': return AppColors.info;
-      case 'tool': return AppColors.warning;
-      case 'vehicle': return AppColors.success;
-      default: return AppColors.mediumGrey;
+      case 'machine':
+        return AppColors.info;
+      case 'tool':
+        return AppColors.warning;
+      case 'vehicle':
+        return AppColors.success;
+      default:
+        return AppColors.mediumGrey;
     }
   }
 
@@ -96,16 +102,25 @@ class _EquipmentListScreenState extends State<EquipmentListScreen> {
   Future<void> _deleteEquipment(String id, String name) async {
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Equipment'),
-        content: Text('Are you sure you want to delete $name?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete', style: TextStyle(color: AppColors.error)),
-          ),
-        ],
+      builder: (context) => Theme(
+        data: ThemeData.light(),
+        child: AlertDialog(
+          title: const Text('Delete Equipment'),
+          content: Text('Are you sure you want to delete $name?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text(
+                'Delete',
+                style: TextStyle(color: AppColors.error),
+              ),
+            ),
+          ],
+        ),
       ),
     );
     if (confirm != true) return;
@@ -140,7 +155,9 @@ class _EquipmentListScreenState extends State<EquipmentListScreen> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const AddEditEquipmentScreen()),
+                MaterialPageRoute(
+                  builder: (context) => const AddEditEquipmentScreen(),
+                ),
               ).then((_) => _loadEquipment());
             },
           ),
@@ -156,8 +173,13 @@ class _EquipmentListScreenState extends State<EquipmentListScreen> {
                   style: const TextStyle(color: AppColors.white),
                   decoration: InputDecoration(
                     hintText: 'Search equipment...',
-                    hintStyle: TextStyle(color: AppColors.white.withOpacity(0.5)),
-                    prefixIcon: const Icon(Icons.search, color: AppColors.white),
+                    hintStyle: TextStyle(
+                      color: AppColors.white.withOpacity(0.5),
+                    ),
+                    prefixIcon: const Icon(
+                      Icons.search,
+                      color: AppColors.white,
+                    ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                       borderSide: BorderSide.none,
@@ -173,7 +195,10 @@ class _EquipmentListScreenState extends State<EquipmentListScreen> {
                 child: Row(
                   children: [
                     const SizedBox(width: 16),
-                    const Text('Type:', style: TextStyle(color: AppColors.white)),
+                    const Text(
+                      'Type:',
+                      style: TextStyle(color: AppColors.white),
+                    ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: DropdownButton<String>(
@@ -181,12 +206,21 @@ class _EquipmentListScreenState extends State<EquipmentListScreen> {
                         dropdownColor: AppColors.backgroundStart,
                         style: const TextStyle(color: AppColors.white),
                         underline: Container(),
-                        icon: const Icon(Icons.arrow_drop_down, color: AppColors.white),
+                        icon: const Icon(
+                          Icons.arrow_drop_down,
+                          color: AppColors.white,
+                        ),
                         items: const [
                           DropdownMenuItem(value: 'all', child: Text('All')),
-                          DropdownMenuItem(value: 'machine', child: Text('Machines')),
+                          DropdownMenuItem(
+                            value: 'machine',
+                            child: Text('Machines'),
+                          ),
                           DropdownMenuItem(value: 'tool', child: Text('Tools')),
-                          DropdownMenuItem(value: 'vehicle', child: Text('Vehicles')),
+                          DropdownMenuItem(
+                            value: 'vehicle',
+                            child: Text('Vehicles'),
+                          ),
                         ],
                         onChanged: _filterByType,
                       ),
@@ -211,125 +245,167 @@ class _EquipmentListScreenState extends State<EquipmentListScreen> {
           child: _isLoading
               ? const Center(child: CircularProgressIndicator())
               : _uiEquipment.isEmpty
-                  ? const Center(
-                      child: Text('No equipment found.', style: TextStyle(color: AppColors.white)),
-                    )
-                  : ListView.separated(
-                      padding: const EdgeInsets.all(8),
-                      itemCount: _uiEquipment.length,
-                      separatorBuilder: (_, __) => const Divider(color: AppColors.white, height: 0.5),
-                      itemBuilder: (context, index) {
-                        var item = _uiEquipment[index];
-                        return FutureBuilder<String>(
-                          future: _getEmployeeName(item['assignedTo']),
-                          builder: (context, assigneeSnapshot) {
-                            return ListTile(
-                              onTap: () {
-                                if (item['type'] == 'vehicle') {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => VehicleDetailsScreen(vehicleId: item['id']),
-                                    ),
-                                  );
-                                } else {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => EquipmentDetailsScreen(equipmentId: item['id']),
-                                    ),
-                                  );
-                                }
-                              },
-                              leading: CircleAvatar(
-                                radius: 18,
-                                backgroundColor: _getTypeColor(item['type']),
-                                child: Icon(
-                                  item['type'] == 'vehicle' ? Icons.directions_car : Icons.settings,
-                                  color: AppColors.white,
-                                  size: 18,
+              ? const Center(
+                  child: Text(
+                    'No equipment found.',
+                    style: TextStyle(color: AppColors.white),
+                  ),
+                )
+              : ListView.separated(
+                  padding: const EdgeInsets.all(8),
+                  itemCount: _uiEquipment.length,
+                  separatorBuilder: (_, __) =>
+                      const Divider(color: AppColors.white, height: 0.5),
+                  itemBuilder: (context, index) {
+                    var item = _uiEquipment[index];
+                    return FutureBuilder<String>(
+                      future: _getEmployeeName(item['assignedTo']),
+                      builder: (context, assigneeSnapshot) {
+                        return ListTile(
+                          onTap: () {
+                            if (item['type'] == 'vehicle') {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => VehicleDetailsScreen(
+                                    vehicleId: item['id'],
+                                  ),
+                                ),
+                              );
+                            } else {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => EquipmentDetailsScreen(
+                                    equipmentId: item['id'],
+                                  ),
+                                ),
+                              );
+                            }
+                          },
+                          leading: CircleAvatar(
+                            radius: 18,
+                            backgroundColor: _getTypeColor(item['type']),
+                            child: Icon(
+                              item['type'] == 'vehicle'
+                                  ? Icons.directions_car
+                                  : Icons.settings,
+                              color: AppColors.white,
+                              size: 18,
+                            ),
+                          ),
+                          title: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  item['name'] ?? 'Unnamed',
+                                  style: const TextStyle(
+                                    color: AppColors.white,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                               ),
-                              title: Row(
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      item['name'] ?? 'Unnamed',
-                                      style: const TextStyle(color: AppColors.white, fontWeight: FontWeight.w500),
-                                    ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: item['status'] == 'active'
+                                      ? AppColors.success
+                                      : item['status'] == 'maintenance'
+                                      ? AppColors.warning
+                                      : AppColors.error,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  item['status'] ?? 'unknown',
+                                  style: const TextStyle(
+                                    color: AppColors.white,
+                                    fontSize: 10,
                                   ),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: item['status'] == 'active'
-                                          ? AppColors.success
-                                          : item['status'] == 'maintenance'
-                                              ? AppColors.warning
-                                              : AppColors.error,
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Text(
-                                      item['status'] ?? 'unknown',
-                                      style: const TextStyle(color: AppColors.white, fontSize: 10),
-                                    ),
-                                  ),
-                                ],
+                                ),
                               ),
-                              subtitle: Row(
-                                children: [
-                                  if (item['type'] == 'vehicle' && item['licensePlate'] != null)
-                                    Text(
-                                      '${item['licensePlate']} · ',
-                                      style: TextStyle(color: AppColors.white.withOpacity(0.7)),
-                                    ),
-                                  Expanded(
-                                    child: Text(
-                                      assigneeSnapshot.data ?? 'Loading...',
-                                      style: TextStyle(color: AppColors.white.withOpacity(0.7)),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
+                            ],
+                          ),
+                          subtitle: Row(
+                            children: [
+                              if (item['type'] == 'vehicle' &&
+                                  item['licensePlate'] != null)
+                                Text(
+                                  '${item['licensePlate']} · ',
+                                  style: TextStyle(
+                                    color: AppColors.white.withOpacity(0.7),
                                   ),
-                                ],
+                                ),
+                              Expanded(
+                                child: Text(
+                                  assigneeSnapshot.data ?? 'Loading...',
+                                  style: TextStyle(
+                                    color: AppColors.white.withOpacity(0.7),
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.history, color: AppColors.info, size: 20),
-                                    onPressed: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => CheckoutLogsScreen(
-                                            equipmentId: item['id'],
-                                            equipmentName: item['name'] ?? '',
+                            ],
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.history,
+                                  color: AppColors.info,
+                                  size: 20,
+                                ),
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => CheckoutLogsScreen(
+                                        equipmentId: item['id'],
+                                        equipmentName: item['name'] ?? '',
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.edit,
+                                  color: AppColors.primaryRed,
+                                  size: 20,
+                                ),
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          AddEditEquipmentScreen(
+                                            equipmentData: item,
                                           ),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.edit, color: AppColors.primaryRed, size: 20),
-                                    onPressed: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => AddEditEquipmentScreen(equipmentData: item),
-                                        ),
-                                      ).then((_) => _loadEquipment());
-                                    },
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.delete, color: AppColors.error, size: 20),
-                                    onPressed: () => _deleteEquipment(item['id'], item['name'] ?? ''),
-                                  ),
-                                ],
+                                    ),
+                                  ).then((_) => _loadEquipment());
+                                },
                               ),
-                            );
-                          },
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.delete,
+                                  color: AppColors.error,
+                                  size: 20,
+                                ),
+                                onPressed: () => _deleteEquipment(
+                                  item['id'],
+                                  item['name'] ?? '',
+                                ),
+                              ),
+                            ],
+                          ),
                         );
                       },
-                    ),
+                    );
+                  },
+                ),
         ),
       ),
     );

@@ -1,14 +1,23 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../utils/colors.dart';
+import '../utils/currency_helper.dart';
+import '../utils/app_date_filter.dart';
 import '../services/database_helper.dart';
 import '../services/sync_service.dart';
-import '../utils/error_handler.dart';
 import 'order_details_screen.dart';
 
 class OrdersListScreen extends StatefulWidget {
   final String? initialStatus;
-  const OrdersListScreen({Key? key, this.initialStatus}) : super(key: key);
+  final bool showUnpaidOnly;
+  final bool hideStatusFilter;
+  const OrdersListScreen({
+    super.key,
+    this.initialStatus,
+    this.showUnpaidOnly = false,
+    this.hideStatusFilter = false,
+  });
 
   @override
   _OrdersListScreenState createState() => _OrdersListScreenState();
@@ -22,132 +31,234 @@ class _OrdersListScreenState extends State<OrdersListScreen> {
   List<Map<String, dynamic>> _branches = [];
   List<Map<String, dynamic>> _employees = [];
   List<Map<String, dynamic>> _assignments = [];
+  List<Map<String, dynamic>> _commissions = [];
+  List<Map<String, dynamic>> _filteredCommissions = [];
   bool _isLoading = true;
+  StreamSubscription<bool>? _dataChangedSubscription;
   String _filterStatus = 'all';
   String _filterBranch = 'all';
   String _filterEmployee = 'all';
-  String _filterRole = 'all'; // new role filter
+  String _filterRole = 'all';
   final TextEditingController _searchController = TextEditingController();
+
+  bool get _showEmployeeEarnings => _filterEmployee != 'all';
 
   @override
   void initState() {
     super.initState();
     _filterStatus = widget.initialStatus ?? 'all';
+    AppDateFilter.instance.rangeNotifier.addListener(_onGlobalRangeChanged);
     _loadOrders();
     _loadBranches();
     _loadEmployees();
-    _syncService.dataChangedStream.listen((_) {
+    _dataChangedSubscription = _syncService.dataChangedStream.listen((_) {
+      if (!mounted) return;
       _loadOrders();
       _loadBranches();
       _loadEmployees();
     });
   }
 
+  @override
+  void dispose() {
+    AppDateFilter.instance.rangeNotifier.removeListener(_onGlobalRangeChanged);
+    _dataChangedSubscription?.cancel();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onGlobalRangeChanged() {
+    if (!mounted) return;
+    _applyFilters();
+  }
+
   Future<void> _loadOrders() async {
-    setState(() => _isLoading = true);
-    var orders = await _dbHelper.query('orders');
+    if (mounted) setState(() => _isLoading = true);
+    var orders = List<Map<String, dynamic>>.from(
+      await _dbHelper.query('orders'),
+    );
     var assignments = await _dbHelper.query('order_assignments');
-    orders.sort((a, b) => (b['createdAt'] as int).compareTo(a['createdAt'] as int));
-    setState(() {
-      _orders = orders;
-      _assignments = assignments;
-      _applyFilters();
-      _isLoading = false;
-    });
+    var commissions = List<Map<String, dynamic>>.from(
+      await _dbHelper.query('commissions'),
+    );
+    if (widget.showUnpaidOnly) {
+      orders = orders.where((order) {
+        final paid = (order['paid_amount'] as num?)?.toDouble() ?? 0.0;
+        final total = (order['totalAmount'] as num?)?.toDouble() ?? 0.0;
+        final status = (order['status'] as String?)?.toLowerCase() ?? '';
+        return paid < total && status != 'cancelled' && status != 'returned';
+      }).toList();
+    }
+    orders.sort(
+      (a, b) => (b['createdAt'] as int).compareTo(a['createdAt'] as int),
+    );
+    commissions.sort(
+      (a, b) => (b['createdAt'] as int).compareTo(a['createdAt'] as int),
+    );
+    if (!mounted) return;
+    _orders = orders;
+    _assignments = List<Map<String, dynamic>>.from(assignments);
+    _commissions = commissions;
+    _applyFilters();
+    if (mounted) setState(() => _isLoading = false);
   }
 
   Future<void> _loadBranches() async {
-    var branches = await _dbHelper.query('branches');
+    final branches = await _dbHelper.query('branches');
+    if (!mounted) return;
     setState(() {
-      _branches = branches;
+      _branches = List<Map<String, dynamic>>.from(branches);
     });
   }
 
   Future<void> _loadEmployees() async {
-    var employees = await _dbHelper.query('users');
+    final employees = await _dbHelper.query('users');
+    if (!mounted) return;
     setState(() {
-      _employees = employees;
+      _employees = List<Map<String, dynamic>>.from(employees);
     });
   }
 
   void _applyFilters() {
     var filtered = _orders;
-    
-    // Status filter
+    var filteredCommissions = _commissions;
+
+    final range = AppDateFilter.instance.range;
+    if (range != null) {
+      final start = DateTime(
+        range.start.year,
+        range.start.month,
+        range.start.day,
+      ).millisecondsSinceEpoch;
+      final end = DateTime(
+        range.end.year,
+        range.end.month,
+        range.end.day,
+        23,
+        59,
+        59,
+        999,
+      ).millisecondsSinceEpoch;
+      filtered = filtered.where((o) {
+        final createdAt = (o['createdAt'] as num?)?.toInt() ?? 0;
+        return createdAt >= start && createdAt <= end;
+      }).toList();
+      filteredCommissions = filteredCommissions.where((c) {
+        final paidAt = (c['paidAt'] as num?)?.toInt();
+        final createdAt = (c['createdAt'] as num?)?.toInt();
+        final date = paidAt ?? createdAt ?? 0;
+        return date >= start && date <= end;
+      }).toList();
+    }
+
+    if (widget.showUnpaidOnly) {
+      filtered = filtered.where((order) {
+        final paid = (order['paid_amount'] as num?)?.toDouble() ?? 0.0;
+        final total = (order['totalAmount'] as num?)?.toDouble() ?? 0.0;
+        final status = (order['status'] as String?)?.toLowerCase() ?? '';
+        return paid < total && status != 'cancelled' && status != 'returned';
+      }).toList();
+    }
+
     if (_filterStatus != 'all') {
       filtered = filtered.where((o) => o['status'] == _filterStatus).toList();
+      final matchingOrderIds = _orders
+          .where((o) => o['status'] == _filterStatus)
+          .map((o) => o['id'])
+          .toSet();
+      filteredCommissions = filteredCommissions
+          .where((c) => matchingOrderIds.contains(c['orderId']))
+          .toList();
     }
-    
-    // Branch filter
+
     if (_filterBranch != 'all') {
       filtered = filtered.where((o) => o['branchId'] == _filterBranch).toList();
+      final matchingOrderIds = _orders
+          .where((o) => o['branchId'] == _filterBranch)
+          .map((o) => o['id'])
+          .toSet();
+      filteredCommissions = filteredCommissions
+          .where((c) => matchingOrderIds.contains(c['orderId']))
+          .toList();
     }
-    
-    // Role filter
+
     if (_filterRole != 'all') {
-      // Find all employee IDs with the selected role
-      var roleEmployeeIds = _employees
+      final roleEmployeeIds = _employees
           .where((e) => e['role'] == _filterRole)
           .map((e) => e['id'])
           .toSet();
-      // Find order IDs where any assignment has an employee with that role
-      var orderIds = _assignments
+      final orderIds = _assignments
           .where((a) => roleEmployeeIds.contains(a['employeeId']))
           .map((a) => a['orderId'])
           .toSet();
       filtered = filtered.where((o) => orderIds.contains(o['id'])).toList();
+      filteredCommissions = filteredCommissions
+          .where((c) => c['type'] == _filterRole)
+          .toList();
     }
-    
-    // Employee filter (overrides role filter? We'll combine them: if both are set, we require the employee to be in the list and also match the role? That might be too restrictive. For simplicity, we'll treat role filter as independent; if both are set, we'll apply employee filter after role filter.)
+
     if (_filterEmployee != 'all') {
-      // Find order IDs where this specific employee is assigned
-      var orderIds = _assignments
+      final orderIds = _assignments
           .where((a) => a['employeeId'] == _filterEmployee)
           .map((a) => a['orderId'])
           .toSet();
       filtered = filtered.where((o) => orderIds.contains(o['id'])).toList();
+      filteredCommissions = filteredCommissions
+          .where((c) => c['employeeId'] == _filterEmployee)
+          .toList();
     }
-    
-    // Search filter
+
     if (_searchController.text.isNotEmpty) {
       final query = _searchController.text.toLowerCase();
       filtered = filtered.where((o) {
         return (o['customerName'] ?? '').toLowerCase().contains(query) ||
-               (o['id'] ?? '').toLowerCase().contains(query);
+            (o['id'] ?? '').toLowerCase().contains(query);
+      }).toList();
+      filteredCommissions = filteredCommissions.where((c) {
+        return (c['employeeName'] ?? '').toLowerCase().contains(query) ||
+            (c['orderId'] ?? '').toLowerCase().contains(query) ||
+            (c['type'] ?? '').toLowerCase().contains(query) ||
+            (c['status'] ?? '').toLowerCase().contains(query);
       }).toList();
     }
-    
+
+    if (!mounted) {
+      _filteredOrders = filtered;
+      _filteredCommissions = filteredCommissions;
+      return;
+    }
     setState(() {
       _filteredOrders = filtered;
+      _filteredCommissions = filteredCommissions;
     });
   }
 
   void _filterByStatus(String? value) {
     setState(() {
       _filterStatus = value ?? 'all';
-      _applyFilters();
     });
+    _applyFilters();
   }
 
   void _filterByBranch(String? value) {
     setState(() {
       _filterBranch = value ?? 'all';
-      _applyFilters();
     });
+    _applyFilters();
   }
 
   void _filterByEmployee(String? value) {
     setState(() {
       _filterEmployee = value ?? 'all';
-      _applyFilters();
     });
+    _applyFilters();
   }
 
   void _filterByRole(String? value) {
     setState(() {
       _filterRole = value ?? 'all';
-      _applyFilters();
     });
+    _applyFilters();
   }
 
   void _search(String query) {
@@ -174,25 +285,33 @@ class _OrdersListScreenState extends State<OrdersListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    var filtered = _filteredOrders;
+    final filtered = _filteredOrders;
+    final showingCardFilters = widget.hideStatusFilter;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Orders'),
         backgroundColor: AppColors.primaryRed,
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(220), // increased for 4 filters
+          preferredSize: Size.fromHeight(showingCardFilters ? 170 : 220),
           child: Column(
             children: [
-              // Search bar
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 child: TextField(
                   controller: _searchController,
                   style: const TextStyle(color: AppColors.white),
                   decoration: InputDecoration(
                     hintText: 'Search by customer or order ID...',
-                    hintStyle: TextStyle(color: AppColors.white.withOpacity(0.5)),
-                    prefixIcon: const Icon(Icons.search, color: AppColors.white),
+                    hintStyle: TextStyle(
+                      color: AppColors.white.withOpacity(0.5),
+                    ),
+                    prefixIcon: const Icon(
+                      Icons.search,
+                      color: AppColors.white,
+                    ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                       borderSide: BorderSide.none,
@@ -203,97 +322,178 @@ class _OrdersListScreenState extends State<OrdersListScreen> {
                   onChanged: _search,
                 ),
               ),
-              // Filters row (status, branch, role, employee)
               Container(
                 color: AppColors.primaryRedDark,
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // First row: status and branch
                       Row(
                         children: [
-                          const Text('Status:', style: TextStyle(color: AppColors.white)),
-                          const SizedBox(width: 8),
-                          DropdownButton<String>(
-                            value: _filterStatus,
-                            dropdownColor: AppColors.backgroundStart,
-                            style: const TextStyle(color: AppColors.white),
-                            underline: Container(),
-                            icon: const Icon(Icons.arrow_drop_down, color: AppColors.white),
-                            items: const [
-                              DropdownMenuItem(value: 'all', child: Text('All')),
-                              DropdownMenuItem(value: 'pending', child: Text('Pending')),
-                              DropdownMenuItem(value: 'processing', child: Text('Processing')),
-                              DropdownMenuItem(value: 'out_for_delivery', child: Text('Out for Delivery')),
-                              DropdownMenuItem(value: 'delivered', child: Text('Delivered')),
-                              DropdownMenuItem(value: 'completed', child: Text('Completed')),
-                              DropdownMenuItem(value: 'cancelled', child: Text('Cancelled')),
-                            ],
-                            onChanged: _filterByStatus,
+                          if (!showingCardFilters) ...[
+                            const Text(
+                              'Status:',
+                              style: TextStyle(color: AppColors.white),
+                            ),
+                            const SizedBox(width: 8),
+                            DropdownButton<String>(
+                              value: _filterStatus,
+                              dropdownColor: AppColors.backgroundStart,
+                              style: const TextStyle(color: AppColors.white),
+                              underline: Container(),
+                              icon: const Icon(
+                                Icons.arrow_drop_down,
+                                color: AppColors.white,
+                              ),
+                              items: const [
+                                DropdownMenuItem(
+                                  value: 'all',
+                                  child: Text('All'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'pending',
+                                  child: Text('Pending'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'processing',
+                                  child: Text('Processing'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'out_for_delivery',
+                                  child: Text('Out for Delivery'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'delivered',
+                                  child: Text('Delivered'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'completed',
+                                  child: Text('Completed'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'cancelled',
+                                  child: Text('Cancelled'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'returned',
+                                  child: Text('Returned'),
+                                ),
+                              ],
+                              onChanged: _filterByStatus,
+                            ),
+                            const SizedBox(width: 16),
+                          ],
+                          const Text(
+                            'Employee:',
+                            style: TextStyle(color: AppColors.white),
                           ),
-                          const SizedBox(width: 16),
-                          const Text('Branch:', style: TextStyle(color: AppColors.white)),
-                          const SizedBox(width: 8),
-                          DropdownButton<String>(
-                            value: _filterBranch,
-                            dropdownColor: AppColors.backgroundStart,
-                            style: const TextStyle(color: AppColors.white),
-                            underline: Container(),
-                            icon: const Icon(Icons.arrow_drop_down, color: AppColors.white),
-                            items: [
-                              const DropdownMenuItem(value: 'all', child: Text('All Branches')),
-                              ..._branches.map((b) => DropdownMenuItem(
-                                value: b['id'],
-                                child: Text(b['name']),
-                              )),
-                            ],
-                            onChanged: _filterByBranch,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      // Second row: role and employee
-                      Row(
-                        children: [
-                          const Text('Role:', style: TextStyle(color: AppColors.white)),
-                          const SizedBox(width: 8),
-                          DropdownButton<String>(
-                            value: _filterRole,
-                            dropdownColor: AppColors.backgroundStart,
-                            style: const TextStyle(color: AppColors.white),
-                            underline: Container(),
-                            icon: const Icon(Icons.arrow_drop_down, color: AppColors.white),
-                            items: [
-                              const DropdownMenuItem(value: 'all', child: Text('All Roles')),
-                              const DropdownMenuItem(value: 'sales', child: Text('Sales')),
-                              const DropdownMenuItem(value: 'tailor', child: Text('Tailor')),
-                              const DropdownMenuItem(value: 'delivery', child: Text('Delivery')),
-                              const DropdownMenuItem(value: 'manager', child: Text('Manager')),
-                              const DropdownMenuItem(value: 'admin', child: Text('Admin')),
-                            ],
-                            onChanged: _filterByRole,
-                          ),
-                          const SizedBox(width: 16),
-                          const Text('Employee:', style: TextStyle(color: AppColors.white)),
                           const SizedBox(width: 8),
                           DropdownButton<String>(
                             value: _filterEmployee,
                             dropdownColor: AppColors.backgroundStart,
                             style: const TextStyle(color: AppColors.white),
                             underline: Container(),
-                            icon: const Icon(Icons.arrow_drop_down, color: AppColors.white),
+                            icon: const Icon(
+                              Icons.arrow_drop_down,
+                              color: AppColors.white,
+                            ),
                             items: [
-                              const DropdownMenuItem(value: 'all', child: Text('All Employees')),
-                              ..._employees.map((e) => DropdownMenuItem(
-                                value: e['id'],
-                                child: Text(e['name'] ?? 'Unknown'),
-                              )),
+                              const DropdownMenuItem(
+                                value: 'all',
+                                child: Text('All Employees'),
+                              ),
+                              ..._employees.map(
+                                (e) => DropdownMenuItem(
+                                  value: e['id'],
+                                  child: Text(e['name'] ?? 'Unknown'),
+                                ),
+                              ),
                             ],
                             onChanged: _filterByEmployee,
                           ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          const Text(
+                            'Branch:',
+                            style: TextStyle(color: AppColors.white),
+                          ),
+                          const SizedBox(width: 8),
+                          DropdownButton<String>(
+                            value: _filterBranch,
+                            dropdownColor: AppColors.backgroundStart,
+                            style: const TextStyle(color: AppColors.white),
+                            underline: Container(),
+                            icon: const Icon(
+                              Icons.arrow_drop_down,
+                              color: AppColors.white,
+                            ),
+                            items: [
+                              const DropdownMenuItem(
+                                value: 'all',
+                                child: Text('All Branches'),
+                              ),
+                              ..._branches.map(
+                                (b) => DropdownMenuItem(
+                                  value: b['id'],
+                                  child: Text(b['name']),
+                                ),
+                              ),
+                            ],
+                            onChanged: _filterByBranch,
+                          ),
+                          if (!showingCardFilters) ...[
+                            const SizedBox(width: 16),
+                            const Text(
+                              'Role:',
+                              style: TextStyle(color: AppColors.white),
+                            ),
+                            const SizedBox(width: 8),
+                            DropdownButton<String>(
+                              value: _filterRole,
+                              dropdownColor: AppColors.backgroundStart,
+                              style: const TextStyle(color: AppColors.white),
+                              underline: Container(),
+                              icon: const Icon(
+                                Icons.arrow_drop_down,
+                                color: AppColors.white,
+                              ),
+                              items: const [
+                                DropdownMenuItem(
+                                  value: 'all',
+                                  child: Text('All Roles'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'sales',
+                                  child: Text('Sales'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'tailor',
+                                  child: Text('Tailor'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'delivery',
+                                  child: Text('Delivery'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'manager',
+                                  child: Text('Manager'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'admin',
+                                  child: Text('Admin'),
+                                ),
+                              ],
+                              onChanged: _filterByRole,
+                            ),
+                          ],
                         ],
                       ),
                     ],
@@ -316,79 +516,283 @@ class _OrdersListScreenState extends State<OrdersListScreen> {
           onRefresh: _loadOrders,
           child: _isLoading
               ? const Center(child: CircularProgressIndicator())
+              : _showEmployeeEarnings
+              ? _buildEmployeeEarningsView()
               : filtered.isEmpty
-                  ? const Center(
-                      child: Text('No orders found.', style: TextStyle(color: AppColors.white)),
-                    )
-                  : ListView.separated(
-                      padding: const EdgeInsets.all(8),
-                      itemCount: filtered.length,
-                      separatorBuilder: (_, __) => const Divider(color: AppColors.white, height: 0.5),
-                      itemBuilder: (context, index) {
-                        var order = filtered[index];
-                        DateTime createdAt = DateTime.fromMillisecondsSinceEpoch(order['createdAt']);
-                        String dateStr = DateFormat('dd/MM/yy HH:mm').format(createdAt);
-                        return Card(
-                          margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 0),
-                          child: ListTile(
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => OrderDetailsScreen(orderId: order['id']),
-                                ),
-                              );
-                            },
-                            leading: CircleAvatar(
-                              radius: 20,
-                              backgroundColor: _getStatusColor(order['status']),
-                              child: Text(
-                                (order['id']?.substring(0, 1) ?? '#'),
-                                style: const TextStyle(color: AppColors.white, fontSize: 14),
-                              ),
+              ? const Center(
+                  child: Text(
+                    'No orders found.',
+                    style: TextStyle(color: AppColors.white),
+                  ),
+                )
+              : ListView.separated(
+                  padding: const EdgeInsets.all(8),
+                  itemCount: filtered.length,
+                  separatorBuilder: (_, _) =>
+                      const Divider(color: AppColors.white, height: 0.5),
+                  itemBuilder: (context, index) {
+                    final order = filtered[index];
+                    final total =
+                        (order['totalAmount'] as num?)?.toDouble() ?? 0.0;
+                    final paid =
+                        (order['paid_amount'] as num?)?.toDouble() ?? 0.0;
+                    final remaining = total - paid;
+                    final createdAt = DateTime.fromMillisecondsSinceEpoch(
+                      order['createdAt'],
+                    );
+                    final dateStr = DateFormat(
+                      'dd/MM/yy HH:mm',
+                    ).format(createdAt);
+
+                    return Card(
+                      margin: const EdgeInsets.symmetric(
+                        vertical: 4,
+                        horizontal: 0,
+                      ),
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  OrderDetailsScreen(orderId: order['id']),
                             ),
-                            title: Text(
-                              order['customerName'] ?? 'Unknown',
-                              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            subtitle: Text(
-                              '#${order['id']?.substring(0, 6)} • $dateStr',
-                              style: TextStyle(fontSize: 12, color: AppColors.mediumGrey),
-                            ),
-                            trailing: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Text(
-                                  'ETB ${(order['totalAmount'] as num?)?.toStringAsFixed(0) ?? '0'}',
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                                ),
-                                const SizedBox(height: 2),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: _getStatusColor(order['status']).withOpacity(0.2),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Text(
-                                    order['status'] ?? 'pending',
-                                    style: TextStyle(
-                                      color: _getStatusColor(order['status']),
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ),
-                              ],
+                          );
+                        },
+                        leading: CircleAvatar(
+                          radius: 20,
+                          backgroundColor: _getStatusColor(order['status']),
+                          child: Text(
+                            (order['id']?.substring(0, 1) ?? '#'),
+                            style: const TextStyle(
+                              color: AppColors.white,
+                              fontSize: 14,
                             ),
                           ),
-                        );
-                      },
-                    ),
+                        ),
+                        title: Text(
+                          order['customerName'] ?? 'Unknown',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w500,
+                            fontSize: 14,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              '#${order['id']?.substring(0, 6)} • $dateStr',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppColors.mediumGrey,
+                              ),
+                            ),
+                            if (widget.showUnpaidOnly) ...[
+                              const SizedBox(height: 4),
+                              Text(
+                                'Remaining: ETB ${remaining.toStringAsFixed(0)}',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppColors.error,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                        trailing: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              CurrencyHelper.formatAmount(
+                                total,
+                                order['currency'],
+                              ),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                            if (widget.showUnpaidOnly && paid > 0)
+                              Text(
+                                'Paid: ETB ${paid.toStringAsFixed(0)}',
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  color: AppColors.mediumGrey,
+                                ),
+                              ),
+                            const SizedBox(height: 2),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: _getStatusColor(
+                                  order['status'],
+                                ).withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                order['status'] ?? 'pending',
+                                style: TextStyle(
+                                  color: _getStatusColor(order['status']),
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
         ),
       ),
+    );
+  }
+
+  Widget _buildEmployeeEarningsView() {
+    final employee = _employees.cast<Map<String, dynamic>?>().firstWhere(
+      (e) => e?['id'] == _filterEmployee,
+      orElse: () => null,
+    );
+    final employeeName = employee?['name'] ?? 'Employee';
+    final pendingTotal = _filteredCommissions
+        .where((c) => c['status'] == 'pending')
+        .fold<double>(
+          0.0,
+          (sum, c) => sum + ((c['amount'] as num?)?.toDouble() ?? 0.0),
+        );
+    final paidTotal = _filteredCommissions
+        .where((c) => c['status'] == 'paid')
+        .fold<double>(
+          0.0,
+          (sum, c) => sum + ((c['amount'] as num?)?.toDouble() ?? 0.0),
+        );
+
+    if (_filteredCommissions.isEmpty) {
+      return Center(
+        child: Text(
+          'No commission records found for $employeeName.',
+          style: const TextStyle(color: AppColors.white),
+        ),
+      );
+    }
+
+    return ListView.separated(
+      padding: const EdgeInsets.all(8),
+      itemCount: _filteredCommissions.length + 1,
+      separatorBuilder: (_, __) =>
+          const Divider(color: AppColors.white, height: 0.5),
+      itemBuilder: (context, index) {
+        if (index == 0) {
+          return Card(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '$employeeName Earnings',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text('Pending: ETB ${pendingTotal.toStringAsFixed(0)}'),
+                  Text('Paid: ETB ${paidTotal.toStringAsFixed(0)}'),
+                ],
+              ),
+            ),
+          );
+        }
+
+        final commission = _filteredCommissions[index - 1];
+        final createdAt = DateTime.fromMillisecondsSinceEpoch(
+          commission['createdAt'],
+        );
+        final dateStr = DateFormat('dd/MM/yy').format(createdAt);
+        final amount = (commission['amount'] as num?)?.toDouble() ?? 0.0;
+
+        return Card(
+          margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 0),
+          child: ListTile(
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 6,
+            ),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      OrderDetailsScreen(orderId: commission['orderId']),
+                ),
+              );
+            },
+            leading: CircleAvatar(
+              radius: 20,
+              backgroundColor: _getStatusColor(commission['status']),
+              child: Text(
+                (commission['type'] ?? '?')[0].toUpperCase(),
+                style: const TextStyle(color: AppColors.white, fontSize: 14),
+              ),
+            ),
+            title: Text(
+              '${commission['type']} commission',
+              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+            ),
+            subtitle: Text(
+              'Order #${commission['orderId']?.substring(0, 6)} • $dateStr',
+              style: const TextStyle(fontSize: 12, color: AppColors.mediumGrey),
+            ),
+            trailing: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  'ETB ${amount.toStringAsFixed(0)}',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _getStatusColor(
+                      commission['status'],
+                    ).withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    commission['status'] ?? 'pending',
+                    style: TextStyle(
+                      color: _getStatusColor(commission['status']),
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

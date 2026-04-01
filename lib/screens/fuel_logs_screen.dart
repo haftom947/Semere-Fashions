@@ -45,15 +45,13 @@ class _FuelLogsScreenState extends State<FuelLogsScreen> {
 
   void _filterLogs(String query) {
     if (query.isEmpty) {
-      setState(() {
-        _uiLogs = _logs;
-      });
+      setState(() => _uiLogs = _logs);
       return;
     }
     final lowerQuery = query.toLowerCase();
     setState(() {
       _uiLogs = _logs.where((l) {
-        return (l['notes'] ?? '').toLowerCase().contains(lowerQuery) ||
+        return (l['employeeName'] ?? '').toLowerCase().contains(lowerQuery) ||
                DateFormat('dd/MM/yyyy').format(DateTime.fromMillisecondsSinceEpoch(l['date'])).contains(query);
       }).toList();
     });
@@ -62,24 +60,25 @@ class _FuelLogsScreenState extends State<FuelLogsScreen> {
   Future<void> _deleteLog(String id) async {
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Log'),
-        content: const Text('Are you sure?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete', style: TextStyle(color: AppColors.error)),
-          ),
-        ],
+      builder: (context) => Theme(
+        data: ThemeData.light(),
+        child: AlertDialog(
+          title: const Text('Delete Log', style: TextStyle(color: Colors.black)),
+          content: const Text('Are you sure?', style: TextStyle(color: Colors.black)),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel', style: TextStyle(color: Colors.blue))),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        ),
       ),
     );
     if (confirm != true) return;
 
     // Optimistic update
-    setState(() {
-      _uiLogs.removeWhere((l) => l['id'] == id);
-    });
+    setState(() => _uiLogs.removeWhere((l) => l['id'] == id));
 
     try {
       await _dbHelper.delete('fuel_logs', id);
@@ -87,9 +86,7 @@ class _FuelLogsScreenState extends State<FuelLogsScreen> {
       _syncService.syncAll();
       if (mounted) ErrorHandler.showSuccess(context, 'Log deleted');
     } catch (e) {
-      setState(() {
-        _uiLogs = List.from(_logs);
-      });
+      setState(() => _uiLogs = List.from(_logs));
       if (mounted) ErrorHandler.showError(context, 'Delete failed: $e');
     }
   }
@@ -121,7 +118,7 @@ class _FuelLogsScreenState extends State<FuelLogsScreen> {
               controller: _searchController,
               style: const TextStyle(color: AppColors.white),
               decoration: InputDecoration(
-                hintText: 'Search logs...',
+                hintText: 'Search by employee or date...',
                 hintStyle: TextStyle(color: AppColors.white.withOpacity(0.5)),
                 prefixIcon: const Icon(Icons.search, color: AppColors.white),
                 border: OutlineInputBorder(
@@ -159,7 +156,7 @@ class _FuelLogsScreenState extends State<FuelLogsScreen> {
                       itemBuilder: (context, index) {
                         var log = _uiLogs[index];
                         DateTime date = DateTime.fromMillisecondsSinceEpoch(log['date']);
-                        String dateStr = DateFormat('dd/MM/yy HH:mm').format(date);
+                        String dateStr = DateFormat('dd/MM/yy').format(date);
                         return ListTile(
                           leading: CircleAvatar(
                             radius: 18,
@@ -171,7 +168,7 @@ class _FuelLogsScreenState extends State<FuelLogsScreen> {
                             style: const TextStyle(color: AppColors.white, fontWeight: FontWeight.w500),
                           ),
                           subtitle: Text(
-                            'Odometer: ${log['odometer'] ?? 0} km · $dateStr',
+                            '${log['employeeName'] ?? 'Unknown'} · $dateStr',
                             style: TextStyle(color: AppColors.white.withOpacity(0.7)),
                           ),
                           trailing: IconButton(

@@ -6,10 +6,15 @@ import '../utils/colors.dart';
 class SupplierMaterialsScreen extends StatefulWidget {
   final String supplierId;
   final String supplierName;
-  const SupplierMaterialsScreen({Key? key, required this.supplierId, required this.supplierName}) : super(key: key);
+  const SupplierMaterialsScreen({
+    super.key,
+    required this.supplierId,
+    required this.supplierName,
+  });
 
   @override
-  _SupplierMaterialsScreenState createState() => _SupplierMaterialsScreenState();
+  _SupplierMaterialsScreenState createState() =>
+      _SupplierMaterialsScreenState();
 }
 
 class _SupplierMaterialsScreenState extends State<SupplierMaterialsScreen> {
@@ -29,7 +34,9 @@ class _SupplierMaterialsScreenState extends State<SupplierMaterialsScreen> {
     setState(() => _isLoading = true);
     var materials = await _dbHelper.query('materials');
     var allLinks = await _dbHelper.query('supplier_materials');
-    var filteredLinks = allLinks.where((l) => l['supplierId'] == widget.supplierId).toList();
+    var filteredLinks = allLinks
+        .where((l) => l['supplierId'] == widget.supplierId)
+        .toList();
     setState(() {
       _materials = materials;
       _links = filteredLinks;
@@ -79,10 +86,18 @@ class _SupplierMaterialsScreenState extends State<SupplierMaterialsScreen> {
                 itemCount: _materials.length,
                 itemBuilder: (context, index) {
                   var material = _materials[index];
-                  bool isLinked = _links.any((l) => l['materialId'] == material['id']);
+                  bool isLinked = _links.any(
+                    (l) => l['materialId'] == material['id'],
+                  );
                   return CheckboxListTile(
-                    title: Text(material['name'] ?? '', style: const TextStyle(color: AppColors.white)),
-                    subtitle: Text('Unit: ${material['unit'] ?? ''}', style: TextStyle(color: AppColors.white.withOpacity(0.7))),
+                    title: Text(
+                      material['name'] ?? '',
+                      style: const TextStyle(color: AppColors.white),
+                    ),
+                    subtitle: Text(
+                      'Unit: ${material['unit'] ?? ''}',
+                      style: TextStyle(color: AppColors.white.withOpacity(0.7)),
+                    ),
                     value: isLinked,
                     onChanged: (_) => _toggleLink(material['id']),
                     activeColor: AppColors.primaryRed,

@@ -32,7 +32,9 @@ class _PropertyListScreenState extends State<PropertyListScreen> {
 
   Future<void> _loadProperties() async {
     setState(() => _isLoading = true);
-    var properties = await _dbHelper.query('properties');
+    var properties = List<Map<String, dynamic>>.from(
+      await _dbHelper.query('properties'),
+    );
     properties.sort((a, b) => (a['name'] ?? '').compareTo(b['name'] ?? ''));
     setState(() {
       _properties = properties;
@@ -52,8 +54,8 @@ class _PropertyListScreenState extends State<PropertyListScreen> {
     setState(() {
       _uiProperties = _properties.where((p) {
         return (p['name'] ?? '').toLowerCase().contains(lowerQuery) ||
-               (p['address'] ?? '').toLowerCase().contains(lowerQuery) ||
-               (p['type'] ?? '').toLowerCase().contains(lowerQuery);
+            (p['address'] ?? '').toLowerCase().contains(lowerQuery) ||
+            (p['type'] ?? '').toLowerCase().contains(lowerQuery);
       }).toList();
     });
   }
@@ -64,26 +66,39 @@ class _PropertyListScreenState extends State<PropertyListScreen> {
 
   Color _getStatusColor(String? status) {
     switch (status) {
-      case 'vacant': return AppColors.success;
-      case 'occupied': return AppColors.info;
-      case 'maintenance': return AppColors.warning;
-      default: return AppColors.mediumGrey;
+      case 'vacant':
+        return AppColors.success;
+      case 'occupied':
+        return AppColors.info;
+      case 'maintenance':
+        return AppColors.warning;
+      default:
+        return AppColors.mediumGrey;
     }
   }
 
   Future<void> _deleteProperty(String id, String name) async {
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Property'),
-        content: Text('Are you sure you want to delete $name?'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete', style: TextStyle(color: AppColors.error)),
-          ),
-        ],
+      builder: (context) => Theme(
+        data: ThemeData.light(),
+        child: AlertDialog(
+          title: const Text('Delete Property'),
+          content: Text('Are you sure you want to delete $name?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text(
+                'Delete',
+                style: TextStyle(color: AppColors.error),
+              ),
+            ),
+          ],
+        ),
       ),
     );
     if (confirm != true) return;
@@ -118,7 +133,9 @@ class _PropertyListScreenState extends State<PropertyListScreen> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const AddEditPropertyScreen()),
+                MaterialPageRoute(
+                  builder: (context) => const AddEditPropertyScreen(),
+                ),
               ).then((_) => _loadProperties());
             },
           ),
@@ -159,92 +176,126 @@ class _PropertyListScreenState extends State<PropertyListScreen> {
           child: _isLoading
               ? const Center(child: CircularProgressIndicator())
               : _uiProperties.isEmpty
-                  ? const Center(
-                      child: Text('No properties found.', style: TextStyle(color: AppColors.white)),
-                    )
-                  : ListView.separated(
-                      padding: const EdgeInsets.all(8),
-                      itemCount: _uiProperties.length,
-                      separatorBuilder: (_, __) => const Divider(color: AppColors.white, height: 0.5),
-                      itemBuilder: (context, index) {
-                        var property = _uiProperties[index];
-                        return ListTile(
-                          leading: CircleAvatar(
-                            radius: 18,
-                            backgroundColor: _getOwnershipColor(property['ownership']),
-                            child: Icon(
-                              property['type'] == 'flat' ? Icons.apartment : Icons.store,
-                              color: AppColors.white,
-                              size: 16,
+              ? const Center(
+                  child: Text(
+                    'No properties found.',
+                    style: TextStyle(color: AppColors.white),
+                  ),
+                )
+              : ListView.separated(
+                  padding: const EdgeInsets.all(8),
+                  itemCount: _uiProperties.length,
+                  separatorBuilder: (_, __) =>
+                      const Divider(color: AppColors.white, height: 0.5),
+                  itemBuilder: (context, index) {
+                    var property = _uiProperties[index];
+                    return ListTile(
+                      leading: CircleAvatar(
+                        radius: 18,
+                        backgroundColor: _getOwnershipColor(
+                          property['ownership'],
+                        ),
+                        child: Icon(
+                          property['type'] == 'flat'
+                              ? Icons.apartment
+                              : Icons.store,
+                          color: AppColors.white,
+                          size: 16,
+                        ),
+                      ),
+                      title: Text(
+                        property['name'] ?? 'Unnamed',
+                        style: const TextStyle(
+                          color: AppColors.white,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${property['type']} · ${property['ownership']} · ETB ${(property['monthlyRent'] ?? 0).toStringAsFixed(0)}',
+                            style: TextStyle(
+                              color: AppColors.white.withOpacity(0.7),
                             ),
                           ),
-                          title: Text(
-                            property['name'] ?? 'Unnamed',
-                            style: const TextStyle(color: AppColors.white, fontWeight: FontWeight.w500),
-                          ),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          Row(
                             children: [
-                              Text(
-                                '${property['type']} · ${property['ownership']} · ETB ${(property['monthlyRent'] ?? 0).toStringAsFixed(0)}',
-                                style: TextStyle(color: AppColors.white.withOpacity(0.7)),
-                              ),
-                              Row(
-                                children: [
-                                  Container(
-                                    width: 10,
-                                    height: 10,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      color: _getStatusColor(property['status'] ?? 'vacant'),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
+                              Container(
+                                width: 10,
+                                height: 10,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: _getStatusColor(
                                     property['status'] ?? 'vacant',
-                                    style: TextStyle(color: AppColors.white.withOpacity(0.7)),
                                   ),
-                                ],
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                property['status'] ?? 'vacant',
+                                style: TextStyle(
+                                  color: AppColors.white.withOpacity(0.7),
+                                ),
                               ),
                             ],
                           ),
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.people, color: AppColors.info, size: 20),
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => TenantListScreen(
-                                        propertyId: property['id'],
-                                        propertyName: property['name'] ?? '',
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.edit, color: AppColors.primaryRed, size: 20),
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => AddEditPropertyScreen(propertyData: property),
-                                    ),
-                                  ).then((_) => _loadProperties());
-                                },
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.delete, color: AppColors.error, size: 20),
-                                onPressed: () => _deleteProperty(property['id'], property['name'] ?? ''),
-                              ),
-                            ],
+                        ],
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(
+                              Icons.people,
+                              color: AppColors.info,
+                              size: 20,
+                            ),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => TenantListScreen(
+                                    propertyId: property['id'],
+                                    propertyName: property['name'] ?? '',
+                                  ),
+                                ),
+                              );
+                            },
                           ),
-                        );
-                      },
-                    ),
+                          IconButton(
+                            icon: const Icon(
+                              Icons.edit,
+                              color: AppColors.primaryRed,
+                              size: 20,
+                            ),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => AddEditPropertyScreen(
+                                    propertyData: property,
+                                  ),
+                                ),
+                              ).then((_) => _loadProperties());
+                            },
+                          ),
+                          IconButton(
+                            icon: const Icon(
+                              Icons.delete,
+                              color: AppColors.error,
+                              size: 20,
+                            ),
+                            onPressed: () => _deleteProperty(
+                              property['id'],
+                              property['name'] ?? '',
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
         ),
       ),
     );

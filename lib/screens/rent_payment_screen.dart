@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import '../utils/colors.dart';
 import '../services/database_helper.dart';
 import '../services/sync_service.dart';
+import '../utils/error_handler.dart';
 
 class RentPaymentScreen extends StatefulWidget {
   final String tenantId;
   final String tenantName;
   final double monthlyRent;
-  const RentPaymentScreen({super.key, required this.tenantId, required this.tenantName, required this.monthlyRent});
+  const RentPaymentScreen({
+    super.key,
+    required this.tenantId,
+    required this.tenantName,
+    required this.monthlyRent,
+  });
 
   @override
   _RentPaymentScreenState createState() => _RentPaymentScreenState();
@@ -27,7 +32,8 @@ class _RentPaymentScreenState extends State<RentPaymentScreen> {
     super.initState();
     _amountController.text = widget.monthlyRent.toString();
     DateTime now = DateTime.now();
-    _monthController.text = '${now.year}-${now.month.toString().padLeft(2, '0')}';
+    _monthController.text =
+        '${now.year}-${now.month.toString().padLeft(2, '0')}';
   }
 
   Future<void> _save() async {
@@ -43,15 +49,15 @@ class _RentPaymentScreenState extends State<RentPaymentScreen> {
         'paidAt': DateTime.now().millisecondsSinceEpoch,
       };
       await _dbHelper.insert('rent_payments', data);
-      var connectivityResult = await Connectivity().checkConnectivity();
-      if (connectivityResult != ConnectivityResult.none) {
-        _syncService.syncAll();
+      if (mounted) {
+        _syncService.triggerBackgroundSync();
+        ErrorHandler.showSuccess(context, 'Rent payment recorded');
+        Navigator.pop(context, true);
       }
-      if (mounted) Navigator.pop(context);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      if (mounted) ErrorHandler.showError(context, 'Error: $e');
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -83,13 +89,16 @@ class _RentPaymentScreenState extends State<RentPaymentScreen> {
                     labelText: 'Month (YYYY-MM) *',
                     labelStyle: const TextStyle(color: AppColors.white),
                     enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                      borderSide: BorderSide(
+                        color: AppColors.white.withOpacity(0.3),
+                      ),
                     ),
                     focusedBorder: const OutlineInputBorder(
                       borderSide: BorderSide(color: AppColors.white),
                     ),
                   ),
-                  validator: (value) => value == null || value.isEmpty ? 'Required' : null,
+                  validator: (value) =>
+                      value == null || value.isEmpty ? 'Required' : null,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
@@ -100,13 +109,16 @@ class _RentPaymentScreenState extends State<RentPaymentScreen> {
                     labelText: 'Amount Paid (ETB) *',
                     labelStyle: const TextStyle(color: AppColors.white),
                     enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                      borderSide: BorderSide(
+                        color: AppColors.white.withOpacity(0.3),
+                      ),
                     ),
                     focusedBorder: const OutlineInputBorder(
                       borderSide: BorderSide(color: AppColors.white),
                     ),
                   ),
-                  validator: (value) => value == null || value.isEmpty ? 'Required' : null,
+                  validator: (value) =>
+                      value == null || value.isEmpty ? 'Required' : null,
                 ),
                 const SizedBox(height: 24),
                 SizedBox(
@@ -119,7 +131,9 @@ class _RentPaymentScreenState extends State<RentPaymentScreen> {
                       foregroundColor: AppColors.white,
                     ),
                     child: _isLoading
-                        ? const CircularProgressIndicator(color: AppColors.white)
+                        ? const CircularProgressIndicator(
+                            color: AppColors.white,
+                          )
                         : const Text('Record Payment'),
                   ),
                 ),

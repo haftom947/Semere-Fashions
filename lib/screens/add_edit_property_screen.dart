@@ -6,7 +6,7 @@ import '../utils/colors.dart';
 
 class AddEditPropertyScreen extends StatefulWidget {
   final Map<String, dynamic>? propertyData;
-  const AddEditPropertyScreen({Key? key, this.propertyData}) : super(key: key);
+  const AddEditPropertyScreen({super.key, this.propertyData});
 
   @override
   _AddEditPropertyScreenState createState() => _AddEditPropertyScreenState();
@@ -37,9 +37,11 @@ class _AddEditPropertyScreenState extends State<AddEditPropertyScreen> {
     if (widget.propertyData != null) {
       _nameController.text = widget.propertyData!['name'] ?? '';
       _addressController.text = widget.propertyData!['address'] ?? '';
-      _monthlyRentController.text = widget.propertyData!['monthlyRent']?.toString() ?? '';
+      _monthlyRentController.text =
+          widget.propertyData!['monthlyRent']?.toString() ?? '';
       _landlordNameController.text = widget.propertyData!['landlordName'] ?? '';
-      _landlordPhoneController.text = widget.propertyData!['landlordPhone'] ?? '';
+      _landlordPhoneController.text =
+          widget.propertyData!['landlordPhone'] ?? '';
       _selectedType = widget.propertyData!['type'] ?? 'shop';
       _selectedOwnership = widget.propertyData!['ownership'] ?? 'owned';
       _selectedStatus = widget.propertyData!['status'] ?? 'vacant';
@@ -51,7 +53,9 @@ class _AddEditPropertyScreenState extends State<AddEditPropertyScreen> {
     setState(() => _isLoading = true);
     try {
       Map<String, dynamic> data = {
-        'id': widget.propertyData?['id'] ?? DateTime.now().millisecondsSinceEpoch.toString(),
+        'id':
+            widget.propertyData?['id'] ??
+            DateTime.now().millisecondsSinceEpoch.toString(),
         'name': _nameController.text.trim(),
         'address': _addressController.text.trim(),
         'type': _selectedType,
@@ -74,7 +78,9 @@ class _AddEditPropertyScreenState extends State<AddEditPropertyScreen> {
       }
       if (mounted) Navigator.pop(context);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error: $e')));
     } finally {
       setState(() => _isLoading = false);
     }
@@ -84,7 +90,9 @@ class _AddEditPropertyScreenState extends State<AddEditPropertyScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.propertyData == null ? 'Add Property' : 'Edit Property'),
+        title: Text(
+          widget.propertyData == null ? 'Add Property' : 'Edit Property',
+        ),
         backgroundColor: AppColors.primaryRed,
       ),
       body: Container(
@@ -111,13 +119,16 @@ class _AddEditPropertyScreenState extends State<AddEditPropertyScreen> {
                           labelText: 'Property Name *',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
                           ),
                         ),
-                        validator: (value) => value == null || value.isEmpty ? 'Required' : null,
+                        validator: (value) =>
+                            value == null || value.isEmpty ? 'Required' : null,
                       ),
                       const SizedBox(height: 16),
 
@@ -129,7 +140,9 @@ class _AddEditPropertyScreenState extends State<AddEditPropertyScreen> {
                           labelText: 'Address',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
@@ -140,70 +153,91 @@ class _AddEditPropertyScreenState extends State<AddEditPropertyScreen> {
 
                       // Type dropdown
                       DropdownButtonFormField<String>(
-                        value: _selectedType,
+                        initialValue: _selectedType,
                         dropdownColor: AppColors.backgroundStart,
                         style: const TextStyle(color: AppColors.white),
                         decoration: InputDecoration(
                           labelText: 'Type *',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
                           ),
                         ),
-                        items: _types.map((type) => DropdownMenuItem<String>(
-                          value: type,
-                          child: Text(type),
-                        )).toList(),
-                        onChanged: (value) => setState(() => _selectedType = value!),
+                        items: _types
+                            .map(
+                              (type) => DropdownMenuItem<String>(
+                                value: type,
+                                child: Text(type),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (value) =>
+                            setState(() => _selectedType = value!),
                       ),
                       const SizedBox(height: 16),
 
                       // Ownership dropdown
                       DropdownButtonFormField<String>(
-                        value: _selectedOwnership,
+                        initialValue: _selectedOwnership,
                         dropdownColor: AppColors.backgroundStart,
                         style: const TextStyle(color: AppColors.white),
                         decoration: InputDecoration(
                           labelText: 'Ownership *',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
                           ),
                         ),
-                        items: _ownerships.map((own) => DropdownMenuItem<String>(
-                          value: own,
-                          child: Text(own),
-                        )).toList(),
-                        onChanged: (value) => setState(() => _selectedOwnership = value!),
+                        items: _ownerships
+                            .map(
+                              (own) => DropdownMenuItem<String>(
+                                value: own,
+                                child: Text(own),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (value) =>
+                            setState(() => _selectedOwnership = value!),
                       ),
                       const SizedBox(height: 16),
 
                       // Status dropdown (new)
                       DropdownButtonFormField<String>(
-                        value: _selectedStatus,
+                        initialValue: _selectedStatus,
                         dropdownColor: AppColors.backgroundStart,
                         style: const TextStyle(color: AppColors.white),
                         decoration: InputDecoration(
                           labelText: 'Status',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
                           ),
                         ),
-                        items: _statuses.map((status) => DropdownMenuItem<String>(
-                          value: status,
-                          child: Text(status),
-                        )).toList(),
-                        onChanged: (value) => setState(() => _selectedStatus = value!),
+                        items: _statuses
+                            .map(
+                              (status) => DropdownMenuItem<String>(
+                                value: status,
+                                child: Text(status),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (value) =>
+                            setState(() => _selectedStatus = value!),
                       ),
                       const SizedBox(height: 16),
 
@@ -216,13 +250,16 @@ class _AddEditPropertyScreenState extends State<AddEditPropertyScreen> {
                           labelText: 'Monthly Rent (ETB) *',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
                           ),
                           focusedBorder: const OutlineInputBorder(
                             borderSide: BorderSide(color: AppColors.white),
                           ),
                         ),
-                        validator: (value) => value == null || value.isEmpty ? 'Required' : null,
+                        validator: (value) =>
+                            value == null || value.isEmpty ? 'Required' : null,
                       ),
                       const SizedBox(height: 16),
 
@@ -235,7 +272,9 @@ class _AddEditPropertyScreenState extends State<AddEditPropertyScreen> {
                             labelText: 'Landlord Name',
                             labelStyle: const TextStyle(color: AppColors.white),
                             enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                              borderSide: BorderSide(
+                                color: AppColors.white.withOpacity(0.3),
+                              ),
                             ),
                             focusedBorder: const OutlineInputBorder(
                               borderSide: BorderSide(color: AppColors.white),
@@ -251,7 +290,9 @@ class _AddEditPropertyScreenState extends State<AddEditPropertyScreen> {
                             labelText: 'Landlord Phone',
                             labelStyle: const TextStyle(color: AppColors.white),
                             enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
+                              borderSide: BorderSide(
+                                color: AppColors.white.withOpacity(0.3),
+                              ),
                             ),
                             focusedBorder: const OutlineInputBorder(
                               borderSide: BorderSide(color: AppColors.white),
@@ -272,8 +313,14 @@ class _AddEditPropertyScreenState extends State<AddEditPropertyScreen> {
                             foregroundColor: AppColors.white,
                           ),
                           child: _isLoading
-                              ? const CircularProgressIndicator(color: AppColors.white)
-                              : Text(widget.propertyData == null ? 'Add Property' : 'Update Property'),
+                              ? const CircularProgressIndicator(
+                                  color: AppColors.white,
+                                )
+                              : Text(
+                                  widget.propertyData == null
+                                      ? 'Add Property'
+                                      : 'Update Property',
+                                ),
                         ),
                       ),
                     ],

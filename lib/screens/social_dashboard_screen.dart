@@ -25,8 +25,12 @@ class _SocialDashboardScreenState extends State<SocialDashboardScreen> {
   }
 
   Future<void> _loadData() async {
-    var accounts = await _dbHelper.query('social_accounts');
-    var metrics = await _dbHelper.query('social_metrics');
+    var accounts = List<Map<String, dynamic>>.from(
+      await _dbHelper.query('social_accounts'),
+    );
+    var metrics = List<Map<String, dynamic>>.from(
+      await _dbHelper.query('social_metrics'),
+    );
     setState(() {
       _accounts = accounts;
       _metrics = metrics;
@@ -55,7 +59,9 @@ class _SocialDashboardScreenState extends State<SocialDashboardScreen> {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const SocialAccountsScreen()),
+                MaterialPageRoute(
+                  builder: (context) => const SocialAccountsScreen(),
+                ),
               );
             },
           ),
@@ -72,185 +78,322 @@ class _SocialDashboardScreenState extends State<SocialDashboardScreen> {
         child: _isLoading
             ? const Center(child: CircularProgressIndicator())
             : _accounts.isEmpty
-                ? const Center(
-                    child: Text('No social accounts. Add one in settings.', style: TextStyle(color: AppColors.white)),
-                  )
-                : Column(
-                    children: [
-                      // Account selector
-                      Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: DropdownButtonFormField<String>(
-                          initialValue: _selectedAccountId,
-                          dropdownColor: AppColors.backgroundStart,
-                          style: const TextStyle(color: AppColors.white),
-                          decoration: InputDecoration(
-                            labelText: 'Select Account',
-                            labelStyle: const TextStyle(color: AppColors.white),
-                            enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(color: AppColors.white.withOpacity(0.3)),
-                            ),
-                            focusedBorder: const OutlineInputBorder(
-                              borderSide: BorderSide(color: AppColors.white),
-                            ),
+            ? const Center(
+                child: Text(
+                  'No social accounts. Add one in settings.',
+                  style: TextStyle(color: AppColors.white),
+                ),
+              )
+            : Column(
+                children: [
+                  // Account selector
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: DropdownButtonFormField<String>(
+                      initialValue: _selectedAccountId,
+                      dropdownColor: AppColors.backgroundStart,
+                      style: const TextStyle(color: AppColors.white),
+                      decoration: InputDecoration(
+                        labelText: 'Select Account',
+                        labelStyle: const TextStyle(color: AppColors.white),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: AppColors.white.withOpacity(0.3),
                           ),
-                          items: _accounts.map((a) => DropdownMenuItem<String>(
-                            value: a['id'],
-                            child: Text('${a['platform']} - ${a['accountName']}', style: const TextStyle(color: AppColors.white)),
-                          )).toList(),
-                          onChanged: (value) => setState(() => _selectedAccountId = value),
+                        ),
+                        focusedBorder: const OutlineInputBorder(
+                          borderSide: BorderSide(color: AppColors.white),
                         ),
                       ),
-                      Expanded(
-                        child: SingleChildScrollView(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            children: [
-                              // Followers chart
-                              if (_filteredMetrics.isNotEmpty) ...[
-                                Card(
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(16),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        const Text('Followers Growth', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                                        const SizedBox(height: 12),
-                                        SizedBox(
-                                          height: 200,
-                                          child: LineChart(
-                                            LineChartData(
-                                              gridData: const FlGridData(show: true),
-                                              titlesData: FlTitlesData(
-                                                bottomTitles: AxisTitles(
-                                                  sideTitles: SideTitles(
-                                                    showTitles: true,
-                                                    getTitlesWidget: (value, meta) {
-                                                      int index = value.toInt();
-                                                      if (index >= 0 && index < _filteredMetrics.length) {
-                                                        var date = DateTime.fromMillisecondsSinceEpoch(_filteredMetrics[index]['date']);
-                                                        return Text('${date.day}/${date.month}', style: const TextStyle(color: AppColors.white, fontSize: 10));
-                                                      }
-                                                      return const Text('');
-                                                    },
-                                                  ),
-                                                ),
-                                                leftTitles: const AxisTitles(
-                                                  sideTitles: SideTitles(showTitles: true, reservedSize: 40),
-                                                ),
-                                                topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                                                rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                                              ),
-                                              borderData: FlBorderData(show: false),
-                                              lineBarsData: [
-                                                LineChartBarData(
-                                                  spots: _filteredMetrics.asMap().entries.map((e) {
-                                                    return FlSpot(e.key.toDouble(), (e.value['followers'] as num?)?.toDouble() ?? 0);
-                                                  }).toList(),
-                                                  isCurved: true,
-                                                  color: AppColors.primaryRed,
-                                                  barWidth: 3,
-                                                  belowBarData: BarAreaData(show: false),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                      ],
+                      items: _accounts
+                          .map(
+                            (a) => DropdownMenuItem<String>(
+                              value: a['id'],
+                              child: Text(
+                                '${a['platform']} - ${a['accountName']}',
+                                style: const TextStyle(color: AppColors.white),
+                              ),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (value) =>
+                          setState(() => _selectedAccountId = value),
+                    ),
+                  ),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        children: [
+                          // Followers chart
+                          if (_filteredMetrics.isNotEmpty) ...[
+                            Card(
+                              child: Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Followers Growth',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
-                                  ),
-                                ),
-                                const SizedBox(height: 16),
-                                // Engagement metrics (likes, comments, shares)
-                                Card(
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(16),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        const Text('Engagement', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                                        const SizedBox(height: 12),
-                                        SizedBox(
-                                          height: 200,
-                                          child: LineChart(
-                                            LineChartData(
-                                              gridData: const FlGridData(show: true),
-                                              titlesData: FlTitlesData(
-                                                bottomTitles: AxisTitles(
-                                                  sideTitles: SideTitles(
-                                                    showTitles: true,
-                                                    getTitlesWidget: (value, meta) {
-                                                      int index = value.toInt();
-                                                      if (index >= 0 && index < _filteredMetrics.length) {
-                                                        var date = DateTime.fromMillisecondsSinceEpoch(_filteredMetrics[index]['date']);
-                                                        return Text('${date.day}/${date.month}', style: const TextStyle(color: AppColors.white, fontSize: 10));
-                                                      }
-                                                      return const Text('');
-                                                    },
-                                                  ),
-                                                ),
-                                                leftTitles: const AxisTitles(
-                                                  sideTitles: SideTitles(showTitles: true, reservedSize: 40),
-                                                ),
-                                                topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                                                rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                                    const SizedBox(height: 12),
+                                    SizedBox(
+                                      height: 200,
+                                      child: LineChart(
+                                        LineChartData(
+                                          gridData: const FlGridData(
+                                            show: true,
+                                          ),
+                                          titlesData: FlTitlesData(
+                                            bottomTitles: AxisTitles(
+                                              sideTitles: SideTitles(
+                                                showTitles: true,
+                                                getTitlesWidget: (value, meta) {
+                                                  int index = value.toInt();
+                                                  if (index >= 0 &&
+                                                      index <
+                                                          _filteredMetrics
+                                                              .length) {
+                                                    var date =
+                                                        DateTime.fromMillisecondsSinceEpoch(
+                                                          _filteredMetrics[index]['date'],
+                                                        );
+                                                    return Text(
+                                                      '${date.day}/${date.month}',
+                                                      style: const TextStyle(
+                                                        color: AppColors.white,
+                                                        fontSize: 10,
+                                                      ),
+                                                    );
+                                                  }
+                                                  return const Text('');
+                                                },
                                               ),
-                                              borderData: FlBorderData(show: false),
-                                              lineBarsData: [
-                                                LineChartBarData(
-                                                  spots: _filteredMetrics.asMap().entries.map((e) {
-                                                    return FlSpot(e.key.toDouble(), (e.value['likes'] as num?)?.toDouble() ?? 0);
-                                                  }).toList(),
-                                                  isCurved: true,
-                                                  color: AppColors.success,
-                                                  barWidth: 2,
-                                                  belowBarData: BarAreaData(show: false),
-                                                ),
-                                                LineChartBarData(
-                                                  spots: _filteredMetrics.asMap().entries.map((e) {
-                                                    return FlSpot(e.key.toDouble(), (e.value['comments'] as num?)?.toDouble() ?? 0);
-                                                  }).toList(),
-                                                  isCurved: true,
-                                                  color: AppColors.info,
-                                                  barWidth: 2,
-                                                  belowBarData: BarAreaData(show: false),
-                                                ),
-                                                LineChartBarData(
-                                                  spots: _filteredMetrics.asMap().entries.map((e) {
-                                                    return FlSpot(e.key.toDouble(), (e.value['shares'] as num?)?.toDouble() ?? 0);
-                                                  }).toList(),
-                                                  isCurved: true,
-                                                  color: AppColors.warning,
-                                                  barWidth: 2,
-                                                  belowBarData: BarAreaData(show: false),
-                                                ),
-                                              ],
+                                            ),
+                                            leftTitles: const AxisTitles(
+                                              sideTitles: SideTitles(
+                                                showTitles: true,
+                                                reservedSize: 40,
+                                              ),
+                                            ),
+                                            topTitles: const AxisTitles(
+                                              sideTitles: SideTitles(
+                                                showTitles: false,
+                                              ),
+                                            ),
+                                            rightTitles: const AxisTitles(
+                                              sideTitles: SideTitles(
+                                                showTitles: false,
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: const [
-                                            LegendItem(color: AppColors.success, label: 'Likes'),
-                                            SizedBox(width: 16),
-                                            LegendItem(color: AppColors.info, label: 'Comments'),
-                                            SizedBox(width: 16),
-                                            LegendItem(color: AppColors.warning, label: 'Shares'),
+                                          borderData: FlBorderData(show: false),
+                                          lineBarsData: [
+                                            LineChartBarData(
+                                              spots: _filteredMetrics
+                                                  .asMap()
+                                                  .entries
+                                                  .map((e) {
+                                                    return FlSpot(
+                                                      e.key.toDouble(),
+                                                      (e.value['followers']
+                                                                  as num?)
+                                                              ?.toDouble() ??
+                                                          0,
+                                                    );
+                                                  })
+                                                  .toList(),
+                                              isCurved: true,
+                                              color: AppColors.primaryRed,
+                                              barWidth: 3,
+                                              belowBarData: BarAreaData(
+                                                show: false,
+                                              ),
+                                            ),
                                           ],
                                         ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            // Engagement metrics (likes, comments, shares)
+                            Card(
+                              child: Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Engagement',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    SizedBox(
+                                      height: 200,
+                                      child: LineChart(
+                                        LineChartData(
+                                          gridData: const FlGridData(
+                                            show: true,
+                                          ),
+                                          titlesData: FlTitlesData(
+                                            bottomTitles: AxisTitles(
+                                              sideTitles: SideTitles(
+                                                showTitles: true,
+                                                getTitlesWidget: (value, meta) {
+                                                  int index = value.toInt();
+                                                  if (index >= 0 &&
+                                                      index <
+                                                          _filteredMetrics
+                                                              .length) {
+                                                    var date =
+                                                        DateTime.fromMillisecondsSinceEpoch(
+                                                          _filteredMetrics[index]['date'],
+                                                        );
+                                                    return Text(
+                                                      '${date.day}/${date.month}',
+                                                      style: const TextStyle(
+                                                        color: AppColors.white,
+                                                        fontSize: 10,
+                                                      ),
+                                                    );
+                                                  }
+                                                  return const Text('');
+                                                },
+                                              ),
+                                            ),
+                                            leftTitles: const AxisTitles(
+                                              sideTitles: SideTitles(
+                                                showTitles: true,
+                                                reservedSize: 40,
+                                              ),
+                                            ),
+                                            topTitles: const AxisTitles(
+                                              sideTitles: SideTitles(
+                                                showTitles: false,
+                                              ),
+                                            ),
+                                            rightTitles: const AxisTitles(
+                                              sideTitles: SideTitles(
+                                                showTitles: false,
+                                              ),
+                                            ),
+                                          ),
+                                          borderData: FlBorderData(show: false),
+                                          lineBarsData: [
+                                            LineChartBarData(
+                                              spots: _filteredMetrics
+                                                  .asMap()
+                                                  .entries
+                                                  .map((e) {
+                                                    return FlSpot(
+                                                      e.key.toDouble(),
+                                                      (e.value['likes'] as num?)
+                                                              ?.toDouble() ??
+                                                          0,
+                                                    );
+                                                  })
+                                                  .toList(),
+                                              isCurved: true,
+                                              color: AppColors.success,
+                                              barWidth: 2,
+                                              belowBarData: BarAreaData(
+                                                show: false,
+                                              ),
+                                            ),
+                                            LineChartBarData(
+                                              spots: _filteredMetrics
+                                                  .asMap()
+                                                  .entries
+                                                  .map((e) {
+                                                    return FlSpot(
+                                                      e.key.toDouble(),
+                                                      (e.value['comments']
+                                                                  as num?)
+                                                              ?.toDouble() ??
+                                                          0,
+                                                    );
+                                                  })
+                                                  .toList(),
+                                              isCurved: true,
+                                              color: AppColors.info,
+                                              barWidth: 2,
+                                              belowBarData: BarAreaData(
+                                                show: false,
+                                              ),
+                                            ),
+                                            LineChartBarData(
+                                              spots: _filteredMetrics
+                                                  .asMap()
+                                                  .entries
+                                                  .map((e) {
+                                                    return FlSpot(
+                                                      e.key.toDouble(),
+                                                      (e.value['shares']
+                                                                  as num?)
+                                                              ?.toDouble() ??
+                                                          0,
+                                                    );
+                                                  })
+                                                  .toList(),
+                                              isCurved: true,
+                                              color: AppColors.warning,
+                                              barWidth: 2,
+                                              belowBarData: BarAreaData(
+                                                show: false,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: const [
+                                        LegendItem(
+                                          color: AppColors.success,
+                                          label: 'Likes',
+                                        ),
+                                        SizedBox(width: 16),
+                                        LegendItem(
+                                          color: AppColors.info,
+                                          label: 'Comments',
+                                        ),
+                                        SizedBox(width: 16),
+                                        LegendItem(
+                                          color: AppColors.warning,
+                                          label: 'Shares',
+                                        ),
                                       ],
                                     ),
-                                  ),
+                                  ],
                                 ),
-                              ] else
-                                const Center(child: Text('No metrics data for this account', style: TextStyle(color: AppColors.white))),
-                            ],
-                          ),
-                        ),
+                              ),
+                            ),
+                          ] else
+                            const Center(
+                              child: Text(
+                                'No metrics data for this account',
+                                style: TextStyle(color: AppColors.white),
+                              ),
+                            ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
+                ],
+              ),
       ),
     );
   }

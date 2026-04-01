@@ -1,3 +1,5 @@
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -18,6 +20,7 @@ class DrawerMenu extends StatefulWidget {
 class _DrawerMenuState extends State<DrawerMenu> {
   final SyncService _syncService = SyncService();
   final DatabaseHelper _dbHelper = DatabaseHelper();
+  late StreamSubscription<List<ConnectivityResult>> _connectivitySubscription;
   bool _isOnline = true;
   int _conflictCount = 0;
   int? _lastSyncTime;
@@ -28,49 +31,76 @@ class _DrawerMenuState extends State<DrawerMenu> {
     _checkOnlineStatus();
     _loadConflictCount();
     _loadLastSyncTime();
-    Connectivity().onConnectivityChanged.listen((result) {
-      setState(() {
-        _isOnline = result != ConnectivityResult.none;
-      });
+
+    _connectivitySubscription = Connectivity().onConnectivityChanged.listen((
+      List<ConnectivityResult> result,
+    ) {
+      if (mounted) {
+        setState(() {
+          _isOnline = !result.contains(ConnectivityResult.none);
+        });
+      }
     });
+
     _syncService.dataChangedStream.listen((_) {
-      _loadConflictCount();
-      _loadLastSyncTime();
+      if (mounted) {
+        _loadConflictCount();
+        _loadLastSyncTime();
+      }
     });
+  }
+
+  @override
+  void dispose() {
+    _connectivitySubscription.cancel();
+    super.dispose();
   }
 
   Future<void> _checkOnlineStatus() async {
     var result = await Connectivity().checkConnectivity();
-    setState(() {
-      _isOnline = result != ConnectivityResult.none;
-    });
+    if (mounted) {
+      setState(() {
+        _isOnline = !result.contains(ConnectivityResult.none);
+      });
+    }
   }
 
   Future<void> _loadConflictCount() async {
     var conflicts = await _dbHelper.getConflicts();
-    setState(() {
-      _conflictCount = conflicts.length;
-    });
+    if (mounted) {
+      setState(() {
+        _conflictCount = conflicts.length;
+      });
+    }
   }
 
   Future<void> _loadLastSyncTime() async {
     var time = await _dbHelper.getLatestSyncTime();
-    setState(() {
-      _lastSyncTime = time;
-    });
+    if (mounted) {
+      setState(() {
+        _lastSyncTime = time;
+      });
+    }
   }
 
   Future<void> _manualSync() async {
     if (_isOnline) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Syncing...')));
       await _syncService.syncAll();
-      _loadLastSyncTime();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Sync completed')),
-      );
+      if (mounted) {
+        _loadLastSyncTime();
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Sync completed')));
+      }
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No internet connection')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('No internet connection')));
+      }
     }
   }
 
@@ -78,43 +108,42 @@ class _DrawerMenuState extends State<DrawerMenu> {
     Navigator.pushNamed(context, routeName);
   }
 
-  void _logout(BuildContext context) async {
-    showDialog(
+  Future<void> _logout(BuildContext context) async {
+    final confirm = await showDialog<bool>(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Logout'),
-          content: const Text('Are you sure you want to logout?'),
+      builder: (BuildContext context) => Theme(
+        data: ThemeData.light(),
+        child: AlertDialog(
+          title: const Text('Logout', style: TextStyle(color: Colors.black)),
+          content: const Text('Are you sure you want to logout?', style: TextStyle(color: Colors.black)),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel', style: TextStyle(color: Colors.blue)),
             ),
             TextButton(
-              onPressed: () async {
-                Navigator.pop(context);
-                await FirebaseAuth.instance.signOut();
-                if (context.mounted) {
-                  Navigator.pushNamedAndRemoveUntil(
-                    context, 
-                    '/login', 
-                    (route) => false
-                  );
-                }
-              },
-              child: const Text('Logout'),
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Logout', style: TextStyle(color: Colors.red)),
             ),
           ],
-        );
-      },
+        ),
+      ),
     );
+    if (confirm == true) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('userRole');
+      await prefs.remove('userId');
+      await FirebaseAuth.instance.signOut();
+      if (context.mounted) {
+        Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+      }
+    }
   }
-
-  String _formatLastSync() {
-    if (_lastSyncTime == null) return 'Never';
-    final date = DateTime.fromMillisecondsSinceEpoch(_lastSyncTime!);
-    return DateFormat('dd/MM/yy HH:mm').format(date);
-  }
+    String _formatLastSync() {
+      if (_lastSyncTime == null) return 'Never';
+      final date = DateTime.fromMillisecondsSinceEpoch(_lastSyncTime!);
+      return DateFormat('dd/MM/yy HH:mm').format(date);
+    }
 
   @override
   Widget build(BuildContext context) {
@@ -195,14 +224,18 @@ class _DrawerMenuState extends State<DrawerMenu> {
                             height: 10,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: _isOnline ? AppColors.success : AppColors.error,
+                              color: _isOnline
+                                  ? AppColors.success
+                                  : AppColors.error,
                             ),
                           ),
                           const SizedBox(width: 8),
                           Text(
                             _isOnline ? 'Online' : 'Offline',
                             style: TextStyle(
-                              color: _isOnline ? AppColors.success : AppColors.error,
+                              color: _isOnline
+                                  ? AppColors.success
+                                  : AppColors.error,
                               fontSize: 12,
                             ),
                           ),
@@ -213,29 +246,46 @@ class _DrawerMenuState extends State<DrawerMenu> {
                           onTap: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (context) => const ConflictResolutionScreen()),
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const ConflictResolutionScreen(),
+                              ),
                             );
                           },
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
                               color: AppColors.warning,
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Row(
                               children: [
-                                const Icon(Icons.warning, color: AppColors.white, size: 14),
+                                const Icon(
+                                  Icons.warning,
+                                  color: AppColors.white,
+                                  size: 14,
+                                ),
                                 const SizedBox(width: 4),
                                 Text(
                                   '$_conflictCount conflict${_conflictCount > 1 ? 's' : ''}',
-                                  style: const TextStyle(color: AppColors.white, fontSize: 12),
+                                  style: const TextStyle(
+                                    color: AppColors.white,
+                                    fontSize: 12,
+                                  ),
                                 ),
                               ],
                             ),
                           ),
                         ),
                       IconButton(
-                        icon: const Icon(Icons.sync, color: AppColors.white, size: 20),
+                        icon: const Icon(
+                          Icons.sync,
+                          color: AppColors.white,
+                          size: 20,
+                        ),
                         onPressed: _manualSync,
                       ),
                     ],
@@ -254,260 +304,191 @@ class _DrawerMenuState extends State<DrawerMenu> {
                 ],
               ),
             ),
-            
+
             // Drawer Items
             Expanded(
               child: ListView(
                 padding: EdgeInsets.zero,
                 children: [
                   // Dashboard
-                  _buildDrawerItem(
-                    Icons.dashboard, 
-                    'Dashboard', 
-                    () {
-                      Navigator.pop(context);
-                      if (widget.role == 'admin') {
-                        _navigateToScreen(context, '/admin');
-                      } else if (widget.role == 'manager') {
-                        _navigateToScreen(context, '/manager');
-                      } else if (widget.role == 'sales') {
-                        _navigateToScreen(context, '/sales');
-                      } else {
-                        _navigateToScreen(context, '/tailor');
-                      }
-                    },
-                  ),
-                  
+                  _buildDrawerItem(Icons.dashboard, 'Dashboard', () {
+                    Navigator.pop(context);
+                    if (widget.role == 'admin') {
+                      _navigateToScreen(context, '/admin');
+                    } else if (widget.role == 'manager') {
+                      _navigateToScreen(context, '/manager');
+                    } else if (widget.role == 'sales') {
+                      _navigateToScreen(context, '/sales');
+                    } else {
+                      _navigateToScreen(context, '/tailor');
+                    }
+                  }),
+
                   // Orders
-                  _buildDrawerItem(
-                    Icons.shopping_bag, 
-                    'Orders', 
-                    () {
-                      Navigator.pop(context);
-                      _navigateToScreen(context, '/orders');
-                    },
-                  ),
-                  
+                  _buildDrawerItem(Icons.shopping_bag, 'Orders', () {
+                    Navigator.pop(context);
+                    _navigateToScreen(context, '/orders');
+                  }),
+
                   // Inventory
-                  _buildDrawerItem(
-                    Icons.inventory, 
-                    'Inventory', 
-                    () {
-                      Navigator.pop(context);
-                      _navigateToScreen(context, '/inventory');
-                    },
-                  ),
-                  
+                  _buildDrawerItem(Icons.inventory, 'Inventory', () {
+                    Navigator.pop(context);
+                    _navigateToScreen(context, '/inventory');
+                  }),
+
                   // Employees (Admin and Manager only)
                   if (widget.role == 'admin' || widget.role == 'manager')
-                    _buildDrawerItem(
-                      Icons.people, 
-                      'Employees', 
-                      () {
-                        Navigator.pop(context);
-                        _navigateToScreen(context, '/employees');
-                      },
-                    ),
-                  
-                  // Customers
-                  _buildDrawerItem(
-                    Icons.person, 
-                    'Customers', 
-                    () {
+                    _buildDrawerItem(Icons.people, 'Employees', () {
                       Navigator.pop(context);
-                      _navigateToScreen(context, '/customers');
-                    },
-                  ),
-                  
+                      _navigateToScreen(context, '/employees');
+                    }),
+
+                  // Customers
+                  _buildDrawerItem(Icons.person, 'Customers', () {
+                    Navigator.pop(context);
+                    _navigateToScreen(context, '/customers');
+                  }),
+
                   // Reports (Admin and Manager only)
                   if (widget.role == 'admin' || widget.role == 'manager')
-                    _buildDrawerItem(
-                      Icons.receipt, 
-                      'Reports', 
-                      () {
-                        Navigator.pop(context);
-                        _navigateToScreen(context, '/reports');
-                      },
-                    ),
-                  
+                    _buildDrawerItem(Icons.receipt, 'Reports', () {
+                      Navigator.pop(context);
+                      _navigateToScreen(context, '/reports');
+                    }),
+
                   // Branches (Admin only)
                   if (widget.role == 'admin')
-                    _buildDrawerItem(
-                      Icons.store, 
-                      'Branches', 
-                      () {
-                        Navigator.pop(context);
-                        _navigateToScreen(context, '/branches');
-                      },
-                    ),
-                  
+                    _buildDrawerItem(Icons.store, 'Branches', () {
+                      Navigator.pop(context);
+                      _navigateToScreen(context, '/branches');
+                    }),
+
                   // Equipment (Admin and Manager only)
                   if (widget.role == 'admin' || widget.role == 'manager')
+                    _buildDrawerItem(Icons.build, 'Equipment', () {
+                      Navigator.pop(context);
+                      _navigateToScreen(context, '/equipment');
+                    }),
+                  // Properties (Admin and Manager only)
+                  if (widget.role == 'admin' || widget.role == 'manager')
                     _buildDrawerItem(
-                      Icons.build, 
-                      'Equipment', 
+                      Icons.apartment,
+                      'Properties',
                       () {
                         Navigator.pop(context);
-                        _navigateToScreen(context, '/equipment');
+                        _navigateToScreen(context, '/properties');
                       },
                     ),
-                  
                   // Suppliers (Admin and Manager only)
                   if (widget.role == 'admin' || widget.role == 'manager')
-                    _buildDrawerItem(
-                      Icons.business, 
-                      'Suppliers', 
-                      () {
-                        Navigator.pop(context);
-                        _navigateToScreen(context, '/suppliers');
-                      },
-                    ),
-                  
+                    _buildDrawerItem(Icons.business, 'Suppliers', () {
+                      Navigator.pop(context);
+                      _navigateToScreen(context, '/suppliers');
+                    }),
+
                   // Measurement Types (Admin only)
                   if (widget.role == 'admin')
-                    _buildDrawerItem(
-                      Icons.straighten, 
-                      'Measurement Types', 
-                      () {
-                        Navigator.pop(context);
-                        _navigateToScreen(context, '/measurement_types');
-                      },
-                    ),
-                  
+                    _buildDrawerItem(Icons.straighten, 'Measurement Types', () {
+                      Navigator.pop(context);
+                      _navigateToScreen(context, '/measurement_types');
+                    }),
+
                   // Accounts (Admin and Manager only)
                   if (widget.role == 'admin' || widget.role == 'manager')
-                    _buildDrawerItem(
-                      Icons.account_balance, 
-                      'Accounts', 
-                      () {
-                        Navigator.pop(context);
-                        _navigateToScreen(context, '/accounts');
-                      },
-                    ),
-                  
+                    _buildDrawerItem(Icons.account_balance, 'Accounts', () {
+                      Navigator.pop(context);
+                      _navigateToScreen(context, '/accounts');
+                    }),
+
                   // Cash Flow (Admin and Manager only)
                   if (widget.role == 'admin' || widget.role == 'manager')
-                    _buildDrawerItem(
-                      Icons.timeline, 
-                      'Cash Flow', 
-                      () {
-                        Navigator.pop(context);
-                        _navigateToScreen(context, '/cashflow');
-                      },
-                    ),
-                  
+                    _buildDrawerItem(Icons.timeline, 'Cash Flow', () {
+                      Navigator.pop(context);
+                      _navigateToScreen(context, '/cashflow');
+                    }),
+
                   // Commissions (Admin and Manager only)
                   if (widget.role == 'admin' || widget.role == 'manager')
-                    _buildDrawerItem(
-                      Icons.monetization_on, 
-                      'Commissions', 
-                      () {
-                        Navigator.pop(context);
-                        _navigateToScreen(context, '/commissions');
-                      },
-                    ),
-                  
+                    _buildDrawerItem(Icons.monetization_on, 'Commissions', () {
+                      Navigator.pop(context);
+                      _navigateToScreen(context, '/commissions');
+                    }),
+
                   // Purchase Orders (Admin and Manager only)
                   if (widget.role == 'admin' || widget.role == 'manager')
                     _buildDrawerItem(
-                      Icons.shopping_cart, 
-                      'Purchase Orders', 
+                      Icons.shopping_cart,
+                      'Purchase Orders',
                       () {
                         Navigator.pop(context);
                         _navigateToScreen(context, '/purchase_orders');
                       },
                     ),
-                  
+
                   // Production Orders (Admin and Manager only)
                   if (widget.role == 'admin' || widget.role == 'manager')
-                    _buildDrawerItem(
-                      Icons.factory, 
-                      'Production', 
-                      () {
-                        Navigator.pop(context);
-                        _navigateToScreen(context, '/production');
-                      },
-                    ),
-                  
+                    _buildDrawerItem(Icons.factory, 'Production', () {
+                      Navigator.pop(context);
+                      _navigateToScreen(context, '/production');
+                    }),
+
                   // Social Dashboard (Admin and Manager only)
                   if (widget.role == 'admin' || widget.role == 'manager')
-                    _buildDrawerItem(
-                      Icons.bar_chart, 
-                      'Social Dashboard', 
-                      () {
-                        Navigator.pop(context);
-                        _navigateToScreen(context, '/social_dashboard');
-                      },
-                    ),
-                  
+                    _buildDrawerItem(Icons.bar_chart, 'Social Dashboard', () {
+                      Navigator.pop(context);
+                      _navigateToScreen(context, '/social_dashboard');
+                    }),
+
                   // Social Accounts (Admin and Manager only)
                   if (widget.role == 'admin' || widget.role == 'manager')
-                    _buildDrawerItem(
-                      Icons.share, 
-                      'Social Accounts', 
-                      () {
-                        Navigator.pop(context);
-                        _navigateToScreen(context, '/social');
-                      },
-                    ),
-                  
+                    _buildDrawerItem(Icons.share, 'Social Accounts', () {
+                      Navigator.pop(context);
+                      _navigateToScreen(context, '/social');
+                    }),
+
                   // Employee Payments (Admin and Manager only)
                   if (widget.role == 'admin' || widget.role == 'manager')
-                    _buildDrawerItem(
-                      Icons.payment, 
-                      'Employee Payments', 
-                      () {
-                        Navigator.pop(context);
-                        _navigateToScreen(context, '/employee_payments');
-                      },
-                    ),
-                  
+                    _buildDrawerItem(Icons.payment, 'Employee Payments', () {
+                      Navigator.pop(context);
+                      _navigateToScreen(context, '/employee_payments');
+                    }),
+
                   // Leave Request (Employees)
-                  if (widget.role == 'sales' || widget.role == 'tailor' || widget.role == 'delivery')
-                    _buildDrawerItem(
-                      Icons.beach_access, 
-                      'Request Leave', 
-                      () {
-                        Navigator.pop(context);
-                        _navigateToScreen(context, '/leave_request');
-                      },
-                    ),
-                  
+                  if (widget.role == 'sales' ||
+                      widget.role == 'tailor' ||
+                      widget.role == 'delivery')
+                    _buildDrawerItem(Icons.beach_access, 'Request Leave', () {
+                      Navigator.pop(context);
+                      _navigateToScreen(context, '/leave_request');
+                    }),
+
                   // Leave Requests (Admin and Manager only)
                   if (widget.role == 'admin' || widget.role == 'manager')
-                    _buildDrawerItem(
-                      Icons.list, 
-                      'Leave Requests', 
-                      () {
-                        Navigator.pop(context);
-                        _navigateToScreen(context, '/leave_requests');
-                      },
-                    ),
-                  
-                  const Divider(color: AppColors.white),
-                  
-                  // Settings
-                  _buildDrawerItem(
-                    Icons.settings, 
-                    'Settings', 
-                    () {
+                    _buildDrawerItem(Icons.list, 'Leave Requests', () {
                       Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Settings coming soon')),
-                      );
-                    },
-                  ),
-                  
+                      _navigateToScreen(context, '/leave_requests');
+                    }),
+
+                  const Divider(color: AppColors.white),
+
+                  // Settings
+                  _buildDrawerItem(Icons.settings, 'Settings', () {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Settings coming soon')),
+                    );
+                  }),
+
                   // Logout
                   _buildDrawerItem(
-                    Icons.logout, 
-                    'Logout', 
+                    Icons.logout,
+                    'Logout',
                     () => _logout(context),
                   ),
                 ],
               ),
             ),
-            
+
             // App version at bottom
             Padding(
               padding: const EdgeInsets.all(16),
