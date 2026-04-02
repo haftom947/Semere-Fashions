@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:convert';
 import '../utils/colors.dart';
 import '../services/database_helper.dart';
@@ -67,6 +68,7 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
 
   Future<void> _loadProducts() async {
     var products = await _dbHelper.query('products');
+    if (!mounted) return;
     setState(() {
       _products = products.map((p) => Map<String, dynamic>.from(p)).toList();
     });
@@ -85,13 +87,54 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
     if (user != null) {
       _currentUserId = user.uid;
       var userData = await _dbHelper.queryById('users', user.uid);
+      if (userData == null ||
+          userData['role'] == null ||
+          userData['branchId'] == null) {
+        try {
+          final remoteDoc = await FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.uid)
+              .get();
+          if (remoteDoc.exists) {
+            final remoteData = remoteDoc.data();
+            if (remoteData != null) {
+              userData = {
+                'id': user.uid,
+                'name': remoteData['name'],
+                'phone': remoteData['phone'],
+                'role': remoteData['role'],
+                'branchId': remoteData['branchId'],
+                'employmentType': remoteData['employmentType'],
+                'status': remoteData['status'],
+                'commissionRate': remoteData['commissionRate'],
+                'tailorCut': remoteData['tailorCut'],
+                'delivery_commission_type': remoteData['delivery_commission_type'],
+                'delivery_commission_value': remoteData['delivery_commission_value'],
+                'createdAt': remoteData['createdAt'],
+              };
+              final localUser = await _dbHelper.queryById('users', user.uid);
+              if (localUser == null) {
+                await _dbHelper.insert('users', userData, markSynced: true);
+              } else {
+                await _dbHelper.update('users', userData, markSynced: true);
+              }
+            }
+          }
+        } catch (_) {
+          // Fall back to local data if Firestore is unavailable.
+        }
+      }
       if (userData != null) {
         _currentUserRole = userData['role'];
         _currentBranchId = userData['branchId'];
         _isAdminOrManager = (_currentUserRole == 'admin' || _currentUserRole == 'manager');
         _selectedBranchId = _currentUserRole == 'admin' ? null : _currentBranchId;
+        if (_currentUserRole == 'sales') {
+          _salesPersonId = _currentUserId;
+        }
         if (_currentBranchId != null) {
           var branch = await _dbHelper.queryById('branches', _currentBranchId!);
+          if (!mounted) return;
           setState(() {
             _branchCurrency = branch?['currency'] ?? 'ETB';
           });
@@ -102,10 +145,14 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
 
   Future<void> _loadSalesPeople() async {
     var employees = await _dbHelper.query('users');
+    if (!mounted) return;
     setState(() {
       _salesPeople = employees
           .where((e) => e['role'] == 'sales' && e['status'] == 'active')
           .toList();
+      if (_currentUserRole == 'sales' && _salesPersonId == null) {
+        _salesPersonId = _currentUserId;
+      }
     });
   }
 
@@ -387,9 +434,21 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
                       const SizedBox(height: 16),
                     ],
 
-                    // Salesperson selector (only for admin/manager)
-                    if (_isAdminOrManager && _salesPeople.isNotEmpty) ...[
-                      DropdownButtonFormField<String>(
+                    // Seller / salesperson
+                    if (_currentUserRole == 'sales') ...[
+                      Card(
+                        child: ListTile(
+                          leading: const Icon(
+                            Icons.person,
+                            color: AppColors.primaryRed,
+                          ),
+                          title: const Text('Seller'),
+                          subtitle: Text(_currentUserId ?? 'Current user'),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ] else if (_isAdminOrManager && _salesPeople.isNotEmpty) ...[
+                      DropdownButtonFormField<String?>(
                         value: _salesPersonId,
                         dropdownColor: AppColors.backgroundStart,
                         style: const TextStyle(color: AppColors.white),
@@ -406,7 +465,7 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
                           ),
                         ),
                         items: [
-                          const DropdownMenuItem(
+                          const DropdownMenuItem<String?>(
                             value: null,
                             child: Text(
                               'No salesperson',
@@ -414,8 +473,8 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
                             ),
                           ),
                           ..._salesPeople.map(
-                            (sp) => DropdownMenuItem(
-                              value: sp['id'],
+                            (sp) => DropdownMenuItem<String?>(
+                              value: sp['id']?.toString(),
                               child: Text(
                                 sp['name'] ?? '',
                                 style: const TextStyle(color: AppColors.white),
@@ -428,6 +487,18 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
                             _salesPersonId = value;
                           });
                         },
+                      ),
+                      const SizedBox(height: 16),
+                    ] else if (_isAdminOrManager) ...[
+                      Card(
+                        child: ListTile(
+                          leading: const Icon(
+                            Icons.person_off,
+                            color: AppColors.primaryRed,
+                          ),
+                          title: const Text('Salesperson'),
+                          subtitle: const Text('No active salesperson found'),
+                        ),
                       ),
                       const SizedBox(height: 16),
                     ],

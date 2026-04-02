@@ -52,6 +52,7 @@ class _ManagerHomeState extends State<ManagerHome> {
   double _cogsFromOrders = 0.0;
   double _tailorCommissions = 0.0;
   double _salesCommissions = 0.0;
+  double _deliveryCommissions = 0.0;
   double _commissionExpenses = 0.0;
   double _fuelExpenses = 0.0;
   double _maintenanceExpenses = 0.0;
@@ -362,8 +363,8 @@ class _ManagerHomeState extends State<ManagerHome> {
       final orderCommissions = mutableCommissions
           .where((c) =>
               c['orderId'] == order['id'] &&
-              c['status'] == 'paid' &&
-              withinSelectedRange(c['paidAt']))
+              c['status'] != 'voided' &&
+              withinSelectedRange(c['paidAt'] ?? c['createdAt']))
           .fold<double>(0.0, (total, c) => total + _asDouble(c['amount']));
       final cogsValue = _asDouble(order['cogs']);
       orderProfitItems.add({
@@ -394,26 +395,30 @@ class _ManagerHomeState extends State<ManagerHome> {
     double commissionExpenses = 0.0;
     double tailorCommissions = 0.0;
     double salesCommissions = 0.0;
+    double deliveryCommissions = 0.0;
     for (final c in mutableCommissions) {
       final orderId = c['orderId']?.toString();
       if (orderId == null || orderId.isEmpty || !branchOrderIds.contains(orderId)) continue;
-      if (c['status'] == 'paid' && c['paidAt'] != null && withinSelectedRange(c['paidAt'])) {
-        final amount = _asDouble(c['amount']);
-        commissionExpenses += amount;
-        if (c['type'] == 'tailor') {
-          tailorCommissions += amount;
-        } else if (c['type'] == 'sales') {
-          salesCommissions += amount;
-        }
-        expenseItems.add({
-          'category': 'Commission',
-          'title': c['employeeName'] ?? 'Commission',
-          'subtitle': 'Order #${(c['orderId'] as String?)?.substring(0, 6) ?? ''}',
-          'amount': amount,
-          'date': _asInt(c['paidAt']),
-        });
-        weekExpenses += amount;
+      if (c['status'] == 'voided') continue;
+      final effectiveDate = c['paidAt'] ?? c['createdAt'];
+      if (!withinSelectedRange(effectiveDate)) continue;
+      final amount = _asDouble(c['amount']);
+      commissionExpenses += amount;
+      if (c['type'] == 'tailor') {
+        tailorCommissions += amount;
+      } else if (c['type'] == 'sales') {
+        salesCommissions += amount;
+      } else if (c['type'] == 'delivery') {
+        deliveryCommissions += amount;
       }
+      expenseItems.add({
+        'category': 'Commission',
+        'title': c['employeeName'] ?? 'Commission',
+        'subtitle': 'Order #${(c['orderId'] as String?)?.substring(0, 6) ?? ''}',
+        'amount': amount,
+        'date': _asInt(effectiveDate),
+      });
+      weekExpenses += amount;
     }
 
     double fuelExpenses = 0.0;
@@ -466,7 +471,8 @@ class _ManagerHomeState extends State<ManagerHome> {
     }
 
     final cogs = cogsFromOrders + materialExpenses + tailorCommissions;
-    final otherExpenses = fuelExpenses + maintenanceExpenses + salesCommissions;
+    final otherExpenses =
+        fuelExpenses + maintenanceExpenses + salesCommissions + deliveryCommissions;
     final grossProfit = weekRevenue - cogs;
     final netProfit = grossProfit - otherExpenses;
     final totalExpenses = cogs + otherExpenses;
@@ -526,6 +532,7 @@ class _ManagerHomeState extends State<ManagerHome> {
       _cogsFromOrders = cogsFromOrders;
       _tailorCommissions = tailorCommissions;
       _salesCommissions = salesCommissions;
+      _deliveryCommissions = deliveryCommissions;
       _commissionExpenses = commissionExpenses;
       _fuelExpenses = fuelExpenses;
       _maintenanceExpenses = maintenanceExpenses;

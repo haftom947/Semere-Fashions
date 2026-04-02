@@ -34,6 +34,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   bool _isLoading = true;
   bool _paymentsLoading = false;
   bool _isAdminOrManager = true;
+  int _loadGeneration = 0;
 
   @override
   void initState() {
@@ -51,92 +52,115 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   }
 
   Future<void> _loadData() async {
+    final loadId = ++_loadGeneration;
     if (mounted) {
       setState(() => _isLoading = true);
     }
     try {
       final orderData = await _dbHelper.queryById('orders', widget.orderId);
-      _order = orderData != null ? Map<String, dynamic>.from(orderData) : null;
+      if (!mounted || loadId != _loadGeneration) return;
 
-      if (_order != null) {
-        if (_order!['items'] is String) {
-          _items = List<Map<String, dynamic>>.from(
-            jsonDecode(_order!['items']),
+      Map<String, dynamic>? order;
+      List<Map<String, dynamic>> items = [];
+      List<Map<String, dynamic>> assignments = [];
+      List<Map<String, dynamic>> employees = [];
+      List<Map<String, dynamic>> commissions = [];
+      List<Map<String, dynamic>> payments = [];
+      String? branchName;
+
+      if (orderData != null) {
+        order = Map<String, dynamic>.from(orderData);
+
+        if (order['items'] is String) {
+          items = List<Map<String, dynamic>>.from(
+            jsonDecode(order['items']),
           );
         } else {
-          _items = List<Map<String, dynamic>>.from(
-            _order!['items'] as List? ?? [],
+          items = List<Map<String, dynamic>>.from(
+            order['items'] as List? ?? [],
           );
         }
 
         final allAssignments = await _dbHelper.query('order_assignments');
-        _assignments = allAssignments
+        if (!mounted || loadId != _loadGeneration) return;
+        assignments = allAssignments
             .where((a) => a['orderId'] == widget.orderId)
             .map((a) => Map<String, dynamic>.from(a))
             .toList();
 
         final allEmployees = await _dbHelper.query('users');
-        _employees = allEmployees
+        if (!mounted || loadId != _loadGeneration) return;
+        employees = allEmployees
             .where((e) => e['status'] == 'active')
             .map((e) => Map<String, dynamic>.from(e))
             .toList();
 
-        final branchId = _order!['branchId'] as String?;
+        final branchId = order['branchId'] as String?;
         if (branchId != null && branchId.isNotEmpty) {
           final branch = await _dbHelper.queryById('branches', branchId);
-          _branchName = branch?['name'] ?? branchId;
+          if (!mounted || loadId != _loadGeneration) return;
+          branchName = branch?['name'] ?? branchId;
         } else {
-          _branchName = null;
+          branchName = null;
         }
 
         final allCommissions = await _dbHelper.query('commissions');
-        _commissions = allCommissions
+        if (!mounted || loadId != _loadGeneration) return;
+        commissions = allCommissions
             .where((c) => c['orderId'] == widget.orderId)
             .map((c) => Map<String, dynamic>.from(c))
             .toList();
 
-        if (mounted) {
-          setState(() => _paymentsLoading = true);
-        }
         try {
           final allPayments = await _dbHelper.query('payment_transaction');
+          if (!mounted || loadId != _loadGeneration) return;
           final mutablePayments = List<Map<String, dynamic>>.from(allPayments);
-          _payments = mutablePayments
+          payments = mutablePayments
               .where((p) => p['orderId'] == widget.orderId)
               .map((p) => Map<String, dynamic>.from(p)) // ← mutable copy
               .toList();
-          for (final payment in _payments) {
+          for (final payment in payments) {
             final breakdowns = await _dbHelper.queryWhere(
               'payment_breakdown',
               'payment_transaction_id = ?',
               [payment['id']],
             );
+            if (!mounted || loadId != _loadGeneration) return;
             if (breakdowns.isNotEmpty) {
               payment['method'] = breakdowns.first['method'];
             }
           }
-          print('Payments for order ${widget.orderId}: $_payments');
+          print('Payments for order ${widget.orderId}: $payments');
         } catch (e) {
           print('Payment table error: $e');
-          _payments = [];
-        } finally {
-          if (mounted) {
-            setState(() => _paymentsLoading = false);
-          }
+          payments = [];
         }
       }
+
+      if (!mounted || loadId != _loadGeneration) return;
+      setState(() {
+        _order = order;
+        _items = items;
+        _assignments = assignments;
+        _employees = employees;
+        _branchName = branchName;
+        _commissions = commissions;
+        _payments = payments;
+        _paymentsLoading = false;
+        _isLoading = false;
+      });
     } catch (e, stack) {
       print('Error loading order details: $e');
       print(stack);
-      if (mounted) {
+      if (mounted && loadId == _loadGeneration) {
         ErrorHandler.showError(
           context,
           'Failed to load order details: ${e.toString()}',
         );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
+        setState(() {
+          _isLoading = false;
+          _paymentsLoading = false;
+        });
       }
     }
   }
@@ -232,6 +256,68 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                 final fee = double.tryParse(controller.text.trim());
                 if (fee != null && fee >= 0) {
                   Navigator.pop(context, fee);
+                }
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<double?> _showAmountDialog({
+    required String title,
+    required String label,
+    required double initialValue,
+    String? helperText,
+  }) async {
+    final controller = TextEditingController(
+      text: initialValue.toStringAsFixed(
+        initialValue % 1 == 0 ? 0 : 2,
+      ),
+    );
+
+    return showDialog<double>(
+      context: context,
+      builder: (context) => Theme(
+        data: ThemeData.light(),
+        child: AlertDialog(
+          title: Text(title, style: const TextStyle(color: Colors.black)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (helperText != null) ...[
+                Text(
+                  helperText,
+                  style: const TextStyle(color: Colors.black54),
+                ),
+                const SizedBox(height: 12),
+              ],
+              TextField(
+                controller: controller,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                decoration: InputDecoration(
+                  labelText: label,
+                  labelStyle: const TextStyle(color: Colors.black54),
+                  border: const OutlineInputBorder(),
+                ),
+                autofocus: true,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel', style: TextStyle(color: Colors.blue)),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final amount = double.tryParse(controller.text.trim());
+                if (amount != null && amount >= 0) {
+                  Navigator.pop(context, amount);
                 }
               },
               child: const Text('Save'),
@@ -452,7 +538,11 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     if (commissionRate <= 0) return;
 
     final totalAmount = (_order!['totalAmount'] as num?)?.toDouble() ?? 0;
-    final commissionAmount = totalAmount * commissionRate / 100;
+    final cogsValue = (_order!['cogs'] as num?)?.toDouble() ?? 0;
+    final profitBase = (totalAmount - cogsValue).clamp(0.0, double.infinity);
+    if (profitBase <= 0) return;
+
+    final commissionAmount = profitBase * commissionRate / 100;
     await _dbHelper.insert('commissions', {
       'id': '${salesPersonId}_${DateTime.now().millisecondsSinceEpoch}',
       'orderId': widget.orderId,
@@ -484,9 +574,38 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     if (selected == null) return;
 
     double? deliveryFee;
-    if (role == 'delivery') {
+    double commissionAmount = 0;
+
+    if (role == 'tailor') {
+      final employeeCut = (selected['tailorCut'] as num?)?.toDouble() ?? 0.0;
+      final tailorCut = await _showAmountDialog(
+        title: 'Tailor Cut',
+        label: 'Tailor Cut (ETB)',
+        initialValue: employeeCut,
+        helperText: 'Enter the tailor cut for this order.',
+      );
+      if (tailorCut == null) return;
+      commissionAmount = tailorCut;
+    } else if (role == 'delivery') {
       deliveryFee = await _showDeliveryFeeDialog();
       if (deliveryFee == null) return;
+
+      final deliveryType =
+          selected['delivery_commission_type']?.toString() ?? 'fixed';
+      final deliveryValue =
+          (selected['delivery_commission_value'] as num?)?.toDouble() ?? 0.0;
+      final defaultDeliveryCommission = deliveryType == 'percentage'
+          ? deliveryFee * deliveryValue / 100
+          : deliveryValue;
+
+      final commission = await _showAmountDialog(
+        title: 'Delivery Commission',
+        label: 'Commission Amount (ETB)',
+        initialValue: defaultDeliveryCommission,
+        helperText: 'Set the delivery commission for this order.',
+      );
+      if (commission == null) return;
+      commissionAmount = commission;
     }
 
     final assignmentData = <String, dynamic>{
@@ -496,7 +615,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       'employeeName': selected['name'],
       'role': role,
       'assignedAt': DateTime.now().millisecondsSinceEpoch,
-      'commission_amount': 0, // will be calculated later for delivery
+      'commission_amount': commissionAmount,
     };
     await _dbHelper.insert('order_assignments', assignmentData);
 

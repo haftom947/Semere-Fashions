@@ -85,7 +85,9 @@ void main() async {
   await NotificationService().init();
   await RentService().generateRentDuesIfNeeded();
   await LowStockService().checkAndNotify();
-  SyncService().syncAll();
+  if (FirebaseAuth.instance.currentUser != null) {
+    SyncService().syncAll();
+  }
 
   runApp(MyApp(initialRoute: initialRoute));   // ✅ pass the route
 }

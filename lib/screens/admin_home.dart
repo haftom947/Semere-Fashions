@@ -63,6 +63,7 @@ class _AdminHomeState extends State<AdminHome> {
   double _cogsFromOrders = 0.0;
   double _tailorCommissions = 0.0;
   double _salesCommissions = 0.0;
+  double _deliveryCommissions = 0.0;
   double _commissionExpenses = 0.0;
   double _fuelExpenses = 0.0;
   double _maintenanceExpenses = 0.0;
@@ -185,8 +186,10 @@ class _AdminHomeState extends State<AdminHome> {
             .get();
 
         if (userDoc.exists) {
+          final userData = userDoc.data() as Map<String, dynamic>?;
+          final adminName = userData?['name']?.toString().trim() ?? '';
           setState(() {
-            _adminName = userDoc.get('name') ?? 'Admin';
+            _adminName = adminName.isNotEmpty ? adminName : 'Admin';
             _isLoading = false;
           });
         } else {
@@ -239,6 +242,8 @@ class _AdminHomeState extends State<AdminHome> {
           (cached['tailorCommissions'] as num?)?.toDouble() ?? 0.0;
       _salesCommissions =
           (cached['salesCommissions'] as num?)?.toDouble() ?? 0.0;
+      _deliveryCommissions =
+          (cached['deliveryCommissions'] as num?)?.toDouble() ?? 0.0;
       _commissionExpenses =
           (cached['commissionExpenses'] as num?)?.toDouble() ?? 0.0;
       _fuelExpenses = (cached['fuelExpenses'] as num?)?.toDouble() ?? 0.0;
@@ -409,7 +414,12 @@ class _AdminHomeState extends State<AdminHome> {
         final idealRevenue = _asDouble(order['totalAmount']);
         final actualRevenue = paymentsByOrderId[orderId] ?? 0.0;
         final orderCommissions = mutableCommissions
-            .where((c) => c['orderId'] == order['id'] && c['status'] == 'paid' && withinSelectedRange(c['paidAt']))
+            .where((c) {
+              if (c['orderId'] != order['id']) return false;
+              if (c['status'] == 'voided') return false;
+              final effectiveDate = c['paidAt'] ?? c['createdAt'];
+              return withinSelectedRange(effectiveDate);
+            })
             .fold<double>(0.0, (total, c) => total + _asDouble(c['amount']));
         final cogsValue = _asDouble(order['cogs']);
         final actualProfit = actualRevenue - cogsValue - orderCommissions;
@@ -430,22 +440,23 @@ class _AdminHomeState extends State<AdminHome> {
       }
     }
     for (var c in mutableCommissions) {
-      if (c['status'] == 'paid' && c['paidAt'] != null && withinSelectedRange(c['paidAt'])) {
-        final amount = _asDouble(c['amount']);
-        weekExpenses += amount;
-        final linkedOrder = ordersList.firstWhere(
-          (order) => order['id'] == c['orderId'],
-          orElse: () => <String, dynamic>{},
-        );
-        expenseItems.add({
-          'category': 'Commission',
-          'title': c['employeeName'] ?? 'Commission',
-          'subtitle': 'Order #${(c['orderId'] as String?)?.substring(0, 6) ?? ''}',
-          'amount': amount,
-          'date': _asInt(c['paidAt']),
-          'branchId': linkedOrder['branchId'],
-        });
-      }
+      if (c['status'] == 'voided') continue;
+      final effectiveDate = c['paidAt'] ?? c['createdAt'];
+      if (effectiveDate == null || !withinSelectedRange(effectiveDate)) continue;
+      final amount = _asDouble(c['amount']);
+      weekExpenses += amount;
+      final linkedOrder = ordersList.firstWhere(
+        (order) => order['id'] == c['orderId'],
+        orElse: () => <String, dynamic>{},
+      );
+      expenseItems.add({
+        'category': 'Commission',
+        'title': c['employeeName'] ?? 'Commission',
+        'subtitle': 'Order #${(c['orderId'] as String?)?.substring(0, 6) ?? ''}',
+        'amount': amount,
+        'date': _asInt(effectiveDate),
+        'branchId': linkedOrder['branchId'],
+      });
     }
     for (var f in mutableFuel) {
       if (withinSelectedRange(f['date'])) {
@@ -514,6 +525,7 @@ class _AdminHomeState extends State<AdminHome> {
     double commissionExpenses = 0.0;
     double tailorCommissions = 0.0;
     double salesCommissions = 0.0;
+    double deliveryCommissions = 0.0;
     for (var c in mutableCommissions) {
       if (c['status'] == 'paid' && c['paidAt'] != null && withinSelectedRange(c['paidAt'])) {
         final amount = _asDouble(c['amount']);
@@ -522,6 +534,8 @@ class _AdminHomeState extends State<AdminHome> {
           tailorCommissions += amount;
         } else if (c['type'] == 'sales') {
           salesCommissions += amount;
+        } else if (c['type'] == 'delivery') {
+          deliveryCommissions += amount;
         }
       }
     }
@@ -548,7 +562,8 @@ class _AdminHomeState extends State<AdminHome> {
     }
 
     final cogs = cogsFromOrders + materialExpenses + tailorCommissions;
-    final otherExpenses = fuelExpenses + maintenanceExpenses + salesCommissions;
+    final otherExpenses =
+        fuelExpenses + maintenanceExpenses + salesCommissions + deliveryCommissions;
     final grossProfit = revenue - cogs;
     final netProfit = grossProfit - otherExpenses;
     final totalExpenses = cogs + otherExpenses;
@@ -616,6 +631,7 @@ class _AdminHomeState extends State<AdminHome> {
       _cogsFromOrders = cogsFromOrders;
       _tailorCommissions = tailorCommissions;
       _salesCommissions = salesCommissions;
+      _deliveryCommissions = deliveryCommissions;
       _commissionExpenses = commissionExpenses;
       _fuelExpenses = fuelExpenses;
       _maintenanceExpenses = maintenanceExpenses;
@@ -651,6 +667,7 @@ class _AdminHomeState extends State<AdminHome> {
           'cogsFromOrders': cogsFromOrders,
           'tailorCommissions': tailorCommissions,
           'salesCommissions': salesCommissions,
+          'deliveryCommissions': deliveryCommissions,
           'commissionExpenses': commissionExpenses,
           'fuelExpenses': fuelExpenses,
           'maintenanceExpenses': maintenanceExpenses,
@@ -1721,11 +1738,16 @@ class _ProfitDetailsScreenState extends State<ProfitDetailsScreen> {
         final idealRevenue = (order['totalAmount'] as num?)?.toDouble() ?? 0.0;
         final actualRevenue = paymentsByOrderId[orderId] ?? 0.0;
         final orderCommissions = commissionList
-            .where((c) =>
-                c['orderId'] == order['id'] &&
-                c['status'] == 'paid' &&
-                _withinSelectedRange(c['paidAt']))
-            .fold<double>(0.0, (total, c) => total + ((c['amount'] as num?)?.toDouble() ?? 0.0));
+            .where((c) {
+              if (c['orderId'] != order['id']) return false;
+              if (c['status'] == 'voided') return false;
+              final effectiveDate = c['paidAt'] ?? c['createdAt'];
+              return _withinSelectedRange(effectiveDate);
+            })
+            .fold<double>(
+              0.0,
+              (total, c) => total + ((c['amount'] as num?)?.toDouble() ?? 0.0),
+            );
         final cogsValue = (order['cogs'] as num?)?.toDouble() ?? 0.0;
         totalOrderProfitItems.add({
           'orderId': orderId,
@@ -1742,15 +1764,17 @@ class _ProfitDetailsScreenState extends State<ProfitDetailsScreen> {
         });
       }
 
-      for (final c in commissionList) {
-        if (c['status'] == 'paid' &&
-            c['paidAt'] != null &&
-            _withinSelectedRange(c['paidAt'])) {
-          final amount = (c['amount'] as num?)?.toDouble() ?? 0.0;
-          commissionExpenses += amount;
-          if (c['type'] == 'tailor') {
-            tailorCommissions += amount;
-          } else if (c['type'] == 'sales') {
+    for (final c in commissionList) {
+      if (c['status'] != 'voided') {
+        final effectiveDate = c['paidAt'] ?? c['createdAt'];
+        if (effectiveDate == null || !_withinSelectedRange(effectiveDate)) {
+          continue;
+        }
+        final amount = (c['amount'] as num?)?.toDouble() ?? 0.0;
+        commissionExpenses += amount;
+        if (c['type'] == 'tailor') {
+          tailorCommissions += amount;
+        } else if (c['type'] == 'sales') {
             salesCommissions += amount;
           }
           expenseItems.add({
@@ -1758,11 +1782,11 @@ class _ProfitDetailsScreenState extends State<ProfitDetailsScreen> {
             'title': c['employeeName'] ?? 'Commission',
             'subtitle': 'Order #${(c['orderId'] as String?)?.substring(0, 6) ?? ''}',
             'amount': amount,
-            'date': (c['paidAt'] as num?)?.toInt() ?? 0,
-            'branchId': c['branchId'],
-          });
-        }
+          'date': (effectiveDate as num?)?.toInt() ?? 0,
+          'branchId': c['branchId'],
+        });
       }
+    }
 
       for (final f in fuelList) {
         if (_withinSelectedRange(f['date'])) {

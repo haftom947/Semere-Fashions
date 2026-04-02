@@ -91,6 +91,13 @@ class _EditEmployeeScreenState extends State<EditEmployeeScreen> {
       }
 
       await _dbHelper.update('users', data);
+      final userId = widget.employeeData['id']?.toString() ?? '';
+      if (userId.isNotEmpty) {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userId)
+            .set(data, SetOptions(merge: true));
+      }
 
       var connectivityResult = await Connectivity().checkConnectivity();
       if (connectivityResult != ConnectivityResult.none) {

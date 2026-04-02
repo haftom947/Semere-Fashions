@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'database_helper.dart';
@@ -91,6 +92,11 @@ class SyncService {
       return _activeSync!;
     }
 
+    if (FirebaseAuth.instance.currentUser == null) {
+      print('Skipping sync: no authenticated user');
+      return;
+    }
+
     final completer = Completer<void>();
     _activeSync = completer.future;
 
@@ -127,6 +133,21 @@ class SyncService {
         return MapEntry(key, value);
       }
     });
+  }
+
+  Map<String, dynamic> _normalizeForLocalWrite(
+    String table,
+    Map<String, dynamic> data,
+  ) {
+    final normalized = Map<String, dynamic>.from(data);
+    if (table == 'users') {
+      if (normalized.containsKey('deviceId') &&
+          !normalized.containsKey('device_id')) {
+        normalized['device_id'] = normalized['deviceId'];
+      }
+      normalized.remove('deviceId');
+    }
+    return normalized;
   }
 
   Set<String> _decodeChangedFields(dynamic value) {
@@ -383,7 +404,11 @@ class SyncService {
           convertedData['id'] = doc.id;
           convertedData['syncStatus'] = 'synced';
           convertedData['lastModified'] = DateTime.now().millisecondsSinceEpoch;
-          await _dbHelper.insert(table, convertedData, markSynced: true);
+          await _dbHelper.insert(
+            table,
+            _normalizeForLocalWrite(table, convertedData),
+            markSynced: true,
+          );
         }
         await _dbHelper.setLastSync(
           collection,

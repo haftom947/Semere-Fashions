@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../utils/colors.dart';
 import '../services/database_helper.dart';
 import '../services/sync_service.dart';
@@ -100,6 +101,10 @@ class _AddEmployeeScreenState extends State<AddEmployeeScreen> {
       }
 
       await _dbHelper.insert('users', userData);
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .set(userData, SetOptions(merge: true));
 
       if (mounted) {
         _syncService.triggerBackgroundSync();

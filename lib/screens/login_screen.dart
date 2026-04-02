@@ -52,21 +52,37 @@ class _LoginScreenState extends State<LoginScreen> {
       UserCredential userCredential = await FirebaseAuth.instance
           .signInWithEmailAndPassword(email: email, password: pin);
 
-      DocumentSnapshot userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userCredential.user!.uid)
-          .get();
+      Map<String, dynamic>? userData =
+          await _dbHelper.queryById('users', userCredential.user!.uid);
 
-      if (!userDoc.exists) {
-        throw Exception('User data not found. Please contact admin.');
+      final needsRemoteRepair = userData == null ||
+          userData['role'] == null ||
+          userData['branchId'] == null;
+      if (needsRemoteRepair) {
+        final userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userCredential.user!.uid)
+            .get();
+        if (userDoc.exists) {
+          userData = userDoc.data() as Map<String, dynamic>?;
+        }
       }
 
-      final userData = userDoc.data() as Map<String, dynamic>?;
-      String role = userDoc.get('role');
+      if (userData == null) {
+        throw Exception(
+          'User profile not found locally or in Firestore. Please contact admin.',
+        );
+      }
+
+      final role = userData['role']?.toString();
+      if (role == null || role.isEmpty) {
+        throw Exception('User role is missing. Please contact admin.');
+      }
       print('User role: "$role"');
 
       final currentDeviceId = await DeviceHelper.getDeviceId();
-      final storedDeviceId = userData?['deviceId']?.toString();
+      final storedDeviceId =
+          userData['deviceId']?.toString() ?? userData['device_id']?.toString();
       if (storedDeviceId != null &&
           storedDeviceId.isNotEmpty &&
           storedDeviceId != currentDeviceId) {
@@ -75,61 +91,60 @@ class _LoginScreenState extends State<LoginScreen> {
       }
 
       if (storedDeviceId == null || storedDeviceId.isEmpty) {
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(userCredential.user!.uid)
-            .set({'deviceId': currentDeviceId}, SetOptions(merge: true));
+        await FirebaseFirestore.instance.collection('users').doc(
+          userCredential.user!.uid,
+        ).set({'deviceId': currentDeviceId}, SetOptions(merge: true));
       }
-      final localUser = await _dbHelper.queryById(
+      final localUserData = {
+        'id': userCredential.user!.uid,
+        'name': userData['name'],
+        'phone': userData['phone'],
+        'role': userData['role'],
+        'branchId': userData['branchId'],
+        'employmentType': userData['employmentType'],
+        'status': userData['status'],
+        'commissionRate': userData['commissionRate'],
+        'tailorCut': userData['tailorCut'],
+        'delivery_commission_type': userData['delivery_commission_type'],
+        'delivery_commission_value': userData['delivery_commission_value'],
+        'createdAt': userData['createdAt'],
+        'device_id': currentDeviceId,
+      };
+      await _dbHelper.insert(
         'users',
-        userCredential.user!.uid,
+        localUserData,
+        markSynced: true,
+        changedFields: localUserData,
       );
-      if (localUser == null) {
-        await _dbHelper.insert(
-          'users',
-          {
-            'id': userCredential.user!.uid,
-            'device_id': currentDeviceId,
-          },
-          markSynced: true,
-          changedFields: {'device_id': currentDeviceId},
-        );
-      } else {
-        await _dbHelper.update(
-          'users',
-          {
-            'id': userCredential.user!.uid,
-            'device_id': currentDeviceId,
-          },
-          markSynced: true,
-          changedFields: {'device_id': currentDeviceId},
-        );
-      }
 
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('userRole', role);
       await prefs.setString('userId', userCredential.user!.uid);
 
-      // FCM token and topic subscription
-      FirebaseMessaging messaging = FirebaseMessaging.instance;
-      NotificationSettings settings = await messaging.requestPermission(
-        alert: true,
-        badge: true,
-        sound: true,
-      );
+      // FCM setup should not block login if Firebase Installations is unavailable.
+      try {
+        FirebaseMessaging messaging = FirebaseMessaging.instance;
+        NotificationSettings settings = await messaging.requestPermission(
+          alert: true,
+          badge: true,
+          sound: true,
+        );
 
-      if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-        String? token = await messaging.getToken();
-        if (token != null) {
-          await FirebaseFirestore.instance
-              .collection('users')
-              .doc(userCredential.user!.uid)
-              .set({'fcmToken': token}, SetOptions(merge: true));
+        if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+          String? token = await messaging.getToken();
+          if (token != null) {
+            await FirebaseFirestore.instance
+                .collection('users')
+                .doc(userCredential.user!.uid)
+                .set({'fcmToken': token}, SetOptions(merge: true));
+          }
         }
-      }
 
-      if (role == 'admin' || role == 'manager') {
-        await messaging.subscribeToTopic('admins');
+        if (role == 'admin' || role == 'manager') {
+          await messaging.subscribeToTopic('admins');
+        }
+      } catch (e) {
+        print('FCM setup skipped: $e');
       }
 
       if (!mounted) return;
