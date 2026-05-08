@@ -12,6 +12,7 @@ import '../screens/device_binding_screen.dart';
 import '../screens/settings_screen.dart';
 import '../screens/retail_products_screen.dart';
 import '../utils/translations.dart';
+import '../screens/shipment_dashboard_screen.dart';
 
 class DrawerMenu extends StatefulWidget {
   final String role;
@@ -351,6 +352,17 @@ class _DrawerMenuState extends State<DrawerMenu> {
                   _buildDrawerItem(Icons.shopping_bag, context.tr('orders'), () {
                     Navigator.pop(context);
                     _navigateToScreen(context, '/orders');
+                  }),
+
+                  // Track Shipment
+                  _buildDrawerItem(Icons.local_shipping, context.tr('track_shipment'), () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const ShipmentDashboardScreen(),
+                      ),
+                    );
                   }),
 
                   // Inventory

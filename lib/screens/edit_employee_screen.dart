@@ -31,6 +31,7 @@ class _EditEmployeeScreenState extends State<EditEmployeeScreen> {
   String? _selectedBranchId;
   bool _isLoading = false;
   String _deliveryCommissionType = 'fixed';
+  bool _isActive = true;
 
   String get _selectedSalaryType =>
       (_selectedRole?['salary_type'] ?? 'commission').toString();
@@ -51,6 +52,7 @@ class _EditEmployeeScreenState extends State<EditEmployeeScreen> {
     _selectedBranchId = widget.employeeData['branchId']?.toString();
     _deliveryCommissionType =
         widget.employeeData['delivery_commission_type']?.toString() ?? 'fixed';
+    _isActive = widget.employeeData['status'] == 'active';
     _loadInitialData();
   }
 
@@ -148,7 +150,7 @@ class _EditEmployeeScreenState extends State<EditEmployeeScreen> {
             : null,
         'branchId': _selectedBranchId,
         'employmentType': widget.employeeData['employmentType'] ?? 'permanent',
-        'status': widget.employeeData['status'] ?? 'active',
+        'status': _isActive ? 'active' : 'inactive',
         'createdAt': widget.employeeData['createdAt'],
         'commissionRate': isMonthly
             ? null
@@ -275,6 +277,26 @@ class _EditEmployeeScreenState extends State<EditEmployeeScreen> {
                   ),
                   const SizedBox(height: 16),
                 ],
+                // Employee Status Toggle
+                Card(
+                  color: AppColors.white.withOpacity(0.08),
+                  child: SwitchListTile(
+                    title: const Text(
+                      'Active Employee',
+                      style: TextStyle(color: AppColors.white),
+                    ),
+                    subtitle: Text(
+                      _isActive ? 'Employee is active' : 'Employee is inactive',
+                      style: TextStyle(color: AppColors.white.withOpacity(0.7)),
+                    ),
+                    value: _isActive,
+                    activeColor: AppColors.success,
+                    onChanged: (value) {
+                      setState(() => _isActive = value);
+                    },
+                  ),
+                ),
+                const SizedBox(height: 16),
                 if (_selectedSalaryType == 'commission') ...[
                   TextFormField(
                     controller: _commissionRateController,

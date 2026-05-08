@@ -122,8 +122,11 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
     );
     if (confirm == true) {
       try {
-        employee['status'] = 'inactive';
-        await _dbHelper.update('users', employee);
+        // Create a modifiable copy of the employee data
+        final employeeCopy = Map<String, dynamic>.from(employee);
+        employeeCopy['status'] = 'inactive';
+        employeeCopy['lastModified'] = DateTime.now().millisecondsSinceEpoch;
+        await _dbHelper.update('users', employeeCopy);
         if (mounted) _loadEmployees();
       } catch (e) {
         if (mounted)
@@ -134,8 +137,11 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
 
   Future<void> _reactivateEmployee(Map<String, dynamic> employee) async {
     try {
-      employee['status'] = 'active';
-      await _dbHelper.update('users', employee);
+      // Create a modifiable copy of the employee data
+      final employeeCopy = Map<String, dynamic>.from(employee);
+      employeeCopy['status'] = 'active';
+      employeeCopy['lastModified'] = DateTime.now().millisecondsSinceEpoch;
+      await _dbHelper.update('users', employeeCopy);
       if (mounted) _loadEmployees();
     } catch (e) {
       if (mounted)
