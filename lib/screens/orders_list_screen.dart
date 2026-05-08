@@ -7,6 +7,7 @@ import '../utils/app_date_filter.dart';
 import '../services/database_helper.dart';
 import '../services/sync_service.dart';
 import 'order_details_screen.dart';
+import 'scanner_screen.dart';
 
 class OrdersListScreen extends StatefulWidget {
   final String? initialStatus;
@@ -265,6 +266,52 @@ class _OrdersListScreenState extends State<OrdersListScreen> {
     _applyFilters();
   }
 
+  Future<void> _openManualOrderLookup() async {
+    final controller = TextEditingController();
+    final orderId = await showDialog<String>(
+      context: context,
+      builder: (context) => Theme(
+        data: ThemeData.light(),
+        child: AlertDialog(
+          title: const Text('Enter Order ID'),
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            decoration: const InputDecoration(
+              labelText: 'Order ID',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, controller.text.trim()),
+              child: const Text('Go'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (!mounted || orderId == null || orderId.isEmpty) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => OrderDetailsScreen(orderId: orderId),
+      ),
+    );
+  }
+
+  void _openScanner() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const ScannerScreen()),
+    );
+  }
+
   Color _getStatusColor(String? status) {
     switch (status) {
       case 'pending':
@@ -291,6 +338,18 @@ class _OrdersListScreenState extends State<OrdersListScreen> {
       appBar: AppBar(
         title: const Text('Orders'),
         backgroundColor: AppColors.primaryRed,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.qr_code_scanner),
+            tooltip: 'Scan Barcode',
+            onPressed: _openScanner,
+          ),
+          IconButton(
+            icon: const Icon(Icons.pin_outlined),
+            tooltip: 'Enter Order ID',
+            onPressed: _openManualOrderLookup,
+          ),
+        ],
         bottom: PreferredSize(
           preferredSize: Size.fromHeight(showingCardFilters ? 170 : 220),
           child: Column(
@@ -593,6 +652,29 @@ class _OrdersListScreenState extends State<OrdersListScreen> {
                                 color: AppColors.mediumGrey,
                               ),
                             ),
+                            if ((order['status'] as String?)?.toLowerCase() ==
+                                    'cancelled' &&
+                                paid > 0) ...[
+                              const SizedBox(height: 4),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColors.error.withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Text(
+                                  'To Refund',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: AppColors.error,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                            ],
                             if (widget.showUnpaidOnly) ...[
                               const SizedBox(height: 4),
                               Text(

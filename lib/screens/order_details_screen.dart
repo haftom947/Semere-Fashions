@@ -1,9 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/colors.dart';
+import '../services/barcode_service.dart';
 import '../services/database_helper.dart';
 import '../services/sync_service.dart';
 import '../utils/error_handler.dart';
@@ -31,6 +34,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   List<Map<String, dynamic>> _employees = [];
   List<Map<String, dynamic>> _commissions = [];
   List<Map<String, dynamic>> _payments = [];
+  List<Map<String, dynamic>> _statusLogs = [];
   bool _isLoading = true;
   bool _paymentsLoading = false;
   bool _isAdminOrManager = true;
@@ -66,15 +70,14 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       List<Map<String, dynamic>> employees = [];
       List<Map<String, dynamic>> commissions = [];
       List<Map<String, dynamic>> payments = [];
+      List<Map<String, dynamic>> statusLogs = [];
       String? branchName;
 
       if (orderData != null) {
         order = Map<String, dynamic>.from(orderData);
 
         if (order['items'] is String) {
-          items = List<Map<String, dynamic>>.from(
-            jsonDecode(order['items']),
-          );
+          items = List<Map<String, dynamic>>.from(jsonDecode(order['items']));
         } else {
           items = List<Map<String, dynamic>>.from(
             order['items'] as List? ?? [],
@@ -111,26 +114,31 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
             .map((c) => Map<String, dynamic>.from(c))
             .toList();
 
+        statusLogs = await _dbHelper.getStatusLogsForOrder(widget.orderId);
+        if (!mounted || loadId != _loadGeneration) return;
+
         try {
-          final allPayments = await _dbHelper.query('payment_transaction');
+          final localPayments = await _dbHelper.getPaymentsForOrder(
+            widget.orderId,
+          );
           if (!mounted || loadId != _loadGeneration) return;
-          final mutablePayments = List<Map<String, dynamic>>.from(allPayments);
-          payments = mutablePayments
-              .where((p) => p['orderId'] == widget.orderId)
-              .map((p) => Map<String, dynamic>.from(p)) // ← mutable copy
+
+          payments = List<Map<String, dynamic>>.from(localPayments)
+              .map(Map<String, dynamic>.from)
               .toList();
-          for (final payment in payments) {
-            final breakdowns = await _dbHelper.queryWhere(
-              'payment_breakdown',
-              'payment_transaction_id = ?',
-              [payment['id']],
+
+          if (payments.isEmpty) {
+            await _syncService.syncPaymentsForOrder(widget.orderId);
+            if (!mounted || loadId != _loadGeneration) return;
+            final refreshedPayments = await _dbHelper.getPaymentsForOrder(
+              widget.orderId,
             );
             if (!mounted || loadId != _loadGeneration) return;
-            if (breakdowns.isNotEmpty) {
-              payment['method'] = breakdowns.first['method'];
-            }
+            payments = List<Map<String, dynamic>>.from(refreshedPayments)
+                .map(Map<String, dynamic>.from)
+                .toList();
           }
-          print('Payments for order ${widget.orderId}: $payments');
+          print('Loaded ${payments.length} payments for order ${widget.orderId}');
         } catch (e) {
           print('Payment table error: $e');
           payments = [];
@@ -146,6 +154,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         _branchName = branchName;
         _commissions = commissions;
         _payments = payments;
+        _statusLogs = statusLogs;
         _paymentsLoading = false;
         _isLoading = false;
       });
@@ -273,9 +282,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     String? helperText,
   }) async {
     final controller = TextEditingController(
-      text: initialValue.toStringAsFixed(
-        initialValue % 1 == 0 ? 0 : 2,
-      ),
+      text: initialValue.toStringAsFixed(initialValue % 1 == 0 ? 0 : 2),
     );
 
     return showDialog<double>(
@@ -288,10 +295,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               if (helperText != null) ...[
-                Text(
-                  helperText,
-                  style: const TextStyle(color: Colors.black54),
-                ),
+                Text(helperText, style: const TextStyle(color: Colors.black54)),
                 const SizedBox(height: 12),
               ],
               TextField(
@@ -331,7 +335,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   Future<bool> _deductStockIfNeeded(Map<String, dynamic> updatedOrder) async {
     if (updatedOrder['stock_deducted'] == 1) return true;
 
-    double totalCogs = 0.0;   // <-- add this variable
+    double totalCogs = 0.0; // <-- add this variable
 
     for (final item in _items) {
       final productId = item['productId'];
@@ -339,14 +343,22 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
 
       final product = await _dbHelper.queryById('products', productId);
       if (product == null) {
-        if (mounted) ErrorHandler.showError(context, 'Product not found for ${item['description']}');
+        if (mounted)
+          ErrorHandler.showError(
+            context,
+            'Product not found for ${item['description']}',
+          );
         return false;
       }
 
       final currentStock = (product['stock'] as num?)?.toInt() ?? 0;
       final quantity = (item['quantity'] as num?)?.toInt() ?? 0;
       if (currentStock < quantity) {
-        if (mounted) ErrorHandler.showError(context, 'Not enough stock for ${item['description']}');
+        if (mounted)
+          ErrorHandler.showError(
+            context,
+            'Not enough stock for ${item['description']}',
+          );
         return false;
       }
 
@@ -356,33 +368,12 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
 
       // Add to COGS
       final productCost = (product['costPrice'] as num?)?.toDouble() ?? 0.0;
-      totalCogs += productCost * quantity;   // <-- accumulate cost
+      totalCogs += productCost * quantity; // <-- accumulate cost
     }
 
     updatedOrder['stock_deducted'] = 1;
-    updatedOrder['cogs'] = totalCogs;   // <-- store in order
+    updatedOrder['cogs'] = totalCogs; // <-- store in order
     return true;
-  }
-  
-  Future<void> _restoreStockIfNeeded(Map<String, dynamic> updatedOrder) async {
-    final stockDeducted = updatedOrder['stock_deducted'] == 1;
-    if (!stockDeducted) return;
-
-    for (final item in _items) {
-      final productId = item['productId'];
-      if (productId == null) continue;
-
-      final product = await _dbHelper.queryById('products', productId);
-      if (product == null) continue;
-
-      final updatedProduct = Map<String, dynamic>.from(product);
-      updatedProduct['stock'] =
-          ((updatedProduct['stock'] as num?)?.toInt() ?? 0) +
-          ((item['quantity'] as num?)?.toInt() ?? 0);
-      await _dbHelper.update('products', updatedProduct);
-    }
-
-    updatedOrder['stock_deducted'] = 0;
   }
 
   Future<void> _updateStatus(String newStatus) async {
@@ -390,11 +381,27 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
 
     setState(() => _isLoading = true);
     try {
+      final previousStatus = _order!['status']?.toString();
+      if (newStatus == 'cancelled' && previousStatus == 'delivered') {
+        if (mounted) {
+          ErrorHandler.showError(
+            context,
+            'Delivered orders cannot be cancelled. Use refund instead.',
+          );
+          setState(() => _isLoading = false);
+        }
+        return;
+      }
+
       final updatedOrder = Map<String, dynamic>.from(_order!);
-      final previousStatus = _order!['status'];
       updatedOrder['status'] = newStatus;
 
-      if (newStatus == 'delivered') {
+      if (newStatus == 'cancelled') {
+        await _restoreOptimisticStockIfNeeded(updatedOrder);
+      }
+
+      if (newStatus == 'out_for_delivery' &&
+          (updatedOrder['stock_deducted'] ?? 0) != 1) {
         final deducted = await _deductStockIfNeeded(updatedOrder);
         if (!deducted) {
           if (mounted) {
@@ -404,24 +411,27 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         }
       }
 
-      if (newStatus == 'cancelled') {
-        await _reverseOrderEffects(
-          restoreStock:
-              previousStatus == 'delivered' ||
-              updatedOrder['stock_deducted'] == 1,
-          updatedOrder: updatedOrder,
-        );
-      }
-
       await _dbHelper.update('orders', updatedOrder);
+      final changedBy = await _resolveCurrentUserName();
+      await _dbHelper.insertStatusLog(
+        orderId: widget.orderId,
+        newStatus: newStatus,
+        changedBy: changedBy,
+        changedAt: DateTime.now().millisecondsSinceEpoch,
+      );
       _order = updatedOrder;
 
-      if (newStatus == 'out_for_delivery') {
-        await _calculateSalesCommissionIfNeeded();
+      if (newStatus == 'delivered') {
+        await _createTailorCommission();
+        await _calculateAllCommissions();
+        await _recalculateSalesCommission(); // Recalculate sales commission after all other commissions are set
       }
 
-      if (newStatus == 'delivered') {
-        await _calculateAllCommissions();
+      if (newStatus == 'cancelled') {
+        await _voidCommissionsOnly(previousStatus);
+        if (mounted) {
+          ErrorHandler.showSuccess(context, 'Order cancelled.');
+        }
       }
 
       final connectivityResults = await Connectivity().checkConnectivity();
@@ -440,35 +450,86 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     }
   }
 
-  Future<void> _reverseOrderEffects({
-    required bool restoreStock,
-    required Map<String, dynamic> updatedOrder,
-  }) async {
-    for (final comm in _commissions) {
-      if (comm['status'] == 'pending') {
-        final updatedCommission = Map<String, dynamic>.from(comm);
-        updatedCommission['status'] = 'voided';
-        await _dbHelper.update('commissions', updatedCommission);
+  Future<String> _resolveCurrentUserName() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final userId =
+          prefs.getString('userId') ?? FirebaseAuth.instance.currentUser?.uid;
+      if (userId != null && userId.isNotEmpty) {
+        final user = await _dbHelper.queryById('users', userId);
+        final name = user?['name']?.toString().trim();
+        if (name != null && name.isNotEmpty) return name;
       }
+    } catch (_) {}
+    return 'Unknown user';
+  }
+
+  Future<void> _printLabel() async {
+    if (_order == null) return;
+    await BarcodeService.printLabel(
+      orderId: widget.orderId,
+      customerName: _order!['customerName']?.toString(),
+      status: _order!['status']?.toString(),
+      branchName: _branchName,
+      createdAtLabel: _formatDate((_order!['createdAt'] as num?)?.toInt() ?? 0),
+    );
+  }
+
+  Future<void> _shareLabel() async {
+    if (_order == null) return;
+    await BarcodeService.shareLabel(
+      orderId: widget.orderId,
+      customerName: _order!['customerName']?.toString(),
+      status: _order!['status']?.toString(),
+      branchName: _branchName,
+      createdAtLabel: _formatDate((_order!['createdAt'] as num?)?.toInt() ?? 0),
+    );
+  }
+
+  Future<void> _restoreOptimisticStockIfNeeded(
+    Map<String, dynamic> order,
+  ) async {
+    if ((order['stock_deducted'] as num?)?.toInt() == 1) {
+      return;
     }
 
-    await _dbHelper.clearPaymentsForOrder(widget.orderId);
-    updatedOrder['paid_amount'] = 0.0;
-
-    if (restoreStock) {
-      await _restoreStockIfNeeded(updatedOrder);
-      if (mounted) {
-        ErrorHandler.showSuccess(context, 'Order cancelled. Stock restored.');
+    for (final item in _items) {
+      final productId = item['productId']?.toString();
+      final quantity = (item['quantity'] as num?)?.toInt() ?? 0;
+      if (productId == null || productId.isEmpty || quantity <= 0) {
+        continue;
       }
-    } else if (mounted) {
-      ErrorHandler.showSuccess(context, 'Order cancelled.');
+      await _dbHelper.increaseProductStock(productId, quantity);
     }
   }
 
-  bool _hasCommissionFor({
-    required String employeeId,
-    required String type,
-  }) {
+  Future<void> _voidCommissionsOnly(String? currentStatus) async {
+    final deliveryHappened =
+        currentStatus == 'out_for_delivery' || currentStatus == 'delivered';
+
+    for (final comm in _commissions) {
+      if (comm['status']?.toString() == 'voided') continue;
+
+      final type = comm['type']?.toString();
+      bool shouldVoid = false;
+
+      if (type == 'sales') {
+        shouldVoid = true;
+      } else if (type == 'tailor') {
+        shouldVoid = false;
+      } else if (type == 'delivery') {
+        shouldVoid = !deliveryHappened;
+      }
+
+      if (!shouldVoid) continue;
+
+      final updatedCommission = Map<String, dynamic>.from(comm);
+      updatedCommission['status'] = 'voided';
+      await _dbHelper.update('commissions', updatedCommission);
+    }
+  }
+
+  bool _hasCommissionFor({required String employeeId, required String type}) {
     return _commissions.any(
       (comm) =>
           comm['orderId'] == widget.orderId &&
@@ -478,8 +539,94 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     );
   }
 
+  Future<void> _recalculateSalesCommission() async {
+    if (_order == null || _order!['status']?.toString() != 'delivered') {
+      return; // Only recalculate for delivered orders
+    }
+
+    final salesPersonId = _order!['salesPersonId'];
+    if (salesPersonId == null) return;
+
+    final salesPerson = await _dbHelper.queryById('users', salesPersonId);
+    if (salesPerson == null) return;
+
+    final commissionRate = (salesPerson['commissionRate'] as num?)?.toDouble() ?? 0;
+    if (commissionRate <= 0) return;
+
+    final totalAmount = (_order!['totalAmount'] as num?)?.toDouble() ?? 0;
+    final cogsValue = (_order!['cogs'] as num?)?.toDouble() ?? 0;
+    final grossProfit = (totalAmount - cogsValue).clamp(0.0, double.infinity);
+    if (grossProfit <= 0) return;
+
+    final otherCuts = await _dbHelper.getNonSalesCommissionsForOrder(widget.orderId);
+    final baseForSales = (grossProfit - otherCuts).clamp(0.0, double.infinity);
+    final newSalesCommission = baseForSales * (commissionRate / 100);
+
+    final existingSalesCommission = _commissions.firstWhere(
+      (c) => c['employeeId'] == salesPersonId && c['type'] == 'sales',
+      orElse: () => <String, dynamic>{},
+    );
+
+    if (existingSalesCommission.isNotEmpty) {
+      // Update existing commission
+      final updatedCommission = Map<String, dynamic>.from(existingSalesCommission);
+      updatedCommission['amount'] = newSalesCommission;
+      updatedCommission['syncStatus'] = 'pending';
+      await _dbHelper.update('commissions', updatedCommission);
+    } else if (newSalesCommission > 0) {
+      // Create new commission (edge case, but good to handle)
+      await _dbHelper.insert('commissions', {
+        'orderId': widget.orderId,
+        'employeeId': salesPersonId,
+        'employeeName': salesPerson['name'] ?? '',
+        'amount': newSalesCommission,
+        'type': 'sales',
+        'status': 'pending',
+        'createdAt': DateTime.now().millisecondsSinceEpoch,
+      });
+    }
+    // No need to call _loadData() here, it is usually called by the method triggering this recalc
+  }
+
+  Future<void> _createTailorCommission() async {
+    final tailorAssignment = _assignments.firstWhere(
+      (a) => a['role']?.toString() == 'tailor',
+      orElse: () => <String, dynamic>{},
+    );
+    if (tailorAssignment.isEmpty) return;
+
+    final tailorId = tailorAssignment['employeeId']?.toString() ?? '';
+    if (tailorId.isEmpty) return;
+    if (_hasCommissionFor(employeeId: tailorId, type: 'tailor')) return;
+
+    final tailorName = tailorAssignment['employeeName']?.toString() ?? '';
+    final employee = _employees.firstWhere(
+      (e) => e['id']?.toString() == tailorId,
+      orElse: () => <String, dynamic>{},
+    );
+    final commissionAmount =
+        (tailorAssignment['commission_amount'] as num?)?.toDouble() ??
+        (employee['tailorCut'] as num?)?.toDouble() ??
+        0.0;
+    if (commissionAmount <= 0) return;
+
+    await _dbHelper.insert('commissions', {
+      'orderId': widget.orderId,
+      'employeeId': tailorId,
+      'employeeName': tailorName,
+      'amount': commissionAmount,
+      'type': 'tailor',
+      'status': 'pending',
+      'createdAt': DateTime.now().millisecondsSinceEpoch,
+    });
+    await _loadData();
+  }
+
   Future<void> _calculateAllCommissions() async {
     for (final assignment in _assignments) {
+      final role = assignment['role']?.toString();
+      if (role == 'tailor' || role == 'sales') continue;
+
       double commission = 0;
       if (assignment['commission_amount'] != null &&
           (assignment['commission_amount'] as num) > 0) {
@@ -498,8 +645,6 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
           final deliveryFee =
               (_order!['delivery_fee'] as num?)?.toDouble() ?? 0;
           commission = type == 'percentage' ? deliveryFee * value / 100 : value;
-        } else if (assignment['role'] == 'tailor') {
-          commission = (employee['tailorCut'] as num?)?.toDouble() ?? 0;
         }
       }
       final assignmentEmployeeId = assignment['employeeId']?.toString() ?? '';
@@ -511,7 +656,6 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
             type: assignmentType,
           )) {
         await _dbHelper.insert('commissions', {
-          'id': '${assignment['id']}_${DateTime.now().millisecondsSinceEpoch}',
           'orderId': widget.orderId,
           'employeeId': assignmentEmployeeId,
           'employeeName': assignment['employeeName'],
@@ -534,108 +678,241 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     final salesPerson = await _dbHelper.queryById('users', salesPersonId);
     if (salesPerson == null) return;
 
-    final commissionRate = (salesPerson['commissionRate'] as num?)?.toDouble() ?? 0;
+    final commissionRate =
+        (salesPerson['commissionRate'] as num?)?.toDouble() ?? 0;
     if (commissionRate <= 0) return;
-
-    final totalAmount = (_order!['totalAmount'] as num?)?.toDouble() ?? 0;
-    final cogsValue = (_order!['cogs'] as num?)?.toDouble() ?? 0;
-    final profitBase = (totalAmount - cogsValue).clamp(0.0, double.infinity);
-    if (profitBase <= 0) return;
-
-    final commissionAmount = profitBase * commissionRate / 100;
-    await _dbHelper.insert('commissions', {
-      'id': '${salesPersonId}_${DateTime.now().millisecondsSinceEpoch}',
-      'orderId': widget.orderId,
-      'employeeId': salesPersonId,
-      'employeeName': salesPerson['name'] ?? '',
-      'amount': commissionAmount,
-      'type': 'sales',
-      'status': 'pending',
-      'createdAt': DateTime.now().millisecondsSinceEpoch,
-    });
-    await _loadData();
+    // Delegate to the recalculation method
+    await _recalculateSalesCommission();
   }
 
-  Future<void> _assignRole(String role) async {
-    final availableEmployees = _employees
-        .where((e) => e['role'] == role && e['status'] == 'active')
-        .toList();
-    if (availableEmployees.isEmpty) {
-      ErrorHandler.showError(context, 'No active $role available');
+  Future<void> _assignParticipant() async {
+    final allEmployees = await _dbHelper.query('users');
+    final activeEmployees = allEmployees.where((e) => e['status'] == 'active').toList();
+    if (activeEmployees.isEmpty) {
+      ErrorHandler.showError(context, 'No active employees available');
       return;
     }
 
-    final selected = await EmployeeSelectorDialog.showEmployeeSelector(
+    final selectedEmployee = await EmployeeSelectorDialog.showEmployeeSelector(
       context,
-      employees: availableEmployees,
-      title: 'Select $role',
+      employees: activeEmployees,
+      title: 'Select Employee',
+    );
+    if (selectedEmployee == null) return;
+
+    String employeeRole = selectedEmployee['role']?.toString() ?? 'other';
+    String selectedRole = employeeRole;
+    bool isCustomRole = false;
+    final customRoleController = TextEditingController();
+    double? deliveryFee;
+    String commissionPreview = '';
+    double tailorCutOverride = 0.0;
+    bool overrideTailorCut = false;
+    double customCommission = 0.0;
+    bool addCustomCommission = false;
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setStateDialog) {
+          void updateDeliveryPreview() {
+            final fee = deliveryFee;
+            setStateDialog(() {
+              if (selectedRole == 'delivery' && fee != null && fee > 0) {
+                final type = selectedEmployee['delivery_commission_type']?.toString() ?? 'fixed';
+                final value = (selectedEmployee['delivery_commission_value'] as num?)?.toDouble() ?? 0.0;
+                if (type == 'percentage') {
+                  final amt = fee * value / 100;
+                  commissionPreview = 'Commission: ${value.toStringAsFixed(0)}% of fee = ETB ${amt.toStringAsFixed(2)}';
+                } else {
+                  commissionPreview = 'Commission: Fixed ETB ${value.toStringAsFixed(2)}';
+                }
+              } else {
+                commissionPreview = '';
+              }
+            });
+          }
+
+          return AlertDialog(
+            title: const Text('Assign Role', style: TextStyle(color: Colors.black)),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  DropdownButtonFormField<String>(
+                    value: isCustomRole ? 'custom' : selectedRole,
+                    decoration: const InputDecoration(
+                      labelText: 'Role',
+                      labelStyle: TextStyle(color: Colors.black54),
+                    ),
+                    style: const TextStyle(color: Colors.black),
+                    items: [
+                      DropdownMenuItem(value: employeeRole, child: Text(employeeRole)),
+                      if (employeeRole != 'tailor') const DropdownMenuItem(value: 'tailor', child: Text('tailor')),
+                      if (employeeRole != 'delivery') const DropdownMenuItem(value: 'delivery', child: Text('delivery')),
+                      if (employeeRole != 'sales') const DropdownMenuItem(value: 'sales', child: Text('sales')),
+                      const DropdownMenuItem(value: 'custom', child: Text('Custom...')),
+                    ],
+                    onChanged: (value) {
+                      setStateDialog(() {
+                        if (value == 'custom') {
+                          isCustomRole = true;
+                          selectedRole = '';
+                        } else {
+                          isCustomRole = false;
+                          selectedRole = value!;
+                        }
+                      });
+                    },
+                  ),
+                  if (isCustomRole)
+                    TextField(
+                      controller: customRoleController,
+                      style: const TextStyle(color: Colors.black),
+                      decoration: const InputDecoration(
+                        labelText: 'Custom Role',
+                        labelStyle: TextStyle(color: Colors.black54),
+                      ),
+                    ),
+                  const SizedBox(height: 12),
+                  if (selectedRole == 'delivery') ...[
+                    TextField(
+                      keyboardType: TextInputType.number,
+                      style: const TextStyle(color: Colors.black),
+                      decoration: const InputDecoration(
+                        labelText: 'Delivery Fee (ETB) *',
+                        labelStyle: TextStyle(color: Colors.black54),
+                      ),
+                      onChanged: (value) {
+                        deliveryFee = double.tryParse(value);
+                        updateDeliveryPreview();
+                      },
+                    ),
+                    if (commissionPreview.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Text(commissionPreview, style: const TextStyle(fontSize: 12, color: Colors.green)),
+                      ),
+                  ] else if (selectedRole == 'tailor') ...[
+                    const Text('Tailor cut defaults to employee setting.', style: TextStyle(color: Colors.black54)),
+                    const SizedBox(height: 8),
+                    CheckboxListTile(
+                      title: const Text('Override tailor cut?', style: TextStyle(color: Colors.black)),
+                      value: overrideTailorCut,
+                      onChanged: (v) => setStateDialog(() => overrideTailorCut = v ?? false),
+                    ),
+                    if (overrideTailorCut)
+                      TextField(
+                        keyboardType: TextInputType.number,
+                        style: const TextStyle(color: Colors.black),
+                        decoration: const InputDecoration(
+                          labelText: 'Tailor Cut (ETB)',
+                          labelStyle: TextStyle(color: Colors.black54),
+                        ),
+                        onChanged: (v) => tailorCutOverride = double.tryParse(v) ?? 0,
+                      ),
+                  ] else if (selectedRole != employeeRole && selectedRole != 'custom') ...[
+                    CheckboxListTile(
+                      title: const Text('Add custom commission?', style: TextStyle(color: Colors.black)),
+                      value: addCustomCommission,
+                      onChanged: (v) => setStateDialog(() => addCustomCommission = v ?? false),
+                    ),
+                    if (addCustomCommission)
+                      TextField(
+                        keyboardType: TextInputType.number,
+                        style: const TextStyle(color: Colors.black),
+                        decoration: const InputDecoration(
+                          labelText: 'Commission Amount (ETB)',
+                          labelStyle: TextStyle(color: Colors.black54),
+                        ),
+                        onChanged: (v) => customCommission = double.tryParse(v) ?? 0,
+                      ),
+                  ],
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+              ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Assign')),
+            ],
+          );
+        },
+      ),
     );
 
-    if (selected == null) return;
+    if (result != true) return;
 
-    double? deliveryFee;
-    double commissionAmount = 0;
-
-    if (role == 'tailor') {
-      final employeeCut = (selected['tailorCut'] as num?)?.toDouble() ?? 0.0;
-      final tailorCut = await _showAmountDialog(
-        title: 'Tailor Cut',
-        label: 'Tailor Cut (ETB)',
-        initialValue: employeeCut,
-        helperText: 'Enter the tailor cut for this order.',
-      );
-      if (tailorCut == null) return;
-      commissionAmount = tailorCut;
-    } else if (role == 'delivery') {
-      deliveryFee = await _showDeliveryFeeDialog();
-      if (deliveryFee == null) return;
-
-      final deliveryType =
-          selected['delivery_commission_type']?.toString() ?? 'fixed';
-      final deliveryValue =
-          (selected['delivery_commission_value'] as num?)?.toDouble() ?? 0.0;
-      final defaultDeliveryCommission = deliveryType == 'percentage'
-          ? deliveryFee * deliveryValue / 100
-          : deliveryValue;
-
-      final commission = await _showAmountDialog(
-        title: 'Delivery Commission',
-        label: 'Commission Amount (ETB)',
-        initialValue: defaultDeliveryCommission,
-        helperText: 'Set the delivery commission for this order.',
-      );
-      if (commission == null) return;
-      commissionAmount = commission;
+    final finalRole = isCustomRole ? customRoleController.text.trim() : selectedRole;
+    if (finalRole.isEmpty) {
+      ErrorHandler.showError(context, 'Role is required');
+      return;
     }
 
-    final assignmentData = <String, dynamic>{
-      'id': DateTime.now().millisecondsSinceEpoch.toString(),
+    double commission = 0.0;
+    final roleLower = finalRole.toLowerCase();
+
+    // Handle delivery role
+    if (roleLower == 'delivery') {
+      if (deliveryFee == null || deliveryFee! <= 0) {
+        ErrorHandler.showError(context, 'Valid delivery fee required');
+        return;
+      }
+      // Update order delivery fee and total
+      final updatedOrder = Map<String, dynamic>.from(_order!);
+      updatedOrder['delivery_fee'] = deliveryFee;
+      final subtotal = _calculateItemsSubtotal();
+      final discount = _calculateDiscountAmount(deliveryFeeOverride: deliveryFee);
+      updatedOrder['totalAmount'] = subtotal + deliveryFee! - discount;
+      await _dbHelper.update('orders', updatedOrder, markSynced: true);
+      _order = updatedOrder;
+
+      final deliveryType = selectedEmployee['delivery_commission_type']?.toString() ?? 'fixed';
+      final deliveryValue = (selectedEmployee['delivery_commission_value'] as num?)?.toDouble() ?? 0.0;
+      if (deliveryType == 'percentage') {
+        commission = deliveryFee! * deliveryValue / 100;
+      } else {
+        commission = deliveryValue;
+      }
+    }
+    // Handle tailor role
+    else if (roleLower == 'tailor') {
+      if (overrideTailorCut) {
+        commission = tailorCutOverride;
+      } else {
+        commission = (selectedEmployee['tailorCut'] as num?)?.toDouble() ?? 0.0;
+      }
+      if (_order!['status'] == 'pending') {
+        final updatedOrder = Map<String, dynamic>.from(_order!);
+        updatedOrder['status'] = 'processing';
+        await _dbHelper.update('orders', updatedOrder, markSynced: true);
+        _order = updatedOrder;
+      }
+    }
+    // Other roles (including custom)
+    else {
+      if (addCustomCommission) {
+        commission = customCommission;
+      }
+    }
+
+    final assignmentData = {
       'orderId': widget.orderId,
-      'employeeId': selected['id'],
-      'employeeName': selected['name'],
-      'role': role,
+      'employeeId': selectedEmployee['id'],
+      'employeeName': selectedEmployee['name'],
+      'employeePhone':
+          selectedEmployee['phone'] ??
+          selectedEmployee['contact'] ??
+          selectedEmployee['mobile'],
+      'role': finalRole,
       'assignedAt': DateTime.now().millisecondsSinceEpoch,
-      'commission_amount': commissionAmount,
+      'commission_amount': commission,
     };
     await _dbHelper.insert('order_assignments', assignmentData);
-
-    if (role == 'delivery' && deliveryFee != null) {
-      await _updateDeliveryFee(deliveryFee);
-    }
-
-    // Auto‑mark processing when tailor assigned and order is pending
-    if (role == 'tailor' && _order!['status'] == 'pending') {
-      final updatedOrder = Map<String, dynamic>.from(_order!);
-      updatedOrder['status'] = 'processing';
-      await _dbHelper.update('orders', updatedOrder);
-      _order = updatedOrder;
-      _syncService.emitDataChanged();
-    }
-
+    await _recalculateSalesCommission(); // Recalculate sales commission after assignment changes
     await _loadData();
+    ErrorHandler.showSuccess(context, 'Assigned $finalRole');
   }
-  
-  
+
   Future<double?> _showCustomCommissionDialog() async {
     final controller = TextEditingController();
     final result = await showDialog<bool>(
@@ -741,9 +1018,98 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       updatedAssignment['commission_amount'] =
           double.tryParse(controller.text) ?? 0;
       await _dbHelper.update('order_assignments', updatedAssignment);
+      await _recalculateSalesCommission(); // Recalculate sales commission after assignment changes
       await _loadData();
     }
   }
+
+  Widget _buildAssignmentTile(Map<String, dynamic> assignment) {
+    final role = assignment['role'] as String? ?? '?';
+    final employeeName = assignment['employeeName'] as String? ?? 'Unknown';
+    final commission = (assignment['commission_amount'] as num?)?.toDouble() ?? 0.0;
+    final assignmentId = assignment['id']?.toString() ?? '';
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 18,
+            backgroundColor: AppColors.primaryRed.withOpacity(0.1),
+            child: Text(
+              role.isNotEmpty ? role.substring(0, 1).toUpperCase() : '?',
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.primaryRed),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  employeeName,
+                  style: const TextStyle(fontWeight: FontWeight.w500, color: Colors.black),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  role,
+                  style: const TextStyle(fontSize: 12, color: Colors.black54),
+                ),
+              ],
+            ),
+          ),
+          if (commission > 0)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.info.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                'ETB ${commission.toStringAsFixed(0)}',
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.info),
+              ),
+            ),
+          if (_isAdminOrManager) ...[
+              IconButton(
+                icon: const Icon(
+                  Icons.monetization_on,
+                  size: 18,
+                  color: Colors.black,
+                ),
+                onPressed: () => _editCommission(assignment),
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete_outline, size: 20, color: Colors.grey),
+                onPressed: () => _deleteAssignment(assignmentId, employeeName, role),
+                tooltip: 'Remove assignment',
+              ),
+            ],
+        ],
+      ),
+    );
+  }
+
+    Future<void> _deleteAssignment(String assignmentId, String employeeName, String role) async {
+      if (assignmentId.isEmpty) return;
+      final confirm = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Remove Assignment'),
+          content: Text('Remove $employeeName from $role?'),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+            TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Remove', style: TextStyle(color: Colors.red))),
+          ],
+        ),
+      );
+      if (confirm == true) {
+        await _dbHelper.delete('order_assignments', assignmentId);
+        await _loadData();
+        await _recalculateSalesCommission(); // Recalculate sales commission after assignment changes
+        ErrorHandler.showSuccess(context, 'Assignment removed');
+      }
+    }
 
   String _formatDate(int timestamp) {
     final date = DateTime.fromMillisecondsSinceEpoch(timestamp);
@@ -755,6 +1121,14 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   }
 
   Future<void> _showCancelDialog() async {
+    if (_order?['status']?.toString() == 'delivered') {
+      ErrorHandler.showError(
+        context,
+        'Delivered orders cannot be cancelled. Use refund instead.',
+      );
+      return;
+    }
+
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => Theme(
@@ -762,7 +1136,13 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         child: AlertDialog(
           title: const Text('Cancel Order'),
           content: const Text(
-            'Are you sure you want to cancel this order? This will void commissions, reverse payments, and restore stock if it was deducted.',
+            'Are you sure you want to cancel this order?\n\n'
+            '• Payments will NOT be automatically refunded.\n'
+            '• Stock will NOT be restored.\n'
+            '• Sales commissions will be voided.\n'
+            '• Tailor commissions remain (work done).\n'
+            '• Delivery commissions remain if delivery happened.\n\n'
+            'To refund a payment, use "Record Payment" with type "Refund".',
           ),
           actions: [
             TextButton(
@@ -772,7 +1152,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
             TextButton(
               onPressed: () => Navigator.pop(context, true),
               child: const Text(
-                'Yes',
+                'Yes, Cancel',
                 style: TextStyle(color: AppColors.error),
               ),
             ),
@@ -792,6 +1172,18 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       appBar: AppBar(
         title: const Text('Order Details'),
         backgroundColor: AppColors.primaryRed,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.print),
+            onPressed: _order == null ? null : _printLabel,
+            tooltip: 'Print Label',
+          ),
+          IconButton(
+            icon: const Icon(Icons.share),
+            onPressed: _order == null ? null : _shareLabel,
+            tooltip: 'Share Label',
+          ),
+        ],
       ),
       body: Container(
         decoration: const BoxDecoration(
@@ -900,7 +1292,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const Text(
-                              'Assignments',
+                              'Status History',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -908,80 +1300,78 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                               ),
                             ),
                             const SizedBox(height: 8),
-                            ..._assignments.map(
-                              (a) => Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 4,
-                                ),
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        '${a['role']}: ${a['employeeName']}',
-                                        style: const TextStyle(
-                                          color: Colors.black,
-                                        ),
-                                      ),
-                                    ),
-                                    if (a['commission_amount'] != null &&
-                                        (a['commission_amount'] as num) > 0)
-                                      Padding(
-                                        padding: const EdgeInsets.only(
-                                          right: 8,
-                                        ),
-                                        child: Chip(
-                                          label: Text(
-                                            'ETB ${(a['commission_amount'] as num).toStringAsFixed(0)}',
-                                          ),
-                                          backgroundColor: AppColors.info,
-                                        ),
-                                      ),
-                                    if (_isAdminOrManager)
-                                      IconButton(
-                                        icon: const Icon(
-                                          Icons.monetization_on,
-                                          size: 16,
-                                          color: Colors.black,
-                                        ),
-                                        onPressed: () => _editCommission(a),
-                                      ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            if (_assignments.isEmpty)
+                            if (_statusLogs.isEmpty)
                               const Text(
-                                'No assignments yet.',
-                                style: TextStyle(color: Colors.black),
-                              ),
-                            if (_isAdminOrManager) ...[
-                              Center(
-                                child: TextButton.icon(
-                                  onPressed: () => _assignRole('tailor'),
-                                  icon: const Icon(
-                                    Icons.person,
-                                    color: Colors.blue,
+                                'No status updates recorded yet.',
+                                style: TextStyle(color: Colors.black54),
+                              )
+                            else
+                              ..._statusLogs.map(
+                                (log) => ListTile(
+                                  contentPadding: EdgeInsets.zero,
+                                  leading: const Icon(
+                                    Icons.timeline,
+                                    color: AppColors.primaryRed,
                                   ),
-                                  label: const Text(
-                                    'Assign Tailor',
-                                    style: TextStyle(color: Colors.blue),
+                                  title: Text(
+                                    (log['status'] ?? '').toString(),
+                                    style: const TextStyle(color: Colors.black),
                                   ),
-                                ),
-                              ),
-                              Center(
-                                child: TextButton.icon(
-                                  onPressed: () => _assignRole('delivery'),
-                                  icon: const Icon(
-                                    Icons.delivery_dining,
-                                    color: Colors.blue,
-                                  ),
-                                  label: const Text(
-                                    'Assign Delivery',
-                                    style: TextStyle(color: Colors.blue),
+                                  subtitle: Text(
+                                    '${_formatDate((log['changedAt'] as num?)?.toInt() ?? 0)} by ${log['changedBy'] ?? 'Unknown'}',
+                                    style: const TextStyle(
+                                      color: Colors.black54,
+                                    ),
                                   ),
                                 ),
                               ),
-                            ],
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    Card(
+                      color: AppColors.white,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Row(
+                              children: [
+                                Icon(Icons.group, size: 20, color: AppColors.primaryRed),
+                                SizedBox(width: 8),
+                                Text(
+                                  'Assignments',
+                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            if (_assignments.isEmpty)
+                              const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 8),
+                                child: Text('No assignments yet', style: TextStyle(color: Colors.black54)),
+                              )
+                            else
+                              ..._assignments.map((a) => _buildAssignmentTile(a)),
+                            const SizedBox(height: 12),
+                            if (_isAdminOrManager)
+                              SizedBox(
+                                width: double.infinity,
+                                child: OutlinedButton.icon(
+                                  onPressed: _assignParticipant,
+                                  icon: const Icon(Icons.person_add, size: 18),
+                                  label: const Text('Assign Participant'),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: AppColors.primaryRed,
+                                    side: BorderSide(color: AppColors.primaryRed),
+                                    padding: const EdgeInsets.symmetric(vertical: 10),
+                                  ),
+                                ),
+                              ),
                           ],
                         ),
                       ),

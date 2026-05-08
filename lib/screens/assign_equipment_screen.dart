@@ -28,7 +28,7 @@ class _AssignEquipmentScreenState extends State<AssignEquipmentScreen> {
   @override
   void initState() {
     super.initState();
-    _selectedEmployeeId = widget.currentAssignee?.toString() ?? '';
+    _selectedEmployeeId = widget.currentAssignee?.toString();
     _loadEmployees();
   }
 
@@ -41,30 +41,33 @@ class _AssignEquipmentScreenState extends State<AssignEquipmentScreen> {
 
   Future<void> _assign() async {
     setState(() => _isLoading = true);
+    final now = DateTime.now().millisecondsSinceEpoch;
     try {
-      // Update equipment with new assignee
-      var equipment = await _dbHelper.queryById(
-        'equipment',
-        widget.equipmentId,
-      );
-      if (equipment != null) {
-        equipment['assignedTo'] =
-            _selectedEmployeeId == null || _selectedEmployeeId!.isEmpty
-                ? null
-                : _selectedEmployeeId;
-        await _dbHelper.update('equipment', equipment);
-      }
-      // Record assignment history – we can add an assignments table later
-      // For now, just update local and sync
+      await _dbHelper.update('equipment', {
+        'id': widget.equipmentId,
+        'assignedTo': _selectedEmployeeId == null || _selectedEmployeeId!.isEmpty
+            ? null
+            : _selectedEmployeeId,
+        'syncStatus': 'pending',
+        'lastModified': now,
+      });
+
       var connectivityResult = await Connectivity().checkConnectivity();
       if (connectivityResult != ConnectivityResult.none) {
         _syncService.syncAll();
       }
-      if (mounted) ErrorHandler.safePop(context);
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Equipment assigned successfully')),
+      );
+      Navigator.pop(context, true);
     } catch (e) {
-      if (mounted) ErrorHandler.showError(context, 'Error: $e');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Error: $e')));
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 

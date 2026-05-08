@@ -40,15 +40,35 @@ class _RentPaymentScreenState extends State<RentPaymentScreen> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
     try {
+      final paymentAmount = double.tryParse(_amountController.text) ?? 0;
+      final paymentMonth = _monthController.text.trim();
       Map<String, dynamic> data = {
         'id': DateTime.now().millisecondsSinceEpoch.toString(),
         'tenantId': widget.tenantId,
         'tenantName': widget.tenantName,
-        'amount': double.tryParse(_amountController.text) ?? 0,
-        'month': _monthController.text.trim(),
+        'amount': paymentAmount,
+        'month': paymentMonth,
         'paidAt': DateTime.now().millisecondsSinceEpoch,
       };
       await _dbHelper.insert('rent_payments', data);
+
+      if (paymentAmount > 0) {
+        final matchingDues = await _dbHelper.queryWhere(
+          'rent_dues',
+          'tenantId = ? AND dueMonth = ? AND status = ?',
+          [widget.tenantId, paymentMonth, 'pending'],
+        );
+
+        for (final due in matchingDues) {
+          final dueId = due['id']?.toString();
+          if (dueId == null || dueId.isEmpty) continue;
+          await _dbHelper.update('rent_dues', {
+            'id': dueId,
+            'status': 'paid',
+          });
+        }
+      }
+
       if (mounted) {
         _syncService.triggerBackgroundSync();
         ErrorHandler.showSuccess(context, 'Rent payment recorded');

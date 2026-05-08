@@ -7,6 +7,7 @@ import '../widgets/category_card.dart';
 import '../widgets/recent_order_card.dart';
 import '../widgets/drawer_menu.dart';
 import '../widgets/global_date_filter_card.dart';
+import '../utils/translations.dart';
 
 class DashboardScreen extends StatefulWidget {
   final String role;
@@ -229,8 +230,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                               20,
                                             ),
                                           ),
-                                          child: const Text(
-                                            'Balance: ETB 15,230',
+                                          child: Text(
+                                            context.tr('balance_demo'),
                                             style: TextStyle(
                                               color: AppColors.primaryRed,
                                               fontWeight: FontWeight.w600,
@@ -250,7 +251,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                         // Welcome Message
                         Text(
-                          'Good ${_getTimeOfDay()}, $_userName!',
+                          context.tr(
+                            'welcome_message',
+                            args: {
+                              'timeOfDay': _getTimeOfDay(),
+                              'userName': _userName,
+                            },
+                          ),
                           style: const TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
@@ -258,8 +265,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        const Text(
-                          'Here\'s your business overview for the selected period.',
+                        Text(
+                          context.tr('here_overview'),
                           style: TextStyle(
                             fontSize: 14,
                             color: AppColors.white,
@@ -306,11 +313,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
   String _getTimeOfDay() {
     var hour = DateTime.now().hour;
     if (hour < 12) {
-      return 'Morning';
+      return context.tr('morning');
     } else if (hour < 17) {
-      return 'Afternoon';
+      return context.tr('afternoon');
     } else {
-      return 'Evening';
+      return context.tr('evening');
     }
   }
 
@@ -318,8 +325,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Quick Actions',
+        Text(
+          context.tr('quick_actions'),
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
@@ -332,25 +339,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
           children: [
             _buildActionButton(
               Icons.shopping_bag,
-              'New Order',
+              context.tr('new_order'),
               AppColors.primaryRed,
               _navigateToOrders,
             ),
             _buildActionButton(
               Icons.inventory,
-              'Inventory',
+              context.tr('inventory'),
               AppColors.info,
               _navigateToInventory,
             ),
             _buildActionButton(
               Icons.people,
-              'Employees',
+              context.tr('employees'),
               AppColors.success,
               _navigateToEmployees,
             ),
             _buildActionButton(
               Icons.receipt,
-              'Reports',
+              context.tr('reports'),
               AppColors.accent,
               _navigateToReports,
             ),
@@ -411,8 +418,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Overview',
+            Text(
+              context.tr('overview'),
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
@@ -431,7 +438,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 GestureDetector(
                   onTap: _navigateToOrders,
                   child: StatCard(
-                    title: 'Total Orders',
+                    title: context.tr('total_orders'),
                     value: totalOrders.toString(),
                     icon: Icons.shopping_bag,
                     color: AppColors.primaryRed,
@@ -440,7 +447,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 GestureDetector(
                   onTap: _navigateToReports,
                   child: StatCard(
-                    title: 'Revenue',
+                    title: context.tr('revenue'),
                     value: 'ETB ${totalRevenue.toStringAsFixed(0)}',
                     icon: Icons.attach_money,
                     color: AppColors.success,
@@ -449,7 +456,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 GestureDetector(
                   onTap: _navigateToOrders,
                   child: StatCard(
-                    title: 'Pending',
+                    title: context.tr('pending'),
                     value: pendingOrders.toString(),
                     icon: Icons.pending_actions,
                     color: AppColors.warning,
@@ -458,7 +465,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 GestureDetector(
                   onTap: _navigateToOrders,
                   child: StatCard(
-                    title: 'Completed',
+                    title: context.tr('completed'),
                     value: completedOrders.toString(),
                     icon: Icons.check_circle,
                     color: AppColors.info,
@@ -479,8 +486,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              'Order Categories',
+            Text(
+              context.tr('order_categories'),
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
@@ -489,8 +496,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             TextButton(
               onPressed: _navigateToOrders,
-              child: const Text(
-                'See All >',
+              child: Text(
+                context.tr('see_all'),
                 style: TextStyle(color: AppColors.white),
               ),
             ),

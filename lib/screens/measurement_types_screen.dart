@@ -301,24 +301,25 @@ class _MeasurementTypesScreenState extends State<MeasurementTypesScreen> {
                 children: _filteredTypes.map((type) {
                   return Card(
                     key: ValueKey(type['id']),
+                    color: AppColors.cardBackground,
                     margin: const EdgeInsets.only(bottom: 8),
                     child: ListTile(
                       leading: const Icon(
                         Icons.drag_handle,
-                        color: AppColors.white,
+                        color: AppColors.darkGrey,
                       ),
                       title: Text(
                         type['name'],
                         style: const TextStyle(
-                          color: AppColors.white,
+                          color: AppColors.textPrimary,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
                       subtitle: type['unit']?.isNotEmpty == true
                           ? Text(
                               'Unit: ${type['unit']}',
-                              style: TextStyle(
-                                color: AppColors.white.withOpacity(0.7),
+                              style: const TextStyle(
+                                color: AppColors.textSecondary,
                               ),
                             )
                           : null,

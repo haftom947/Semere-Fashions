@@ -118,18 +118,20 @@ class _AddMeasurementScreenState extends State<AddMeasurementScreen> {
                         child: TextFormField(
                           controller: _controllers[type['id']],
                           keyboardType: TextInputType.number,
-                          style: const TextStyle(color: AppColors.white),
+                          style: const TextStyle(color: AppColors.darkGrey),
                           decoration: InputDecoration(
                             labelText:
                                 '${type['name']} (${type['unit'] ?? ''})',
-                            labelStyle: const TextStyle(color: AppColors.white),
+                            labelStyle:
+                                const TextStyle(color: AppColors.darkGrey),
                             enabledBorder: OutlineInputBorder(
                               borderSide: BorderSide(
-                                color: AppColors.white.withOpacity(0.3),
+                                color: AppColors.darkGrey.withOpacity(0.3),
                               ),
                             ),
-                            focusedBorder: const OutlineInputBorder(
-                              borderSide: BorderSide(color: AppColors.white),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide:
+                                  BorderSide(color: AppColors.primaryRed),
                             ),
                           ),
                         ),

@@ -8,6 +8,10 @@ import '../utils/colors.dart';
 import '../services/sync_service.dart';
 import '../services/database_helper.dart';
 import '../screens/conflict_resolution_screen.dart';
+import '../screens/device_binding_screen.dart';
+import '../screens/settings_screen.dart';
+import '../screens/retail_products_screen.dart';
+import '../utils/translations.dart';
 
 class DrawerMenu extends StatefulWidget {
   final String role;
@@ -87,19 +91,21 @@ class _DrawerMenuState extends State<DrawerMenu> {
     if (_isOnline) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(const SnackBar(content: Text('Syncing...')));
+      ).showSnackBar(SnackBar(content: Text(context.tr('syncing'))));
       await _syncService.syncAll();
       if (mounted) {
         _loadLastSyncTime();
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('Sync completed')));
+        ).showSnackBar(SnackBar(content: Text(context.tr('sync_completed'))));
       }
     } else {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('No internet connection')));
+        ).showSnackBar(
+          SnackBar(content: Text(context.tr('error_no_internet'))),
+        );
       }
     }
   }
@@ -114,16 +120,28 @@ class _DrawerMenuState extends State<DrawerMenu> {
       builder: (BuildContext context) => Theme(
         data: ThemeData.light(),
         child: AlertDialog(
-          title: const Text('Logout', style: TextStyle(color: Colors.black)),
-          content: const Text('Are you sure you want to logout?', style: TextStyle(color: Colors.black)),
+          title: Text(
+            context.tr('logout'),
+            style: const TextStyle(color: Colors.black),
+          ),
+          content: Text(
+            context.tr('are_you_sure_logout'),
+            style: const TextStyle(color: Colors.black),
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel', style: TextStyle(color: Colors.blue)),
+              child: Text(
+                context.tr('cancel'),
+                style: const TextStyle(color: Colors.blue),
+              ),
             ),
             TextButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('Logout', style: TextStyle(color: Colors.red)),
+              child: Text(
+                context.tr('logout'),
+                style: const TextStyle(color: Colors.red),
+              ),
             ),
           ],
         ),
@@ -140,7 +158,7 @@ class _DrawerMenuState extends State<DrawerMenu> {
     }
   }
     String _formatLastSync() {
-      if (_lastSyncTime == null) return 'Never';
+      if (_lastSyncTime == null) return context.tr('never');
       final date = DateTime.fromMillisecondsSinceEpoch(_lastSyncTime!);
       return DateFormat('dd/MM/yy HH:mm').format(date);
     }
@@ -191,8 +209,8 @@ class _DrawerMenuState extends State<DrawerMenu> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              'Semere Fashions',
+                            Text(
+                              context.tr('semere_fashions'),
                               style: TextStyle(
                                 color: AppColors.white,
                                 fontSize: 18,
@@ -231,7 +249,9 @@ class _DrawerMenuState extends State<DrawerMenu> {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            _isOnline ? 'Online' : 'Offline',
+                            _isOnline
+                                ? context.tr('online')
+                                : context.tr('offline'),
                             style: TextStyle(
                               color: _isOnline
                                   ? AppColors.success
@@ -270,7 +290,7 @@ class _DrawerMenuState extends State<DrawerMenu> {
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  '$_conflictCount conflict${_conflictCount > 1 ? 's' : ''}',
+                                  '${_conflictCount} ${context.tr('sync_conflicts')}',
                                   style: const TextStyle(
                                     color: AppColors.white,
                                     fontSize: 12,
@@ -294,7 +314,10 @@ class _DrawerMenuState extends State<DrawerMenu> {
                   Padding(
                     padding: const EdgeInsets.only(top: 8),
                     child: Text(
-                      'Last sync: ${_formatLastSync()}',
+                      context.tr(
+                        'last_sync',
+                        args: {'time': _formatLastSync()},
+                      ),
                       style: TextStyle(
                         color: AppColors.white.withOpacity(0.6),
                         fontSize: 11,
@@ -311,7 +334,7 @@ class _DrawerMenuState extends State<DrawerMenu> {
                 padding: EdgeInsets.zero,
                 children: [
                   // Dashboard
-                  _buildDrawerItem(Icons.dashboard, 'Dashboard', () {
+                  _buildDrawerItem(Icons.dashboard, context.tr('dashboard'), () {
                     Navigator.pop(context);
                     if (widget.role == 'admin') {
                       _navigateToScreen(context, '/admin');
@@ -325,47 +348,47 @@ class _DrawerMenuState extends State<DrawerMenu> {
                   }),
 
                   // Orders
-                  _buildDrawerItem(Icons.shopping_bag, 'Orders', () {
+                  _buildDrawerItem(Icons.shopping_bag, context.tr('orders'), () {
                     Navigator.pop(context);
                     _navigateToScreen(context, '/orders');
                   }),
 
                   // Inventory
-                  _buildDrawerItem(Icons.inventory, 'Inventory', () {
+                  _buildDrawerItem(Icons.inventory, context.tr('inventory'), () {
                     Navigator.pop(context);
                     _navigateToScreen(context, '/inventory');
                   }),
 
                   // Employees (Admin and Manager only)
                   if (widget.role == 'admin' || widget.role == 'manager')
-                    _buildDrawerItem(Icons.people, 'Employees', () {
+                    _buildDrawerItem(Icons.people, context.tr('employees'), () {
                       Navigator.pop(context);
                       _navigateToScreen(context, '/employees');
                     }),
 
                   // Customers
-                  _buildDrawerItem(Icons.person, 'Customers', () {
+                  _buildDrawerItem(Icons.person, context.tr('customers'), () {
                     Navigator.pop(context);
                     _navigateToScreen(context, '/customers');
                   }),
 
                   // Reports (Admin and Manager only)
                   if (widget.role == 'admin' || widget.role == 'manager')
-                    _buildDrawerItem(Icons.receipt, 'Reports', () {
+                    _buildDrawerItem(Icons.receipt, context.tr('reports'), () {
                       Navigator.pop(context);
                       _navigateToScreen(context, '/reports');
                     }),
 
                   // Branches (Admin only)
                   if (widget.role == 'admin')
-                    _buildDrawerItem(Icons.store, 'Branches', () {
+                    _buildDrawerItem(Icons.store, context.tr('branches'), () {
                       Navigator.pop(context);
                       _navigateToScreen(context, '/branches');
                     }),
 
                   // Equipment (Admin and Manager only)
                   if (widget.role == 'admin' || widget.role == 'manager')
-                    _buildDrawerItem(Icons.build, 'Equipment', () {
+                    _buildDrawerItem(Icons.build, context.tr('equipment'), () {
                       Navigator.pop(context);
                       _navigateToScreen(context, '/equipment');
                     }),
@@ -373,7 +396,7 @@ class _DrawerMenuState extends State<DrawerMenu> {
                   if (widget.role == 'admin' || widget.role == 'manager')
                     _buildDrawerItem(
                       Icons.apartment,
-                      'Properties',
+                      context.tr('properties'),
                       () {
                         Navigator.pop(context);
                         _navigateToScreen(context, '/properties');
@@ -381,35 +404,52 @@ class _DrawerMenuState extends State<DrawerMenu> {
                     ),
                   // Suppliers (Admin and Manager only)
                   if (widget.role == 'admin' || widget.role == 'manager')
-                    _buildDrawerItem(Icons.business, 'Suppliers', () {
+                    _buildDrawerItem(Icons.business, context.tr('suppliers'), () {
                       Navigator.pop(context);
                       _navigateToScreen(context, '/suppliers');
                     }),
 
                   // Measurement Types (Admin only)
                   if (widget.role == 'admin')
-                    _buildDrawerItem(Icons.straighten, 'Measurement Types', () {
+                    _buildDrawerItem(Icons.straighten, context.tr('measurement_types'), () {
                       Navigator.pop(context);
                       _navigateToScreen(context, '/measurement_types');
                     }),
 
+                  if (widget.role == 'admin')
+                    _buildDrawerItem(Icons.badge, context.tr('roles'), () {
+                      Navigator.pop(context);
+                      _navigateToScreen(context, '/roles');
+                    }),
+
+                  if (widget.role == 'admin')
+                    _buildDrawerItem(Icons.devices, context.tr('device_binding'), () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const DeviceBindingScreen(),
+                        ),
+                      );
+                    }),
+
                   // Accounts (Admin and Manager only)
                   if (widget.role == 'admin' || widget.role == 'manager')
-                    _buildDrawerItem(Icons.account_balance, 'Accounts', () {
+                    _buildDrawerItem(Icons.account_balance, context.tr('accounts'), () {
                       Navigator.pop(context);
                       _navigateToScreen(context, '/accounts');
                     }),
 
                   // Cash Flow (Admin and Manager only)
                   if (widget.role == 'admin' || widget.role == 'manager')
-                    _buildDrawerItem(Icons.timeline, 'Cash Flow', () {
+                    _buildDrawerItem(Icons.timeline, context.tr('cash_flow'), () {
                       Navigator.pop(context);
                       _navigateToScreen(context, '/cashflow');
                     }),
 
                   // Commissions (Admin and Manager only)
                   if (widget.role == 'admin' || widget.role == 'manager')
-                    _buildDrawerItem(Icons.monetization_on, 'Commissions', () {
+                    _buildDrawerItem(Icons.monetization_on, context.tr('commissions'), () {
                       Navigator.pop(context);
                       _navigateToScreen(context, '/commissions');
                     }),
@@ -418,37 +458,44 @@ class _DrawerMenuState extends State<DrawerMenu> {
                   if (widget.role == 'admin' || widget.role == 'manager')
                     _buildDrawerItem(
                       Icons.shopping_cart,
-                      'Purchase Orders',
+                      context.tr('purchase_orders'),
                       () {
                         Navigator.pop(context);
                         _navigateToScreen(context, '/purchase_orders');
                       },
                     ),
 
-                  // Production Orders (Admin and Manager only)
+                  // Production Orders (removed — replaced by Retail Products)
+
+                  // Retail Products (Admin and Manager only)
                   if (widget.role == 'admin' || widget.role == 'manager')
-                    _buildDrawerItem(Icons.factory, 'Production', () {
+                    _buildDrawerItem(Icons.shopping_bag, context.tr('retail_products'), () {
                       Navigator.pop(context);
-                      _navigateToScreen(context, '/production');
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const RetailProductsScreen(),
+                        ),
+                      );
                     }),
 
                   // Social Dashboard (Admin and Manager only)
                   if (widget.role == 'admin' || widget.role == 'manager')
-                    _buildDrawerItem(Icons.bar_chart, 'Social Dashboard', () {
+                    _buildDrawerItem(Icons.bar_chart, context.tr('social_dashboard'), () {
                       Navigator.pop(context);
                       _navigateToScreen(context, '/social_dashboard');
                     }),
 
                   // Social Accounts (Admin and Manager only)
                   if (widget.role == 'admin' || widget.role == 'manager')
-                    _buildDrawerItem(Icons.share, 'Social Accounts', () {
+                    _buildDrawerItem(Icons.share, context.tr('social_accounts'), () {
                       Navigator.pop(context);
                       _navigateToScreen(context, '/social');
                     }),
 
                   // Employee Payments (Admin and Manager only)
                   if (widget.role == 'admin' || widget.role == 'manager')
-                    _buildDrawerItem(Icons.payment, 'Employee Payments', () {
+                    _buildDrawerItem(Icons.payment, context.tr('employee_payments'), () {
                       Navigator.pop(context);
                       _navigateToScreen(context, '/employee_payments');
                     }),
@@ -457,14 +504,14 @@ class _DrawerMenuState extends State<DrawerMenu> {
                   if (widget.role == 'sales' ||
                       widget.role == 'tailor' ||
                       widget.role == 'delivery')
-                    _buildDrawerItem(Icons.beach_access, 'Request Leave', () {
+                    _buildDrawerItem(Icons.beach_access, context.tr('request_leave'), () {
                       Navigator.pop(context);
                       _navigateToScreen(context, '/leave_request');
                     }),
 
                   // Leave Requests (Admin and Manager only)
                   if (widget.role == 'admin' || widget.role == 'manager')
-                    _buildDrawerItem(Icons.list, 'Leave Requests', () {
+                    _buildDrawerItem(Icons.list, context.tr('leave_requests'), () {
                       Navigator.pop(context);
                       _navigateToScreen(context, '/leave_requests');
                     }),
@@ -472,17 +519,20 @@ class _DrawerMenuState extends State<DrawerMenu> {
                   const Divider(color: AppColors.white),
 
                   // Settings
-                  _buildDrawerItem(Icons.settings, 'Settings', () {
+                  _buildDrawerItem(Icons.settings, context.tr('settings'), () {
                     Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Settings coming soon')),
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const SettingsScreen(),
+                      ),
                     );
                   }),
 
                   // Logout
                   _buildDrawerItem(
                     Icons.logout,
-                    'Logout',
+                    context.tr('logout'),
                     () => _logout(context),
                   ),
                 ],
@@ -493,7 +543,7 @@ class _DrawerMenuState extends State<DrawerMenu> {
             Padding(
               padding: const EdgeInsets.all(16),
               child: Text(
-                'Version 1.0.0',
+                context.tr('version'),
                 style: TextStyle(
                   color: AppColors.white.withOpacity(0.5),
                   fontSize: 12,

@@ -22,6 +22,7 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
   final _sellingPriceController = TextEditingController();
   final _stockController = TextEditingController();
   final _minLevelController = TextEditingController();
+  bool _isCustom = false;
   bool _isLoading = false;
 
   @override
@@ -37,6 +38,7 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
       _stockController.text = widget.productData!['stock']?.toString() ?? '';
       _minLevelController.text =
           widget.productData!['minimumLevel']?.toString() ?? '';
+      _isCustom = (widget.productData!['is_custom'] as num?)?.toInt() == 1;
     }
   }
 
@@ -54,6 +56,7 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
         'sellingPrice': double.tryParse(_sellingPriceController.text) ?? 0,
         'stock': int.tryParse(_stockController.text) ?? 0,
         'minimumLevel': int.tryParse(_minLevelController.text) ?? 5,
+        'is_custom': _isCustom ? 1 : 0,
       };
       if (widget.productData == null) {
         await _dbHelper.insert('products', data);
@@ -199,6 +202,28 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
                         ),
                       ),
                       const SizedBox(height: 16),
+
+                      CheckboxListTile(
+                        value: _isCustom,
+                        onChanged: (value) {
+                          setState(() {
+                            _isCustom = value ?? false;
+                          });
+                        },
+                        activeColor: AppColors.primaryRed,
+                        checkColor: AppColors.white,
+                        title: const Text(
+                          'Custom product',
+                          style: TextStyle(color: AppColors.white),
+                        ),
+                        subtitle: const Text(
+                          'Mark this when the product is made to order and may later be converted into stock.',
+                          style: TextStyle(color: Colors.white70),
+                        ),
+                        controlAffinity: ListTileControlAffinity.leading,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                      const SizedBox(height: 8),
 
                       // Minimum Level
                       TextFormField(

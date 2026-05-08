@@ -31,18 +31,22 @@ class _AddEditEmployeePaymentScreenState
   final _notesController = TextEditingController();
 
   String _selectedType = 'salary';
+  String _selectedStatus = 'paid';
   bool _isLoading = false;
   DateTime _selectedDate = DateTime.now();
 
   final List<String> _types = ['salary', 'advance', 'bonus', 'deduction'];
+  final List<String> _statuses = ['pending', 'paid'];
 
   @override
   void initState() {
     super.initState();
     if (widget.paymentData != null) {
       _selectedType = widget.paymentData!['type'] ?? 'salary';
+      _selectedStatus = widget.paymentData!['status'] ?? 'paid';
       _amountController.text = widget.paymentData!['amount']?.toString() ?? '';
-      _monthController.text = widget.paymentData!['month'] ?? '';
+      _monthController.text =
+          widget.paymentData!['for_month'] ?? widget.paymentData!['month'] ?? '';
       _notesController.text = widget.paymentData!['notes'] ?? '';
       _selectedDate = DateTime.fromMillisecondsSinceEpoch(
         widget.paymentData!['datePaid'],
@@ -75,11 +79,18 @@ class _AddEditEmployeePaymentScreenState
         'employeeId': widget.employeeId,
         'employeeName': widget.employeeName,
         'type': _selectedType,
+        'status': _selectedStatus,
         'amount': double.tryParse(_amountController.text) ?? 0,
         'month': _monthController.text.trim().isEmpty
             ? null
             : _monthController.text.trim(),
+        'for_month': _selectedType == 'salary' && _monthController.text.trim().isNotEmpty
+            ? _monthController.text.trim()
+            : null,
         'datePaid': _selectedDate.millisecondsSinceEpoch,
+        'createdAt':
+            widget.paymentData?['createdAt'] ??
+            DateTime.now().millisecondsSinceEpoch,
         'notes': _notesController.text.trim(),
       };
       if (widget.paymentData == null) {
@@ -151,6 +162,35 @@ class _AddEditEmployeePaymentScreenState
                             .toList(),
                         onChanged: (value) =>
                             setState(() => _selectedType = value!),
+                      ),
+                      const SizedBox(height: 16),
+
+                      DropdownButtonFormField<String>(
+                        value: _selectedStatus,
+                        dropdownColor: AppColors.backgroundStart,
+                        style: const TextStyle(color: AppColors.white),
+                        decoration: InputDecoration(
+                          labelText: 'Status *',
+                          labelStyle: const TextStyle(color: AppColors.white),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
+                          ),
+                          focusedBorder: const OutlineInputBorder(
+                            borderSide: BorderSide(color: AppColors.white),
+                          ),
+                        ),
+                        items: _statuses
+                            .map(
+                              (status) => DropdownMenuItem<String>(
+                                value: status,
+                                child: Text(status),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (value) =>
+                            setState(() => _selectedStatus = value!),
                       ),
                       const SizedBox(height: 16),
 

@@ -1,0 +1,219 @@
+Accounts
+Active
+Add
+Add Branch
+Add custom commission?
+Add Employee
+Add Fuel Log
+Add Log
+Add Measurement Type
+Add Measurements
+Add Metrics
+Add New Customer
+Add Role
+Add Tenant
+Admin
+all
+All Accounts
+All Branches
+All Categories
+All Currencies
+All Employee Payments
+All Employees
+All Roles
+All Sales
+Approved
+Are you sure you want to delete $name?
+Are you sure you want to logout?
+Are you sure?
+Assign
+Assign Equipment
+Assign Participant
+Assign Role
+Bench
+box
+Branch
+Branches
+Cancel
+Cancel Order
+Cancelled
+Cash Flow
+Change
+Change Month
+Checkout
+Checkout ${widget.equipmentName}
+Checkout Logs - ${widget.equipmentName}
+Clear
+Close
+Commission
+Commissions
+Compare
+Completed
+Confirm
+Confirm that this commission has been paid?
+Create
+Create Order
+Create Production Order
+Create Purchase Order
+Current user
+custom
+Custom...
+Customers
+Deactivate Employee
+Delete
+Delete Account
+Delete Branch
+Delete Customer
+Delete Employee
+Delete Entry
+Delete Equipment
+Delete Log
+Delete Maintenance Record
+Delete Material
+Delete Measurement
+Delete Payment
+Delete Product
+Delete Property
+Delete Purchase Order
+Delete Role
+Delete Supplier
+Delete Tenant
+Delete Type
+Delivered
+Delivery
+Device Binding
+Draft
+Edit Branch
+Edit Employee
+Edit Fuel Log
+Edit Measurement Type
+Edit Role
+Edit Tenant
+Employees
+Employees Screen - Coming Soon
+Equipment
+Equipment Details
+Filter Transactions
+Financial Summary
+Fixed
+Fixed (ETB)
+Fuel Logs
+Go Back
+id
+Inactive
+Inventory
+Item
+itemName
+Keep Local
+kg
+Leased (pay rent to landlord)
+Leave Requests
+liter
+Login
+Logout
+Low Stock Only
+Machines
+Maintenance Logs
+Manage >
+Manager
+Mark as Paid
+Mark Delivered
+Mark Processing
+Mark Received
+Mark this item as returned?
+Materials
+Materials - ${widget.supplierName}
+Measurement Types
+meter
+Metrics - ${widget.accountName}
+Monthly
+N/A
+name
+No
+No active salesperson found
+No assignments yet
+No employees match the selected filters.
+No expense details found
+No financial data found for this filter
+No fuel logs found.
+No order profit details found
+No product sales data
+No products match the selected filters.
+No sales data for the selected filters.
+None
+None (unassigned)
+OK
+Order Details
+Ordered
+orders
+Out for Delivery
+Override tailor cut?
+Owned with mortgage
+Paid
+Pay Landlord - ${widget.propertyName}
+Payments - ${widget.employeeName}
+Pending
+Percentage
+Percentage (%)
+Pick
+piece
+Processing
+Production Order
+Products
+profit
+Properties
+Purchase Order Details
+Purchase Orders
+quantity
+Received
+Record
+Record Payment
+Record Payment - ${widget.tenantName}
+Rejected
+Remove
+Remove $employeeName from $role?
+Remove Assignment
+Reports
+Request Leave
+Reset
+Reset branch filter
+Reset Device Binding
+Return Equipment
+Returned
+revenue
+Roles
+Route ${settings.name} not found
+Sales
+Salesperson
+Save
+Save Assignment
+Save Measurements
+Save Metrics
+Select Order
+Seller
+Settings
+Skip
+Social Accounts
+Social Media Dashboard
+Sold Qty
+Status:
+Stock
+Submit Request
+Supplier
+Suppliers
+Sync Conflicts
+Tailor
+Tailor cut defaults to employee setting.
+Tenants - ${widget.propertyName}
+title
+tool
+Tools
+Unknown
+Unknown customer
+Update Employee
+Update Log
+Use
+Use Material
+Use Server
+Vehicle Details
+Vehicles

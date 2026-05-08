@@ -18,6 +18,7 @@ class _AccountListScreenState extends State<AccountListScreen> {
   final SyncService _syncService = SyncService();
   List<Map<String, dynamic>> _accounts = [];
   List<Map<String, dynamic>> _uiAccounts = [];
+  Map<String, String> _branchNamesById = {};
   bool _isLoading = true;
   final TextEditingController _searchController = TextEditingController();
 
@@ -35,10 +36,20 @@ class _AccountListScreenState extends State<AccountListScreen> {
     var accounts = List<Map<String, dynamic>>.from(
       await _dbHelper.query('accounts'),
     );
+    var branches = List<Map<String, dynamic>>.from(
+      await _dbHelper.query('branches'),
+    );
+    final branchNamesById = <String, String>{
+      for (final branch in branches)
+        if ((branch['id'] as String?)?.isNotEmpty ?? false)
+          branch['id'].toString():
+              (branch['name'] as String?) ?? branch['id'].toString(),
+    };
     accounts.sort((a, b) => (a['name'] ?? '').compareTo(b['name'] ?? ''));
     setState(() {
       _accounts = accounts;
       _uiAccounts = accounts;
+      _branchNamesById = branchNamesById;
       _isLoading = false;
     });
   }
@@ -193,7 +204,13 @@ class _AccountListScreenState extends State<AccountListScreen> {
                         ),
                       ),
                       subtitle: Text(
-                        '${account['type']} · Balance: ${CurrencyHelper.formatAmount((account['current_balance'] as num?)?.toDouble(), null)}',
+                        [
+                          account['type'] ?? 'account',
+                          if ((account['branchId']?.toString() ?? '')
+                              .isNotEmpty)
+                            'Branch: ${_branchNamesById[account['branchId'].toString()] ?? account['branchId']}',
+                          'Balance: ${CurrencyHelper.formatAmount((account['current_balance'] as num?)?.toDouble(), null)}',
+                        ].join(' · '),
                         style: TextStyle(
                           color: AppColors.white.withOpacity(0.7),
                         ),

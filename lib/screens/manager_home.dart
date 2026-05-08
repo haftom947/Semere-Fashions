@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -9,11 +8,13 @@ import '../widgets/category_card.dart';
 import '../widgets/recent_order_card.dart';
 import '../widgets/drawer_menu.dart';
 import '../services/database_helper.dart';
+import '../services/financial_calculator.dart';
 import '../services/sync_service.dart';
 import '../services/low_stock_service.dart';
 import '../utils/app_date_filter.dart';
 import 'orders_list_screen.dart';
-import 'admin_home.dart' show ProfitDetailsScreen;
+import 'profit_details_screen.dart';
+import 'shipment_dashboard_screen.dart';
 
 class ManagerHome extends StatefulWidget {
   const ManagerHome({Key? key}) : super(key: key);
@@ -40,15 +41,20 @@ class _ManagerHomeState extends State<ManagerHome> {
   int _returnedCount = 0;
   int _withDriverCount = 0;
   int _processingCount = 0;
+  int _cancelledBefore = 0;
+  int _cancelledAfter = 0;
   double _totalRevenue = 0.0;
+  double _salesTotal = 0.0;
   double _toCollectAmount =
       0.0; // pending + processing + out_for_delivery amounts
   double _totalExpenses = 0.0;
   double _profit = 0.0;
   double _cogs = 0.0;
   double _otherExpenses = 0.0;
+  double _losses = 0.0;
   double _grossProfit = 0.0;
   double _netProfit = 0.0;
+  double _cancelledPayments = 0.0;
   double _cogsFromOrders = 0.0;
   double _tailorCommissions = 0.0;
   double _salesCommissions = 0.0;
@@ -61,15 +67,23 @@ class _ManagerHomeState extends State<ManagerHome> {
   List<Map<String, dynamic>> _expenseItems = [];
   List<Map<String, dynamic>> _orderProfitItems = [];
   List<Map<String, dynamic>> _recentOrders = [];
+  double _rentalIncome = 0.0;
+  double _rentalExpense = 0.0;
+  double _rentalNet = 0.0;
+  double _tenantOverdue = 0.0;
+  double _landlordOverdue = 0.0;
+  double _rentalOccupancyRate = 0.0;
 
   @override
   void initState() {
     super.initState();
     _loadManagerData();
     _loadStatsEnhanced();
+    _loadRentalSummary();
     AppDateFilter.instance.rangeNotifier.addListener(_onGlobalRangeChanged);
     _dataChangedSubscription = _syncService.dataChangedStream.listen((_) {
       _loadStatsEnhanced();
+      _loadRentalSummary();
     });
     _startLowStockPeriodicCheck();
   }
@@ -150,109 +164,11 @@ class _ManagerHomeState extends State<ManagerHome> {
     }
   }
 
-    Future<void> _loadStats() async {
-    var orders = await _dbHelper.query('orders');
-    var payments = await _dbHelper.query('payment_transaction');
-
-    // Filter by branch
-    var branchOrders = orders.where((o) => o['branchId'] == _branchName).toList();
-    List<Map<String, dynamic>> ordersList = List.from(branchOrders);
-    List<Map<String, dynamic>> mutablePayments = List.from(payments);
-
-    print('📊 Loaded ${ordersList.length} orders for branch $_branchName');
-
-    int total = ordersList.length;
-    int pending = 0, completed = 0, withDriver = 0, processingCount = 0;
-    double revenue = 0.0;
-    double toCollect = 0.0;
-
-    // Revenue from payments (only payments related to this branch's orders? Might need filtering)
-    for (var p in mutablePayments) {
-      double amount = (p['amount'] as num?)?.toDouble() ?? 0;
-      if (p['type'] == 'payment') revenue += amount;
-      else revenue -= amount;
-    }
-
-    // Order counts and to‑collect
-    for (var order in ordersList) {
-      String status = (order['status'] as String?)?.toLowerCase() ?? '';
-      double totalAmount = (order['totalAmount'] as num?)?.toDouble() ?? 0;
-      double paid = (order['paid_amount'] as num?)?.toDouble() ?? 0;
-
-      switch (status) {
-        case 'pending':
-          pending++;
-          break;
-        case 'processing':
-          processingCount++;
-          break;
-        case 'out_for_delivery':
-          withDriver++;
-          break;
-        case 'completed':
-        case 'delivered':
-          completed++;
-          break;
-      }
-
-      // To‑collect: all active orders (not cancelled/returned) with remaining balance
-      if (status != 'cancelled' && status != 'returned') {
-        if (paid < totalAmount) {
-          toCollect += (totalAmount - paid);
-        }
-      }
-    }
-
-    ordersList.sort((a, b) => (b['createdAt'] as int).compareTo(a['createdAt'] as int));
-    var recent = ordersList.take(5).toList();
-
-    setState(() {
-      _totalOrders = total;
-      _pendingOrders = pending;
-      _completedOrders = completed;
-      _withDriverCount = withDriver;
-      _processingCount = processingCount;
-      _totalRevenue = revenue;
-      _toCollectAmount = toCollect;
-      _recentOrders = recent;
-    });
+  Future<void> _loadStats() async {
+    await _loadStatsEnhanced();
   }
 
   Future<void> _loadStatsEnhanced() async {
-    final orders = await _dbHelper.query('orders');
-    final payments = await _dbHelper.query('payment_transaction');
-    final commissions = await _dbHelper.query('commissions');
-    final fuelLogs = await _dbHelper.query('fuel_logs');
-    final maintenanceLogs = await _dbHelper.query('maintenance_logs');
-    final materialUsage = await _dbHelper.query('material_usage');
-    final materials = await _dbHelper.query('materials');
-    final products = await _dbHelper.query('products');
-
-    final branchOrders = orders.where((o) => o['branchId'] == _branchName).toList();
-    final ordersList = List<Map<String, dynamic>>.from(branchOrders);
-    final mutablePayments = List<Map<String, dynamic>>.from(payments);
-    final mutableCommissions = List<Map<String, dynamic>>.from(commissions);
-    final mutableFuel = List<Map<String, dynamic>>.from(fuelLogs);
-    final mutableMaintenance = List<Map<String, dynamic>>.from(maintenanceLogs);
-    final mutableMaterialUsage = List<Map<String, dynamic>>.from(materialUsage);
-    final mutableMaterials = List<Map<String, dynamic>>.from(materials);
-    final mutableProducts = List<Map<String, dynamic>>.from(products);
-
-    final materialNamesById = <String, String>{
-      for (final material in mutableMaterials)
-        if ((material['id'] as String?)?.isNotEmpty ?? false)
-          material['id'] as String: (material['name'] as String?) ?? material['id'] as String,
-    };
-    final productById = <String, Map<String, dynamic>>{
-      for (final product in mutableProducts)
-        if ((product['id'] as String?)?.isNotEmpty ?? false)
-          product['id'] as String: product,
-    };
-    final branchOrderIds = ordersList
-        .map((order) => order['id']?.toString() ?? '')
-        .where((id) => id.isNotEmpty)
-        .toSet();
-
     final selectedRange = AppDateFilter.instance.range;
     final startMillis = selectedRange == null
         ? 0
@@ -272,211 +188,15 @@ class _ManagerHomeState extends State<ManagerHome> {
             59,
             999,
           ).millisecondsSinceEpoch;
-
-    bool withinSelectedRange(dynamic value) {
-      final intValue = (value as num?)?.toInt();
-      return intValue != null &&
-          intValue >= startMillis &&
-          intValue <= endMillis;
-    }
-
-    final paymentsByOrderId = <String, double>{};
-    for (final payment in mutablePayments) {
-      final orderId = payment['orderId']?.toString();
-      if (orderId == null || orderId.isEmpty || !branchOrderIds.contains(orderId)) continue;
-      if (!withinSelectedRange(payment['date'])) continue;
-      final amount = _asDouble(payment['amount']);
-      if (payment['type'] == 'payment') {
-        paymentsByOrderId[orderId] = (paymentsByOrderId[orderId] ?? 0.0) + amount;
-      } else {
-        paymentsByOrderId[orderId] = (paymentsByOrderId[orderId] ?? 0.0) - amount;
-      }
-    }
-
-    final expenseItems = <Map<String, dynamic>>[];
-    final orderProfitItems = <Map<String, dynamic>>[];
-
-    double weekRevenue = 0.0;
-    for (final payment in mutablePayments) {
-      final orderId = payment['orderId']?.toString();
-      if (orderId == null || orderId.isEmpty || !branchOrderIds.contains(orderId)) continue;
-      if (withinSelectedRange(payment['date'])) {
-        final amount = _asDouble(payment['amount']);
-        if (payment['type'] == 'payment') {
-          weekRevenue += amount;
-        } else {
-          weekRevenue -= amount;
-        }
-      }
-    }
-
-    double weekExpenses = 0.0;
-    for (final order in ordersList) {
-      final createdAt = _asInt(order['createdAt']);
-      if (!withinSelectedRange(createdAt)) continue;
-      final status = (order['status'] as String?)?.toLowerCase() ?? '';
-      if (status != 'cancelled' && status != 'returned') {
-        final cogsAmount = _asDouble(order['cogs']);
-        weekExpenses += cogsAmount;
-
-        double itemCogsTotal = 0.0;
-        final rawItems = order['items'];
-        final orderItems = rawItems is String
-            ? (jsonDecode(rawItems) as List<dynamic>)
-            : List<dynamic>.from(rawItems as List? ?? const []);
-        for (final rawItem in orderItems) {
-          if (rawItem is! Map) continue;
-          final item = Map<String, dynamic>.from(rawItem);
-          final productId = item['productId']?.toString();
-          if (productId == null || productId.isEmpty) continue;
-          final product = productById[productId];
-          if (product == null) continue;
-          final quantity = _asDouble(item['quantity']);
-          final unitCost = _asDouble(product['costPrice']);
-          final lineCogs = quantity * unitCost;
-          if (lineCogs <= 0) continue;
-          itemCogsTotal += lineCogs;
-          expenseItems.add({
-            'category': 'COGS',
-            'title': product['name'] ?? item['description'] ?? 'Product',
-            'subtitle': 'Order #${(order['id'] as String?)?.substring(0, 6) ?? ''} x Qty ${quantity.toStringAsFixed(0)} @ ETB ${unitCost.toStringAsFixed(2)}',
-            'amount': lineCogs,
-            'date': createdAt,
-            'branchId': order['branchId'],
-          });
-        }
-        if (cogsAmount > itemCogsTotal) {
-          expenseItems.add({
-            'category': 'COGS',
-            'title': 'Unmapped COGS',
-            'subtitle': 'Order #${(order['id'] as String?)?.substring(0, 6) ?? ''}',
-            'amount': cogsAmount - itemCogsTotal,
-            'date': createdAt,
-            'branchId': order['branchId'],
-          });
-        }
-      }
-
-      final orderId = order['id']?.toString() ?? '';
-      final idealRevenue = _asDouble(order['totalAmount']);
-      final actualRevenue = paymentsByOrderId[orderId] ?? 0.0;
-      final orderCommissions = mutableCommissions
-          .where((c) =>
-              c['orderId'] == order['id'] &&
-              c['status'] != 'voided' &&
-              withinSelectedRange(c['paidAt'] ?? c['createdAt']))
-          .fold<double>(0.0, (total, c) => total + _asDouble(c['amount']));
-      final cogsValue = _asDouble(order['cogs']);
-      orderProfitItems.add({
-        'orderId': orderId,
-        'customerName': order['customerName'] ?? 'Unknown',
-        'status': order['status'] ?? '',
-        'actualRevenue': actualRevenue,
-        'idealRevenue': idealRevenue,
-        'cogs': cogsValue,
-        'commissions': orderCommissions,
-        'actualProfit': actualRevenue - cogsValue - orderCommissions,
-        'idealProfit': idealRevenue - cogsValue - orderCommissions,
-        'date': createdAt,
-        'branchId': order['branchId'],
-      });
-    }
-
-    double cogsFromOrders = 0.0;
-    for (final order in ordersList) {
-      final createdAt = _asInt(order['createdAt']);
-      if (!withinSelectedRange(createdAt)) continue;
-      final status = (order['status'] as String?)?.toLowerCase() ?? '';
-      if (status == 'completed' || status == 'delivered') {
-        cogsFromOrders += _asDouble(order['cogs']);
-      }
-    }
-
-    double commissionExpenses = 0.0;
-    double tailorCommissions = 0.0;
-    double salesCommissions = 0.0;
-    double deliveryCommissions = 0.0;
-    for (final c in mutableCommissions) {
-      final orderId = c['orderId']?.toString();
-      if (orderId == null || orderId.isEmpty || !branchOrderIds.contains(orderId)) continue;
-      if (c['status'] == 'voided') continue;
-      final effectiveDate = c['paidAt'] ?? c['createdAt'];
-      if (!withinSelectedRange(effectiveDate)) continue;
-      final amount = _asDouble(c['amount']);
-      commissionExpenses += amount;
-      if (c['type'] == 'tailor') {
-        tailorCommissions += amount;
-      } else if (c['type'] == 'sales') {
-        salesCommissions += amount;
-      } else if (c['type'] == 'delivery') {
-        deliveryCommissions += amount;
-      }
-      expenseItems.add({
-        'category': 'Commission',
-        'title': c['employeeName'] ?? 'Commission',
-        'subtitle': 'Order #${(c['orderId'] as String?)?.substring(0, 6) ?? ''}',
-        'amount': amount,
-        'date': _asInt(effectiveDate),
-      });
-      weekExpenses += amount;
-    }
-
-    double fuelExpenses = 0.0;
-    for (final f in mutableFuel) {
-      if (withinSelectedRange(f['date'])) {
-        final amount = _asDouble(f['cost']);
-        fuelExpenses += amount;
-        weekExpenses += amount;
-        expenseItems.add({
-          'category': 'Fuel',
-          'title': f['vehicleId'] ?? 'Fuel expense',
-          'subtitle': 'Odometer ${f['odometer'] ?? '-'}',
-          'amount': amount,
-          'date': _asInt(f['date']),
-        });
-      }
-    }
-
-    double maintenanceExpenses = 0.0;
-    for (final m in mutableMaintenance) {
-      if (withinSelectedRange(m['date'])) {
-        final amount = _asDouble(m['cost']);
-        maintenanceExpenses += amount;
-        weekExpenses += amount;
-        expenseItems.add({
-          'category': 'Maintenance',
-          'title': m['type'] ?? 'Maintenance',
-          'subtitle': m['description'] ?? m['notes'] ?? 'Maintenance expense',
-          'amount': amount,
-          'date': _asInt(m['date']),
-        });
-      }
-    }
-
-    double materialExpenses = 0.0;
-    for (final mu in mutableMaterialUsage) {
-      if (withinSelectedRange(mu['date'])) {
-        final amount = _asDouble(mu['cost']);
-        materialExpenses += amount;
-        weekExpenses += amount;
-        final materialId = mu['material_id'] as String?;
-        expenseItems.add({
-          'category': 'Material',
-          'title': materialNamesById[materialId] ?? materialId ?? 'Material usage',
-          'subtitle': 'Qty ${_asDouble(mu['quantity']).toStringAsFixed(0)}',
-          'amount': amount,
-          'date': _asInt(mu['date']),
-        });
-      }
-    }
-
-    final cogs = cogsFromOrders + materialExpenses + tailorCommissions;
-    final otherExpenses =
-        fuelExpenses + maintenanceExpenses + salesCommissions + deliveryCommissions;
-    final grossProfit = weekRevenue - cogs;
-    final netProfit = grossProfit - otherExpenses;
-    final totalExpenses = cogs + otherExpenses;
-    final weekProfit = weekRevenue - weekExpenses;
+    final summary = await FinancialCalculator().calculateSummary(
+      range: selectedRange,
+      branchId: _branchName,
+    );
+    final ordersList = await _dbHelper.getOrdersInDateRange(
+      startMillis,
+      endMillis,
+      branchId: _branchName,
+    );
 
     int total = 0;
     int pending = 0;
@@ -484,10 +204,10 @@ class _ManagerHomeState extends State<ManagerHome> {
     int withDriver = 0;
     int processingCount = 0;
     int returned = 0;
+    int cancelledBefore = 0;
+    int cancelledAfter = 0;
     double toCollect = 0.0;
     for (final order in ordersList) {
-      final createdAt = _asInt(order['createdAt']);
-      if (!withinSelectedRange(createdAt)) continue;
       total++;
       final status = (order['status'] as String?)?.toLowerCase() ?? '';
       final totalAmount = _asDouble(order['totalAmount']);
@@ -506,6 +226,14 @@ class _ManagerHomeState extends State<ManagerHome> {
         case 'delivered':
           completed++;
           break;
+        case 'cancelled':
+          final stockDeducted = (order['stock_deducted'] as num?)?.toInt() ?? 0;
+          if (stockDeducted == 0) {
+            cancelledBefore++;
+          } else {
+            cancelledAfter++;
+          }
+          break;
         case 'returned':
           returned++;
           break;
@@ -515,9 +243,9 @@ class _ManagerHomeState extends State<ManagerHome> {
       }
     }
 
-    ordersList.sort((a, b) => _asInt(b['createdAt']).compareTo(_asInt(a['createdAt'])));
-    expenseItems.sort((a, b) => _asInt(b['date']).compareTo(_asInt(a['date'])));
-    orderProfitItems.sort((a, b) => _asInt(b['date']).compareTo(_asInt(a['date'])));
+    ordersList.sort(
+      (a, b) => _asInt(b['createdAt']).compareTo(_asInt(a['createdAt'])),
+    );
 
     setState(() {
       _totalOrders = total;
@@ -526,25 +254,32 @@ class _ManagerHomeState extends State<ManagerHome> {
       _returnedCount = returned;
       _withDriverCount = withDriver;
       _processingCount = processingCount;
-      _totalRevenue = weekRevenue;
+      _cancelledBefore = cancelledBefore;
+      _cancelledAfter = cancelledAfter;
+      _totalRevenue = summary.revenue;
+      _salesTotal = summary.salesTotal;
       _toCollectAmount = toCollect;
-      _cogs = cogs;
-      _cogsFromOrders = cogsFromOrders;
-      _tailorCommissions = tailorCommissions;
-      _salesCommissions = salesCommissions;
-      _deliveryCommissions = deliveryCommissions;
-      _commissionExpenses = commissionExpenses;
-      _fuelExpenses = fuelExpenses;
-      _maintenanceExpenses = maintenanceExpenses;
-      _materialExpenses = materialExpenses;
-      _otherExpenses = otherExpenses;
-      _grossProfit = grossProfit;
-      _netProfit = netProfit;
-      _totalExpenses = totalExpenses;
-      _profit = netProfit;
-      _weekProfit = weekProfit;
-      _expenseItems = expenseItems;
-      _orderProfitItems = orderProfitItems;
+      _cogs = summary.cogs;
+      _cogsFromOrders = summary.cogsFromOrders;
+      _tailorCommissions = summary.tailorCommissions;
+      _salesCommissions = summary.salesCommissions;
+      _deliveryCommissions = summary.deliveryCommissions;
+      _commissionExpenses = summary.commissionExpenses;
+      _fuelExpenses = summary.fuelExpenses;
+      _maintenanceExpenses = summary.maintenanceExpenses;
+      _materialExpenses = summary.materialExpenses;
+      _otherExpenses = summary.otherExpenses;
+      _losses = summary.losses;
+      _grossProfit = summary.grossProfit;
+      _cancelledPayments = summary.cancelledPayments;
+      _netProfit = summary.netProfit;
+      _totalExpenses = summary.totalExpenses;
+      _profit = summary.netProfit;
+      _weekProfit = summary.weekProfit;
+      _expenseItems = summary.expenseItems.map((item) => item.toMap()).toList();
+      _orderProfitItems = summary.orderProfitItems
+          .map((item) => item.toMap())
+          .toList();
       _recentOrders = ordersList.take(5).toList();
     });
   }
@@ -590,6 +325,22 @@ class _ManagerHomeState extends State<ManagerHome> {
     Navigator.pushNamed(context, '/reports');
   }
 
+  void _navigateToShipments() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ShipmentDashboardScreen(
+          initialBranchId: _branchName,
+          lockBranchFilter: true,
+        ),
+      ),
+    );
+  }
+
+  void _navigateToProperties() {
+    Navigator.pushNamed(context, '/properties');
+  }
+
   void _navigateToEmployees() {
     Navigator.pushNamed(context, '/employees');
   }
@@ -626,27 +377,90 @@ class _ManagerHomeState extends State<ManagerHome> {
     _navigateToProfitDetails();
   }
 
-  void _navigateToProfitDetails() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ProfitDetailsScreen(
-          showExpensesOnly: false,
-          totalRevenue: _totalRevenue,
-          totalExpenses: _totalExpenses,
-          profit: _profit,
-          weekProfit: _weekProfit,
-          cogsAmount: _cogs,
-          commissionExpenses: _commissionExpenses,
-          fuelExpenses: _fuelExpenses,
-          maintenanceExpenses: _maintenanceExpenses,
-          materialExpenses: _materialExpenses,
-          expenseItems: _expenseItems,
-          orderProfitItems: _orderProfitItems,
-        ),
-      ),
-    );
+  Future<void> _loadRentalSummary() async {
+    try {
+      final rentPayments = await _dbHelper.query('rent_payments');
+      final landlordPayments = await _dbHelper.query('landlord_payments');
+      final properties = await _dbHelper.query('properties');
+      final rentDues = await _dbHelper.query('rent_dues');
+      final landlordDues = await _dbHelper.query('landlord_dues');
+
+      final now = DateTime.now();
+      final currentMonth =
+          '${now.year}-${now.month.toString().padLeft(2, '0')}';
+      double income = 0;
+      for (final payment in rentPayments) {
+        if (payment['month'] == currentMonth) {
+          income += (payment['amount'] as num?)?.toDouble() ?? 0;
+        }
+      }
+
+      double expense = 0;
+      for (final payment in landlordPayments) {
+        if (payment['month'] == currentMonth) {
+          expense += (payment['amount'] as num?)?.toDouble() ?? 0;
+        }
+      }
+
+      double tenantOverdue = 0;
+      for (final d in rentDues) {
+        final property = properties.firstWhere(
+          (p) => p['id'] == d['propertyId'],
+          orElse: () => <String, dynamic>{},
+        );
+        final usageType =
+            property['usageType']?.toString() ??
+            (property['ownership'] == 'leased' ? 'business_use' : 'rented_out');
+        if (usageType != 'rented_out') continue;
+        if (d['status'] == 'pending' &&
+            (d['dueDate'] as int) < now.millisecondsSinceEpoch) {
+          tenantOverdue += (d['amount'] as num?)?.toDouble() ?? 0;
+        }
+      }
+
+      double landlordOverdue = 0;
+      for (final due in landlordDues) {
+        if (due['status'] == 'pending' &&
+            (due['dueDate'] as int) < now.millisecondsSinceEpoch) {
+          landlordOverdue += (due['amount'] as num?)?.toDouble() ?? 0;
+        }
+      }
+
+      final rentalProperties = properties.where((p) {
+        final usageType =
+            p['usageType']?.toString() ??
+            (p['ownership'] == 'leased' ? 'business_use' : 'rented_out');
+        return usageType == 'rented_out';
+      }).toList();
+      final total = rentalProperties.length;
+      final occupied = rentalProperties
+          .where((p) => p['status'] == 'occupied')
+          .length;
+
+      if (!mounted) return;
+      setState(() {
+        _rentalIncome = income;
+        _rentalExpense = expense;
+        _rentalNet = income - expense;
+        _tenantOverdue = tenantOverdue;
+        _landlordOverdue = landlordOverdue;
+        _rentalOccupancyRate = total > 0 ? (occupied / total) * 100 : 0;
+      });
+    } catch (e) {
+      print('Error loading rental summary: $e');
+    }
   }
+
+  void _navigateToProfitDetails() {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => ProfitDetailsScreen(
+        branchId: _branchName,  // The manager's fixed branch ID (String? variable)
+      ),
+    ),
+  );
+}
 
   Future<void> _logout() async {
     final confirm = await showDialog<bool>(
@@ -847,51 +661,9 @@ class _ManagerHomeState extends State<ManagerHome> {
                         const SizedBox(height: 24),
 
                         _buildFinancialGrid(),
-                        const SizedBox(height: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                          decoration: BoxDecoration(
-                            color: AppColors.white.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text(
-                                'Operating Expenses (Non-COGS):',
-                                style: TextStyle(color: AppColors.white, fontSize: 14),
-                              ),
-                              Text(
-                                'ETB ${_otherExpenses.toStringAsFixed(0)}',
-                                style: const TextStyle(color: AppColors.white, fontWeight: FontWeight.bold),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                          decoration: BoxDecoration(
-                            color: AppColors.white.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text(
-                                'Gross Profit (Revenue - COGS):',
-                                style: TextStyle(color: AppColors.white, fontSize: 14),
-                              ),
-                              Text(
-                                'ETB ${_grossProfit.toStringAsFixed(0)}',
-                                style: TextStyle(
-                                  color: _grossProfit >= 0 ? AppColors.success : AppColors.error,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+                        const SizedBox(height: 24),
+
+                        _buildRentalSummary(),
                         const SizedBox(height: 24),
 
                         _buildCategoriesSection(),
@@ -926,64 +698,102 @@ class _ManagerHomeState extends State<ManagerHome> {
           ),
         ),
         const SizedBox(height: 12),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildActionButton(
-              Icons.shopping_bag,
-              'New Order',
-              AppColors.primaryRed,
-              _navigateToCreateOrder,
-            ),
-            _buildActionButton(
-              Icons.inventory,
-              'Inventory',
-              AppColors.info,
-              _navigateToInventory,
-            ),
-            _buildActionButton(
-              Icons.people,
-              'Staff',
-              AppColors.success,
-              _navigateToEmployees,
-            ),
-            _buildActionButton(
-              Icons.receipt,
-              'Reports',
-              AppColors.accent,
-              _navigateToReports,
-            ),
-          ],
+        SizedBox(
+          height: 120,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.only(left: 0, right: 60),
+            children: [
+              _buildQuickActionCard(
+                Icons.shopping_bag,
+                'New Order',
+                AppColors.primaryRed,
+                _navigateToCreateOrder,
+              ),
+              _buildQuickActionCard(
+                Icons.inventory,
+                'Inventory',
+                AppColors.info,
+                _navigateToInventory,
+              ),
+              _buildQuickActionCard(
+                Icons.people,
+                'Staff',
+                AppColors.success,
+                _navigateToEmployees,
+              ),
+              _buildQuickActionCard(
+                Icons.receipt,
+                'Reports',
+                AppColors.accent,
+                _navigateToReports,
+              ),
+              _buildQuickActionCard(
+                Icons.local_shipping,
+                'Shipments',
+                AppColors.warning,
+                _navigateToShipments,
+              ),
+            ],
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildActionButton(
+  Widget _buildQuickActionCard(
     IconData icon,
     String label,
     Color color,
     VoidCallback onTap,
   ) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.2),
-              shape: BoxShape.circle,
+    return Container(
+      width: 90,
+      margin: const EdgeInsets.only(right: 10),
+      child: Card(
+        elevation: 3,
+        shadowColor: Colors.black26,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+          child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    icon,
+                    color: color,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.darkGrey,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
-            child: Icon(icon, color: color),
           ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: const TextStyle(fontSize: 11, color: AppColors.white),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -1070,6 +880,62 @@ class _ManagerHomeState extends State<ManagerHome> {
                 color: AppColors.primaryRed,
               ),
             ),
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 5,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Icon(
+                          Icons.cancel,
+                          color: AppColors.error,
+                          size: 20,
+                        ),
+                        Text(
+                          '${_cancelledBefore + _cancelledAfter}',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.darkGrey,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Cancelled',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.mediumGrey,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '$_cancelledBefore before / $_cancelledAfter after',
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: AppColors.error,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ],
@@ -1089,52 +955,182 @@ class _ManagerHomeState extends State<ManagerHome> {
           ),
         ),
         const SizedBox(height: 12),
-        GridView.count(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisCount: 2,
-          childAspectRatio: 1.5,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
+        Card(
+          color: AppColors.white.withOpacity(0.1),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: _showProfitDialog,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+              child: Row(
+                children: [
+                  Container(
+                    width: 52,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryRed.withOpacity(0.18),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: const Icon(
+                      Icons.account_balance_wallet,
+                      size: 28,
+                      color: AppColors.white,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Financial Summary',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.white,
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          'View breakdown by currency',
+                          style: TextStyle(color: Colors.white70),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(Icons.arrow_forward_ios, color: Colors.white70),
+                ],
+              ),
+            ),
+          ),
+        ),
+        if (_cancelledPayments > 0) ...[
+          const SizedBox(height: 8),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: AppColors.error.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: AppColors.error.withValues(alpha: 0.25),
+              ),
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.warning_amber_rounded,
+                  color: AppColors.error,
+                  size: 16,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Notice: ETB ${_cancelledPayments.toStringAsFixed(0)} was received on cancelled orders and may need refund handling.',
+                    style: const TextStyle(
+                      color: AppColors.error,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildRentalSummary() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            GestureDetector(
-              onTap: _navigateToReports,
-              child: StatCard(
-                title: 'Revenue',
-                value: 'ETB ${_totalRevenue.toStringAsFixed(0)}',
-                icon: Icons.attach_money,
-                color: AppColors.success,
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Rental Summary',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                ),
+                TextButton(
+                  onPressed: _navigateToProperties,
+                  child: const Text('Manage >'),
+                ),
+              ],
             ),
-            GestureDetector(
-              onTap: _navigateToUnpaidOrders,
-              child: StatCard(
-                title: 'To Collect',
-                value: 'ETB ${_toCollectAmount.toStringAsFixed(0)}',
-                icon: Icons.account_balance_wallet,
-                color: AppColors.accent,
-              ),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildRentalStat(
+                  'Income',
+                  'ETB ${_rentalIncome.toStringAsFixed(0)}',
+                  Icons.arrow_upward,
+                  AppColors.success,
+                ),
+                _buildRentalStat(
+                  'Expense',
+                  'ETB ${_rentalExpense.toStringAsFixed(0)}',
+                  Icons.arrow_downward,
+                  AppColors.error,
+                ),
+                _buildRentalStat(
+                  'Net',
+                  'ETB ${_rentalNet.toStringAsFixed(0)}',
+                  Icons.account_balance,
+                  _rentalNet >= 0 ? AppColors.success : AppColors.error,
+                ),
+              ],
             ),
-            GestureDetector(
-              onTap: _showCogsBreakdown,
-              child: StatCard(
-                title: 'COGS',
-                value: 'ETB ${_cogs.toStringAsFixed(0)}',
-                icon: Icons.inventory,
-                color: AppColors.warning,
-              ),
-            ),
-            GestureDetector(
-              onTap: _showProfitDialog,
-              child: StatCard(
-                title: 'Net Profit',
-                value: 'ETB ${_netProfit.toStringAsFixed(0)}',
-                icon: Icons.trending_up,
-                color: _netProfit >= 0 ? AppColors.success : AppColors.error,
-              ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildRentalStat(
+                  'Tenants Due',
+                  'ETB ${_tenantOverdue.toStringAsFixed(0)}',
+                  Icons.warning,
+                  AppColors.warning,
+                ),
+                _buildRentalStat(
+                  'We Owe',
+                  'ETB ${_landlordOverdue.toStringAsFixed(0)}',
+                  Icons.payments,
+                  AppColors.error,
+                ),
+                _buildRentalStat(
+                  'Occupancy',
+                  '${_rentalOccupancyRate.toStringAsFixed(1)}%',
+                  Icons.percent,
+                  AppColors.info,
+                ),
+              ],
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildRentalStat(
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
+    return Column(
+      children: [
+        Icon(icon, color: color),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: TextStyle(fontWeight: FontWeight.bold, color: color),
+        ),
+        Text(label, style: const TextStyle(fontSize: 12)),
       ],
     );
   }

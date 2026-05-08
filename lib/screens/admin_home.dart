@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -11,9 +11,11 @@ import '../widgets/global_date_filter_card.dart';
 import '../utils/app_date_filter.dart';
 import 'purchase_orders_list_screen.dart';
 import '../services/database_helper.dart';
+import '../services/financial_calculator.dart';
 import '../services/sync_service.dart';
 import '../services/low_stock_service.dart';
 import '../utils/error_handler.dart';
+import 'profit_details_screen.dart';
 import 'add_employee_screen.dart';
 import 'orders_list_screen.dart';
 import 'order_details_screen.dart';
@@ -21,6 +23,7 @@ import 'inventory_screen.dart';
 import 'employee_list_screen.dart';
 import 'customers_screen.dart';
 import 'reports_screen.dart';
+import 'shipment_dashboard_screen.dart';
 
 class AdminHome extends StatefulWidget {
   const AdminHome({Key? key}) : super(key: key);
@@ -31,9 +34,12 @@ class AdminHome extends StatefulWidget {
 
 class _AdminHomeState extends State<AdminHome> {
   final DatabaseHelper _dbHelper = DatabaseHelper();
+  final FinancialCalculator _financialCalculator = FinancialCalculator();
   final SyncService _syncService = SyncService();
   Timer? _lowStockTimer;
   StreamSubscription? _lowStockSubscription;
+  DateTimeRange? get currentRange => AppDateFilter.instance.range;
+  String? _selectedBranchId;
   StreamSubscription<bool>? _dataChangedSubscription;
   bool _hasShownLowStockAlert = false;
   String _adminName = 'Admin';
@@ -47,17 +53,22 @@ class _AdminHomeState extends State<AdminHome> {
   int _withDriverCount = 0;
   int _processingCount = 0;
   int _cancelledCount = 0;
+  int _cancelledBefore = 0;
+  int _cancelledAfter = 0;
   int _returnedCount = 0;
 
   // Financial stats
   double _totalRevenue = 0.0;
+  double _salesTotal = 0.0;
   double _toCollectAmount = 0.0;
-  double _totalExpenses = 0.0;   // will be sum of the breakdown below
+  double _totalExpenses = 0.0; // will be sum of the breakdown below
   double _profit = 0.0;
   double _cogs = 0.0;
   double _otherExpenses = 0.0;
+  double _losses = 0.0;
   double _grossProfit = 0.0;
   double _netProfit = 0.0;
+  double _cancelledPayments = 0.0;
 
   // Expenses breakdown (for the dialog)
   double _cogsFromOrders = 0.0;
@@ -74,22 +85,29 @@ class _AdminHomeState extends State<AdminHome> {
   // Other
   List<Map<String, dynamic>> _recentOrders = [];
 
+  // Currencies for currency-specific financials (moved to ProfitDetailsScreen)
+
   // Rental summary
-  double _rentalReceivedThisMonth = 0.0;
-  double _rentalOverdue = 0.0;
+  double _rentalIncome = 0.0;
+  double _rentalExpense = 0.0;
+  double _rentalNet = 0.0;
+  double _tenantOverdue = 0.0;
+  double _landlordOverdue = 0.0;
   double _rentalOccupancyRate = 0.0;
   @override
   void initState() {
     super.initState();
     _loadAdminData();
     _loadStats();
+    // currencies moved into ProfitDetailsScreen; no longer loaded here
     _loadRentalSummary();
     AppDateFilter.instance.rangeNotifier.addListener(_handleGlobalRangeChanged);
 
     // Listen to sync events to refresh data
     _dataChangedSubscription = _syncService.dataChangedStream.listen((_) {
-      print('ðŸ”„ Data changed â€“ reloading stats');
+      print('Ã°Å¸â€â€ž Data changed Ã¢â‚¬â€œ reloading stats');
       _loadStats();
+      // currencies moved into ProfitDetailsScreen; no longer loaded here
       _loadRentalSummary();
     });
 
@@ -98,12 +116,14 @@ class _AdminHomeState extends State<AdminHome> {
 
     // Trigger an initial sync to load data from Firebase
     _syncService.syncAll().then((_) {
-      print('âœ… Initial sync completed');
+      print('Ã¢Å“â€¦ Initial sync completed');
       // Refresh stats again after sync
       _loadStats();
+      // currencies moved into ProfitDetailsScreen; no longer loaded here
       _loadRentalSummary();
     });
   }
+
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
       case 'pending':
@@ -124,7 +144,11 @@ class _AdminHomeState extends State<AdminHome> {
     }
   }
 
-  double _asDouble(dynamic value) => (value as num?)?.toDouble() ?? 0.0;
+  /// Consistently parses dynamic values to doubles to prevent runtime casting errors.
+  double _asDouble(dynamic value) {
+    if (value is String) return double.tryParse(value) ?? 0.0;
+    return (value as num?)?.toDouble() ?? 0.0;
+  }
 
   int _asInt(dynamic value) => (value as num?)?.toInt() ?? 0;
 
@@ -148,7 +172,9 @@ class _AdminHomeState extends State<AdminHome> {
 
   @override
   void dispose() {
-    AppDateFilter.instance.rangeNotifier.removeListener(_handleGlobalRangeChanged);
+    AppDateFilter.instance.rangeNotifier.removeListener(
+      _handleGlobalRangeChanged,
+    );
     _lowStockTimer?.cancel();
     _lowStockSubscription?.cancel();
     _dataChangedSubscription?.cancel();
@@ -159,6 +185,7 @@ class _AdminHomeState extends State<AdminHome> {
     if (!mounted) return;
     _loadStats();
   }
+
 
   Stream<List<Map<String, dynamic>>> _getLowStockStream() async* {
     while (true) {
@@ -206,7 +233,8 @@ class _AdminHomeState extends State<AdminHome> {
 
   String _dashboardCacheKey() {
     final range = AppDateFilter.instance.range;
-    if (range == null) return 'dashboard_all';
+    const cacheVersion = 'v4';
+    if (range == null) return 'dashboard_${cacheVersion}_all';
     final start = DateTime(
       range.start.year,
       range.start.month,
@@ -221,7 +249,7 @@ class _AdminHomeState extends State<AdminHome> {
       59,
       999,
     ).millisecondsSinceEpoch;
-    return 'dashboard_${start}_$end';
+    return 'dashboard_${cacheVersion}_${start}_$end';
   }
 
   void _applyStatsFromCache(Map<String, dynamic> cached) {
@@ -233,8 +261,11 @@ class _AdminHomeState extends State<AdminHome> {
       _withDriverCount = (cached['withDriverCount'] as num?)?.toInt() ?? 0;
       _processingCount = (cached['processingCount'] as num?)?.toInt() ?? 0;
       _cancelledCount = (cached['cancelledCount'] as num?)?.toInt() ?? 0;
+      _cancelledBefore = (cached['cancelledBefore'] as num?)?.toInt() ?? 0;
+      _cancelledAfter = (cached['cancelledAfter'] as num?)?.toInt() ?? 0;
       _returnedCount = (cached['returnedCount'] as num?)?.toInt() ?? 0;
       _totalRevenue = (cached['totalRevenue'] as num?)?.toDouble() ?? 0.0;
+      _salesTotal = (cached['salesTotal'] as num?)?.toDouble() ?? 0.0;
       _toCollectAmount = (cached['toCollectAmount'] as num?)?.toDouble() ?? 0.0;
       _cogs = (cached['cogs'] as num?)?.toDouble() ?? 0.0;
       _cogsFromOrders = (cached['cogsFromOrders'] as num?)?.toDouble() ?? 0.0;
@@ -252,7 +283,10 @@ class _AdminHomeState extends State<AdminHome> {
       _materialExpenses =
           (cached['materialExpenses'] as num?)?.toDouble() ?? 0.0;
       _otherExpenses = (cached['otherExpenses'] as num?)?.toDouble() ?? 0.0;
+      _losses = (cached['losses'] as num?)?.toDouble() ?? 0.0;
       _grossProfit = (cached['grossProfit'] as num?)?.toDouble() ?? 0.0;
+      _cancelledPayments =
+          (cached['cancelledPayments'] as num?)?.toDouble() ?? 0.0;
       _netProfit = (cached['netProfit'] as num?)?.toDouble() ?? 0.0;
       _totalExpenses = (cached['totalExpenses'] as num?)?.toDouble() ?? 0.0;
       _profit = (cached['profit'] as num?)?.toDouble() ?? 0.0;
@@ -301,12 +335,17 @@ class _AdminHomeState extends State<AdminHome> {
           intValue <= endMillis;
     }
 
+    final summary = await _financialCalculator.calculateSummary(
+      range: selectedRange,
+    );
+
     var orders = await _dbHelper.query('orders');
     var payments = await _dbHelper.query('payment_transaction');
     var commissions = await _dbHelper.query('commissions');
     var fuelLogs = await _dbHelper.query('fuel_logs');
     var maintenanceLogs = await _dbHelper.query('maintenance_logs');
     var materialUsage = await _dbHelper.query('material_usage');
+    var losses = await _dbHelper.query('losses');
     var materials = await _dbHelper.query('materials');
     var products = await _dbHelper.query('products');
 
@@ -316,13 +355,15 @@ class _AdminHomeState extends State<AdminHome> {
     List<Map<String, dynamic>> mutableFuel = List.from(fuelLogs);
     List<Map<String, dynamic>> mutableMaintenance = List.from(maintenanceLogs);
     List<Map<String, dynamic>> mutableMaterialUsage = List.from(materialUsage);
+    List<Map<String, dynamic>> mutableLosses = List.from(losses);
     List<Map<String, dynamic>> mutableMaterials = List.from(materials);
     List<Map<String, dynamic>> mutableProducts = List.from(products);
 
     final materialNamesById = <String, String>{
       for (final material in mutableMaterials)
         if ((material['id'] as String?)?.isNotEmpty ?? false)
-          material['id'] as String: (material['name'] as String?) ?? material['id'] as String,
+          material['id'] as String:
+              (material['name'] as String?) ?? material['id'] as String,
     };
     final productById = <String, Map<String, dynamic>>{
       for (final product in mutableProducts)
@@ -336,14 +377,20 @@ class _AdminHomeState extends State<AdminHome> {
       if (!withinSelectedRange(payment['date'])) continue;
       final amount = _asDouble(payment['amount']);
       if (payment['type'] == 'payment') {
-        paymentsByOrderId[orderId] = (paymentsByOrderId[orderId] ?? 0.0) + amount;
+        paymentsByOrderId[orderId] =
+            (paymentsByOrderId[orderId] ?? 0.0) + amount;
       } else {
-        paymentsByOrderId[orderId] = (paymentsByOrderId[orderId] ?? 0.0) - amount;
+        paymentsByOrderId[orderId] =
+            (paymentsByOrderId[orderId] ?? 0.0) - amount;
       }
     }
 
     final expenseItems = <Map<String, dynamic>>[];
     final orderProfitItems = <Map<String, dynamic>>[];
+    double salesTotal = 0.0;
+    double orderMaterialCogs = 0.0;
+    double revenue = 0.0; // Actual cash collected
+    double totalExpenses = 0.0;
 
     double weekRevenue = 0.0;
     for (var p in mutablePayments) {
@@ -360,91 +407,137 @@ class _AdminHomeState extends State<AdminHome> {
     double weekExpenses = 0.0;
     for (var order in ordersList) {
       final createdAt = _asInt(order['createdAt']);
-      if (withinSelectedRange(createdAt)) {
-        final status = (order['status'] as String?)?.toLowerCase() ?? '';
-        if (status != 'cancelled' && status != 'returned') {
-          final cogsAmount = _asDouble(order['cogs']);
-          weekExpenses += cogsAmount;
+      if (!withinSelectedRange(createdAt)) continue;
+      final status = (order['status'] as String?)?.toLowerCase() ?? '';
+      final totalAmount = _asDouble(order['totalAmount']);
 
-          double itemCogsTotal = 0.0;
-          final rawItems = order['items'];
-          final orderItems = rawItems is String
-              ? (jsonDecode(rawItems) as List<dynamic>)
-              : List<dynamic>.from(rawItems as List? ?? const []);
+      if (status != 'cancelled' && status != 'returned') {
+        salesTotal += totalAmount;
+      }
 
-          for (final rawItem in orderItems) {
-            if (rawItem is! Map) continue;
-            final item = Map<String, dynamic>.from(rawItem);
-            final productId = item['productId']?.toString();
-            if (productId == null || productId.isEmpty) continue;
+      final orderId = order['id']?.toString() ?? '';
+      double linkedOrderMaterialCost = 0.0;
+      if (status == 'delivered' || status == 'completed') {
+        final cogsAmount = _asDouble(order['cogs']);
+        weekExpenses += cogsAmount;
+        totalExpenses += cogsAmount;
 
-            final product = productById[productId];
-            if (product == null) continue;
+        double itemCogsTotal = 0.0;
+        final rawItems = order['items'];
+        final orderItems = rawItems is String
+            ? (jsonDecode(rawItems) as List<dynamic>)
+            : List<dynamic>.from(rawItems as List? ?? const []);
 
-            final quantity = (item['quantity'] as num?)?.toDouble() ?? 0.0;
-            final unitCost = (product['costPrice'] as num?)?.toDouble() ?? 0.0;
-            final lineCogs = quantity * unitCost;
-            if (lineCogs <= 0) continue;
+        for (final rawItem in orderItems) {
+          if (rawItem is! Map) continue;
+          final item = Map<String, dynamic>.from(rawItem);
+          final productId = item['productId']?.toString();
+          if (productId == null || productId.isEmpty) continue;
 
-            itemCogsTotal += lineCogs;
-            expenseItems.add({
-              'category': 'COGS',
-              'title': product['name'] ?? item['description'] ?? 'Product',
-              'subtitle': 'Order #${(order['id'] as String?)?.substring(0, 6) ?? ''} • Qty ${quantity.toStringAsFixed(0)} × ETB ${unitCost.toStringAsFixed(2)}',
-              'amount': lineCogs,
-              'date': createdAt,
-              'branchId': order['branchId'],
-            });
-          }
+          final product = productById[productId];
+          if (product == null) continue;
 
-          if (cogsAmount > itemCogsTotal) {
-            final remainder = cogsAmount - itemCogsTotal;
-            expenseItems.add({
-              'category': 'COGS',
-              'title': 'Unmapped COGS',
-              'subtitle': 'Order #${(order['id'] as String?)?.substring(0, 6) ?? ''}',
-              'amount': remainder,
-              'date': createdAt,
-              'branchId': order['branchId'],
-            });
-          }
+          final quantity = (item['quantity'] as num?)?.toDouble() ?? 0.0;
+          final unitCost = (product['costPrice'] as num?)?.toDouble() ?? 0.0;
+          final lineCogs = quantity * unitCost;
+          if (lineCogs <= 0) continue;
+
+          itemCogsTotal += lineCogs;
+          expenseItems.add({
+            'category': 'COGS',
+            'title': product['name'] ?? item['description'] ?? 'Product',
+            'subtitle':
+                'Order #${orderId.substring(0, orderId.length < 6 ? orderId.length : 6)} â€¢ Qty ${quantity.toStringAsFixed(0)} Ã— ETB ${unitCost.toStringAsFixed(2)}',
+            'amount': lineCogs,
+            'date': createdAt,
+            'branchId': order['branchId'],
+          });
         }
 
-        final orderId = order['id']?.toString() ?? '';
-        final idealRevenue = _asDouble(order['totalAmount']);
-        final actualRevenue = paymentsByOrderId[orderId] ?? 0.0;
-        final orderCommissions = mutableCommissions
-            .where((c) {
-              if (c['orderId'] != order['id']) return false;
-              if (c['status'] == 'voided') return false;
-              final effectiveDate = c['paidAt'] ?? c['createdAt'];
-              return withinSelectedRange(effectiveDate);
-            })
-            .fold<double>(0.0, (total, c) => total + _asDouble(c['amount']));
-        final cogsValue = _asDouble(order['cogs']);
-        final actualProfit = actualRevenue - cogsValue - orderCommissions;
-        final idealProfit = idealRevenue - cogsValue - orderCommissions;
-        orderProfitItems.add({
-          'orderId': orderId,
-          'customerName': order['customerName'] ?? 'Unknown',
-          'status': order['status'] ?? '',
-          'actualRevenue': actualRevenue,
-          'idealRevenue': idealRevenue,
-          'cogs': cogsValue,
-          'commissions': orderCommissions,
-          'actualProfit': actualProfit,
-          'idealProfit': idealProfit,
-          'date': createdAt,
-          'branchId': order['branchId'],
-        });
+        for (final mu in mutableMaterialUsage) {
+          final muOrderId = mu['orderId']?.toString();
+          final muType = mu['type']?.toString() ?? 'order';
+          if (muType != 'order' || muOrderId != orderId) continue;
+          final amount = _asDouble(mu['cost']);
+          if (amount <= 0) continue;
+          if (amount <= 0.0) continue;
+          linkedOrderMaterialCost += amount;
+          weekExpenses += amount;
+          totalExpenses += amount;
+          final materialId = mu['material_id']?.toString();
+          expenseItems.add({
+            'category': 'COGS',
+            'title':
+                materialNamesById[materialId] ??
+                materialId ??
+                'Order material usage',
+            'subtitle':
+                'Order #${orderId.substring(0, orderId.length < 6 ? orderId.length : 6)}',
+            'amount': amount,
+            'date': createdAt,
+            'branchId': order['branchId'],
+          });
+        }
+
+        if (cogsAmount > itemCogsTotal) {
+          final remainder = cogsAmount - itemCogsTotal;
+          expenseItems.add({
+            'category': 'COGS',
+            'title': 'Unmapped COGS',
+            'subtitle':
+                'Order #${orderId.substring(0, orderId.length < 6 ? orderId.length : 6)}',
+            'amount': remainder,
+            'date': createdAt,
+            'branchId': order['branchId'],
+          });
+        }
+      }
+
+      final idealRevenue = totalAmount;
+      final actualRevenue = paymentsByOrderId[orderId] ?? 0.0;
+      final orderCommissions = mutableCommissions
+          .where((c) {
+            if (c['orderId'] != order['id']) return false;
+            if (c['status'] == 'voided') return false;
+            final effectiveDate = c['createdAt'] ?? c['paidAt'];
+            return withinSelectedRange(effectiveDate);
+          })
+          .fold<double>(0.0, (total, c) => total + _asDouble(c['amount']));
+      final cogsValue = _asDouble(order['cogs']) + linkedOrderMaterialCost;
+      orderMaterialCogs += linkedOrderMaterialCost;
+      final actualProfit = actualRevenue - cogsValue - orderCommissions;
+      final idealProfit = idealRevenue - cogsValue - orderCommissions;
+      orderProfitItems.add({
+        'orderId': orderId,
+        'customerName': order['customerName'] ?? 'Unknown',
+        'status': order['status'] ?? '',
+        'actualRevenue': actualRevenue,
+        'idealRevenue': idealRevenue,
+        'cogs': cogsValue,
+        'commissions': orderCommissions,
+        'actualProfit': actualProfit,
+        'idealProfit': idealProfit,
+        'date': createdAt,
+        'branchId': order['branchId'],
+      });
+    }
+
+    // Calculate Revenue from payments within range
+    for (var p in mutablePayments) {
+      if (withinSelectedRange(p['date'])) {
+        final amount = _asDouble(p['amount']);
+        revenue += (p['type'] == 'payment' ? amount : -amount);
       }
     }
+
     for (var c in mutableCommissions) {
       if (c['status'] == 'voided') continue;
-      final effectiveDate = c['paidAt'] ?? c['createdAt'];
-      if (effectiveDate == null || !withinSelectedRange(effectiveDate)) continue;
+      final effectiveDate = c['createdAt'] ?? c['paidAt'];
+      if (effectiveDate == null || !withinSelectedRange(effectiveDate))
+        continue;
       final amount = _asDouble(c['amount']);
       weekExpenses += amount;
+      totalExpenses += amount;
       final linkedOrder = ordersList.firstWhere(
         (order) => order['id'] == c['orderId'],
         orElse: () => <String, dynamic>{},
@@ -452,7 +545,8 @@ class _AdminHomeState extends State<AdminHome> {
       expenseItems.add({
         'category': 'Commission',
         'title': c['employeeName'] ?? 'Commission',
-        'subtitle': 'Order #${(c['orderId'] as String?)?.substring(0, 6) ?? ''}',
+        'subtitle':
+            'Order #${(c['orderId'] as String?)?.substring(0, 6) ?? ''}',
         'amount': amount,
         'date': _asInt(effectiveDate),
         'branchId': linkedOrder['branchId'],
@@ -462,6 +556,7 @@ class _AdminHomeState extends State<AdminHome> {
       if (withinSelectedRange(f['date'])) {
         final amount = _asDouble(f['cost']);
         weekExpenses += amount;
+        totalExpenses += amount;
         expenseItems.add({
           'category': 'Fuel',
           'title': f['vehicleId'] ?? 'Fuel expense',
@@ -475,6 +570,7 @@ class _AdminHomeState extends State<AdminHome> {
       if (withinSelectedRange(m['date'])) {
         final amount = _asDouble(m['cost']);
         weekExpenses += amount;
+        totalExpenses += amount;
         expenseItems.add({
           'category': 'Maintenance',
           'title': m['type'] ?? 'Maintenance',
@@ -485,22 +581,42 @@ class _AdminHomeState extends State<AdminHome> {
       }
     }
     for (var mu in mutableMaterialUsage) {
-      if (withinSelectedRange(mu['date'])) {
-        final amount = _asDouble(mu['cost']);
-        weekExpenses += amount;
-        final materialId = mu['material_id'] as String?;
-        expenseItems.add({
-          'category': 'Material',
-          'title': materialNamesById[materialId] ?? materialId ?? 'Material usage',
-          'subtitle': 'Qty ${(mu['quantity'] as num?)?.toStringAsFixed(0) ?? '0'}',
-          'amount': amount,
-          'date': _asInt(mu['date']),
-        });
-      }
+      if (!withinSelectedRange(mu['date'])) continue;
+      final amount = _asDouble(mu['cost']);
+      final usageType = mu['type']?.toString() ?? 'order';
+      if (usageType != 'general') continue;
+      weekExpenses += amount;
+      totalExpenses += amount;
+      final materialId = mu['material_id'] as String?;
+      expenseItems.add({
+        'category': 'Material',
+        'title':
+            materialNamesById[materialId] ??
+            materialId ??
+            'General material usage',
+        'subtitle':
+            'Qty ${(mu['quantity'] as num?)?.toStringAsFixed(0) ?? '0'}',
+        'amount': amount,
+        'date': _asInt(mu['date']),
+      });
+    }
+    for (final loss in mutableLosses) {
+      if (!withinSelectedRange(loss['date'])) continue;
+      final amount = _asDouble(loss['amount']);
+      if (amount <= 0) continue;
+      weekExpenses += amount;
+      totalExpenses += amount;
+      expenseItems.add({
+        'category': 'Loss',
+        'title': loss['type'] ?? 'Loss',
+        'subtitle': loss['reason'] ?? 'Uncategorised loss',
+        'amount': amount,
+        'date': _asInt(loss['date']),
+        'branchId': loss['branchId'],
+      });
     }
     final weekProfit = weekRevenue - weekExpenses;
-
-    double revenue = 0.0;
+    final calculatedNetProfit = revenue - totalExpenses;
     for (var p in mutablePayments) {
       if (withinSelectedRange(p['date'])) {
         final amount = _asDouble(p['amount']);
@@ -527,7 +643,9 @@ class _AdminHomeState extends State<AdminHome> {
     double salesCommissions = 0.0;
     double deliveryCommissions = 0.0;
     for (var c in mutableCommissions) {
-      if (c['status'] == 'paid' && c['paidAt'] != null && withinSelectedRange(c['paidAt'])) {
+      if (c['status'] == 'paid' &&
+          c['paidAt'] != null &&
+          withinSelectedRange(c['paidAt'])) {
         final amount = _asDouble(c['amount']);
         commissionExpenses += amount;
         if (c['type'] == 'tailor') {
@@ -556,21 +674,38 @@ class _AdminHomeState extends State<AdminHome> {
 
     double materialExpenses = 0.0;
     for (var mu in mutableMaterialUsage) {
-      if (withinSelectedRange(mu['date'])) {
-        materialExpenses += _asDouble(mu['cost']);
+      if (!withinSelectedRange(mu['date'])) continue;
+      final amount = _asDouble(mu['cost']);
+      final usageType = mu['type']?.toString() ?? 'order';
+      if (usageType == 'general') {
+        materialExpenses += amount;
       }
     }
 
-    final cogs = cogsFromOrders + materialExpenses + tailorCommissions;
+    double lossesExpense = 0.0;
+    for (final loss in mutableLosses) {
+      if (!withinSelectedRange(loss['date'])) continue;
+      lossesExpense += _asDouble(loss['amount']);
+    }
+
+    final cogs = cogsFromOrders + orderMaterialCogs;
     final otherExpenses =
-        fuelExpenses + maintenanceExpenses + salesCommissions + deliveryCommissions;
+        commissionExpenses +
+        fuelExpenses +
+        maintenanceExpenses +
+        materialExpenses;
     final grossProfit = revenue - cogs;
-    final netProfit = grossProfit - otherExpenses;
-    final totalExpenses = cogs + otherExpenses;
+    final netProfit = grossProfit - otherExpenses - lossesExpense;
     final profit = netProfit;
 
     int total = 0;
-    int pending = 0, completed = 0, withDriver = 0, cancelled = 0, returned = 0, processingCount = 0;
+    int pending = 0,
+        completed = 0,
+        withDriver = 0,
+        cancelled = 0,
+        returned = 0,
+        processingCount = 0;
+    int cancelledBefore = 0, cancelledAfter = 0;
     double toCollect = 0.0;
 
     for (var order in ordersList) {
@@ -598,6 +733,12 @@ class _AdminHomeState extends State<AdminHome> {
           break;
         case 'cancelled':
           cancelled++;
+          final stockDeducted = (order['stock_deducted'] as num?)?.toInt() ?? 0;
+          if (stockDeducted == 0) {
+            cancelledBefore++;
+          } else {
+            cancelledAfter++;
+          }
           break;
         case 'returned':
           returned++;
@@ -609,10 +750,14 @@ class _AdminHomeState extends State<AdminHome> {
       }
     }
 
-    ordersList.sort((a, b) => (b['createdAt'] as int).compareTo(a['createdAt'] as int));
+    ordersList.sort(
+      (a, b) => (b['createdAt'] as int).compareTo(a['createdAt'] as int),
+    );
     var recent = ordersList.take(5).toList();
     expenseItems.sort((a, b) => (b['date'] as int).compareTo(a['date'] as int));
-    orderProfitItems.sort((a, b) => (b['date'] as int).compareTo(a['date'] as int));
+    orderProfitItems.sort(
+      (a, b) => (b['date'] as int).compareTo(a['date'] as int),
+    );
 
     setState(() {
       // Order stats
@@ -622,88 +767,79 @@ class _AdminHomeState extends State<AdminHome> {
       _withDriverCount = withDriver;
       _processingCount = processingCount;
       _cancelledCount = cancelled;
+      _cancelledBefore = cancelledBefore;
+      _cancelledAfter = cancelledAfter;
       _returnedCount = returned;
 
       // Financial stats (selected period)
-      _totalRevenue = revenue;
+      _totalRevenue = summary.revenue;
+      _salesTotal = summary.salesTotal;
       _toCollectAmount = toCollect;
-      _cogs = cogs;
-      _cogsFromOrders = cogsFromOrders;
-      _tailorCommissions = tailorCommissions;
-      _salesCommissions = salesCommissions;
-      _deliveryCommissions = deliveryCommissions;
-      _commissionExpenses = commissionExpenses;
-      _fuelExpenses = fuelExpenses;
-      _maintenanceExpenses = maintenanceExpenses;
-      _materialExpenses = materialExpenses;
-      _otherExpenses = otherExpenses;
-      _grossProfit = grossProfit;
-      _netProfit = netProfit;
-      _totalExpenses = totalExpenses;
-      _profit = profit;
-      _expenseItems = expenseItems;
-      _orderProfitItems = orderProfitItems;
+      _cogs = summary.cogs;
+      _cogsFromOrders = summary.cogsFromOrders;
+      _tailorCommissions = summary.tailorCommissions;
+      _salesCommissions = summary.salesCommissions;
+      _deliveryCommissions = summary.deliveryCommissions;
+      _commissionExpenses = summary.commissionExpenses;
+      _fuelExpenses = summary.fuelExpenses;
+      _maintenanceExpenses = summary.maintenanceExpenses;
+      _materialExpenses = summary.materialExpenses;
+      _otherExpenses = summary.otherExpenses;
+      _losses = summary.losses;
+      _grossProfit = summary.grossProfit;
+      _cancelledPayments = summary.cancelledPayments;
+      _netProfit = summary.netProfit;
+      _totalExpenses = summary.totalExpenses;
+      _profit = summary.netProfit;
+      _expenseItems = summary.expenseItems.map((item) => item.toMap()).toList();
+      _orderProfitItems = summary.orderProfitItems
+          .map((item) => item.toMap())
+          .toList();
       // Week profit
-      _weekProfit = weekProfit;
+      _weekProfit = summary.weekProfit;
 
       // Recent orders
       _recentOrders = recent;
     });
 
     unawaited(
-      _dbHelper.saveCache(
-        cacheKey,
-        {
-          'totalOrders': total,
-          'pendingOrders': pending,
-          'completedOrders': completed,
-          'withDriverCount': withDriver,
-          'processingCount': processingCount,
-          'cancelledCount': cancelled,
-          'returnedCount': returned,
-          'totalRevenue': revenue,
-          'toCollectAmount': toCollect,
-          'cogs': cogs,
-          'cogsFromOrders': cogsFromOrders,
-          'tailorCommissions': tailorCommissions,
-          'salesCommissions': salesCommissions,
-          'deliveryCommissions': deliveryCommissions,
-          'commissionExpenses': commissionExpenses,
-          'fuelExpenses': fuelExpenses,
-          'maintenanceExpenses': maintenanceExpenses,
-          'materialExpenses': materialExpenses,
-          'otherExpenses': otherExpenses,
-          'grossProfit': grossProfit,
-          'netProfit': netProfit,
-          'totalExpenses': totalExpenses,
-          'profit': profit,
-          'weekProfit': weekProfit,
-          'recentOrders': recent,
-        },
-      ),
+      _dbHelper.saveCache(cacheKey, {
+        'totalOrders': total,
+        'pendingOrders': pending,
+        'completedOrders': completed,
+        'withDriverCount': withDriver,
+        'processingCount': processingCount,
+        'cancelledCount': cancelled,
+        'cancelledBefore': cancelledBefore,
+        'cancelledAfter': cancelledAfter,
+        'returnedCount': returned,
+        'totalRevenue': summary.revenue,
+        'salesTotal': summary.salesTotal,
+        'toCollectAmount': toCollect,
+        'cogs': summary.cogs,
+        'cogsFromOrders': summary.cogsFromOrders,
+        'tailorCommissions': summary.tailorCommissions,
+        'salesCommissions': summary.salesCommissions,
+        'deliveryCommissions': summary.deliveryCommissions,
+        'commissionExpenses': summary.commissionExpenses,
+        'fuelExpenses': summary.fuelExpenses,
+        'maintenanceExpenses': summary.maintenanceExpenses,
+        'materialExpenses': summary.materialExpenses,
+        'otherExpenses': summary.otherExpenses,
+        'losses': summary.losses,
+        'grossProfit': summary.grossProfit,
+        'cancelledPayments': summary.cancelledPayments,
+        'netProfit': summary.netProfit,
+        'totalExpenses': summary.totalExpenses,
+        'profit': summary.netProfit,
+        'weekProfit': summary.weekProfit,
+        'recentOrders': recent,
+      }),
     );
   }
 
   void _showExpensesBreakdown() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ProfitDetailsScreen(
-          showExpensesOnly: true,
-          totalRevenue: _totalRevenue,
-          totalExpenses: _totalExpenses,
-          profit: _profit,
-          weekProfit: _weekProfit,
-          cogsAmount: _cogs,
-          commissionExpenses: _commissionExpenses,
-          fuelExpenses: _fuelExpenses,
-          maintenanceExpenses: _maintenanceExpenses,
-          materialExpenses: _materialExpenses,
-          expenseItems: _expenseItems,
-          orderProfitItems: _orderProfitItems,
-        ),
-      ),
-    );
+    // Old ProfitDetailsScreen navigation removed. Use currency reports instead.
   }
 
   void _showCogsBreakdown() {
@@ -733,38 +869,76 @@ class _AdminHomeState extends State<AdminHome> {
       ),
     );
   }
+
   Future<void> _loadRentalSummary() async {
     try {
-      var rentDues = await _dbHelper.query('rent_dues');
-      var payments = await _dbHelper.query('rent_payments');
-      var properties = await _dbHelper.query('properties');
+      final rentPayments = await _dbHelper.query('rent_payments');
+      final landlordPayments = await _dbHelper.query('landlord_payments');
+      final properties = await _dbHelper.query('properties');
+      final rentDues = await _dbHelper.query('rent_dues');
+      final landlordDues = await _dbHelper.query('landlord_dues');
 
       final now = DateTime.now();
       final currentMonth =
           '${now.year}-${now.month.toString().padLeft(2, '0')}';
-
-      double received = 0;
-      for (var p in payments) {
-        if (p['month'] == currentMonth) {
-          received += (p['amount'] as num?)?.toDouble() ?? 0;
+      double income = 0;
+      for (final payment in rentPayments) {
+        if (payment['month'] == currentMonth) {
+          income += (payment['amount'] as num?)?.toDouble() ?? 0;
         }
       }
 
-      double overdue = 0;
-      for (var d in rentDues) {
+      double expense = 0;
+      for (final payment in landlordPayments) {
+        if (payment['month'] == currentMonth) {
+          expense += (payment['amount'] as num?)?.toDouble() ?? 0;
+        }
+      }
+
+      final net = income - expense;
+
+      double tenantOverdue = 0;
+      for (final d in rentDues) {
+        final property = properties.firstWhere(
+          (p) => p['id'] == d['propertyId'],
+          orElse: () => <String, dynamic>{},
+        );
+        final usageType =
+            property['usageType']?.toString() ??
+            (property['ownership'] == 'leased' ? 'business_use' : 'rented_out');
+        if (usageType != 'rented_out') continue;
         if (d['status'] == 'pending' &&
             (d['dueDate'] as int) < now.millisecondsSinceEpoch) {
-          overdue += (d['amount'] as num?)?.toDouble() ?? 0;
+          tenantOverdue += (d['amount'] as num?)?.toDouble() ?? 0;
         }
       }
 
-      int total = properties.length;
-      int occupied = properties.where((p) => p['status'] == 'occupied').length;
+      double landlordOverdue = 0;
+      for (final due in landlordDues) {
+        if (due['status'] == 'pending' &&
+            (due['dueDate'] as int) < now.millisecondsSinceEpoch) {
+          landlordOverdue += (due['amount'] as num?)?.toDouble() ?? 0;
+        }
+      }
+
+      final rentalProperties = properties.where((p) {
+        final usageType =
+            p['usageType']?.toString() ??
+            (p['ownership'] == 'leased' ? 'business_use' : 'rented_out');
+        return usageType == 'rented_out';
+      }).toList();
+      int total = rentalProperties.length;
+      int occupied = rentalProperties
+          .where((p) => p['status'] == 'occupied')
+          .length;
       double occupancy = total > 0 ? (occupied / total) * 100 : 0;
 
       setState(() {
-        _rentalReceivedThisMonth = received;
-        _rentalOverdue = overdue;
+        _rentalIncome = income;
+        _rentalExpense = expense;
+        _rentalNet = net;
+        _tenantOverdue = tenantOverdue;
+        _landlordOverdue = landlordOverdue;
         _rentalOccupancyRate = occupancy;
       });
     } catch (e) {
@@ -820,6 +994,15 @@ class _AdminHomeState extends State<AdminHome> {
     Navigator.pushNamed(context, '/reports');
   }
 
+  void _navigateToShipments() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const ShipmentDashboardScreen(),
+      ),
+    );
+  }
+
   void _navigateToEmployees() {
     Navigator.pushNamed(context, '/employees');
   }
@@ -827,11 +1010,13 @@ class _AdminHomeState extends State<AdminHome> {
   void _navigateToCustomers() {
     Navigator.pushNamed(context, '/customers');
   }
+
   void _navigateToReceivedPurchaseOrders() {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => PurchaseOrdersListScreen(initialStatus: 'received'),
+        builder: (context) =>
+            PurchaseOrdersListScreen(initialStatus: 'received'),
       ),
     );
   }
@@ -866,27 +1051,17 @@ class _AdminHomeState extends State<AdminHome> {
   }
 
   void _navigateToProfitDetails() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ProfitDetailsScreen(
-          showExpensesOnly: false,
-          totalRevenue: _totalRevenue,
-          totalExpenses: _totalExpenses,
-          profit: _profit,
-          weekProfit: _weekProfit,
-          cogsAmount: _cogs,
-          commissionExpenses: _commissionExpenses,
-          fuelExpenses: _fuelExpenses,
-          maintenanceExpenses: _maintenanceExpenses,
-          materialExpenses: _materialExpenses,
-          expenseItems: _expenseItems,
-          orderProfitItems: _orderProfitItems,
-          initialRange: AppDateFilter.instance.range,
-        ),
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => ProfitDetailsScreen(
+        dateRange: currentRange,      // The global date range (DateTimeRange? variable)
+        branchId: _selectedBranchId,  // The branch filter (String? variable; may be null)
       ),
-    );
-  }
+    ),
+  );
+}
+
   void _navigateToProperties() {
     Navigator.pushNamed(context, '/properties');
   }
@@ -1004,7 +1179,30 @@ class _AdminHomeState extends State<AdminHome> {
                       ),
                     ],
                     flexibleSpace: FlexibleSpaceBar(
-                      background: Container(color: Colors.transparent),
+                      background: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          Image.asset(
+                            'assets/images/dashboard_header.png',
+                            fit: BoxFit.cover,
+                          ),
+                          DecoratedBox(
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                stops: const [0.0, 0.58, 0.82, 1.0],
+                                colors: [
+                                  Colors.transparent,
+                                  Colors.transparent,
+                                  AppColors.backgroundStart.withOpacity(0.32),
+                                  AppColors.backgroundEnd.withOpacity(0.52),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
 
@@ -1014,7 +1212,11 @@ class _AdminHomeState extends State<AdminHome> {
                       delegate: SliverChildListDelegate([
                         Text(
                           'Welcome back, ${_adminName.split(' ').first}!',
-                          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.white),
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.white,
+                          ),
                         ),
                         const SizedBox(height: 8),
                         const Text(
@@ -1044,16 +1246,33 @@ class _AdminHomeState extends State<AdminHome> {
                         FutureBuilder<List<Map<String, dynamic>>>(
                           future: _getTopCustomers(),
                           builder: (context, snapshot) {
-                            if (!snapshot.hasData || snapshot.data!.isEmpty) return const SizedBox();
+                            if (!snapshot.hasData || snapshot.data!.isEmpty)
+                              return const SizedBox();
                             var topCustomers = snapshot.data!;
                             return Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
-                                    const Text('TOP CUSTOMERS', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.white)),
-                                    TextButton(onPressed: _navigateToCustomers, child: const Text('See All >', style: TextStyle(color: AppColors.white))),
+                                    const Text(
+                                      'TOP CUSTOMERS',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColors.white,
+                                      ),
+                                    ),
+                                    TextButton(
+                                      onPressed: _navigateToCustomers,
+                                      child: const Text(
+                                        'See All >',
+                                        style: TextStyle(
+                                          color: AppColors.white,
+                                        ),
+                                      ),
+                                    ),
                                   ],
                                 ),
                                 const SizedBox(height: 8),
@@ -1063,19 +1282,30 @@ class _AdminHomeState extends State<AdminHome> {
                                     leading: CircleAvatar(
                                       backgroundColor: AppColors.primaryRed,
                                       child: Text(
-                                        (topCustomers.first['name'][0]).toUpperCase(),
-                                        style: const TextStyle(color: AppColors.white, fontSize: 12),
+                                        (topCustomers.first['name'][0])
+                                            .toUpperCase(),
+                                        style: const TextStyle(
+                                          color: AppColors.white,
+                                          fontSize: 12,
+                                        ),
                                       ),
                                     ),
                                     title: Text(topCustomers.first['name']),
-                                    subtitle: Text('${topCustomers.first['orders']} orders'),
-                                    trailing: Text('ETB ${(topCustomers.first['total'] as num?)?.toStringAsFixed(0) ?? '0'}'),
+                                    subtitle: Text(
+                                      '${topCustomers.first['orders']} orders',
+                                    ),
+                                    trailing: Text(
+                                      'ETB ${(topCustomers.first['total'] as num?)?.toStringAsFixed(0) ?? '0'}',
+                                    ),
                                     onTap: () {
                                       // Optionally navigate to orders filtered by this customer
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => OrdersListScreen(showUnpaidOnly: false),
+                                          builder: (context) =>
+                                              OrdersListScreen(
+                                                showUnpaidOnly: false,
+                                              ),
                                         ),
                                       );
                                     },
@@ -1094,50 +1324,86 @@ class _AdminHomeState extends State<AdminHome> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text('Recent Orders', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.white)),
-                                TextButton(onPressed: _navigateToOrders, child: const Text('View All >', style: TextStyle(color: AppColors.white))),
+                                const Text(
+                                  'Recent Orders',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.white,
+                                  ),
+                                ),
+                                TextButton(
+                                  onPressed: _navigateToOrders,
+                                  child: const Text(
+                                    'View All >',
+                                    style: TextStyle(color: AppColors.white),
+                                  ),
+                                ),
                               ],
                             ),
                             const SizedBox(height: 8),
                             _recentOrders.isEmpty
-                                ? const Text('No recent orders', style: TextStyle(color: AppColors.white))
+                                ? const Text(
+                                    'No recent orders',
+                                    style: TextStyle(color: AppColors.white),
+                                  )
                                 : Card(
                                     margin: EdgeInsets.zero,
                                     child: ListTile(
                                       leading: CircleAvatar(
-                                        backgroundColor: _getStatusColor(_recentOrders.first['status']),
+                                        backgroundColor: _getStatusColor(
+                                          _recentOrders.first['status'],
+                                        ),
                                         child: Text(
                                           (_recentOrders.first['id']?.substring(0, 1) ?? '#'),
-                                          style: const TextStyle(color: AppColors.white, fontSize: 14),
+                                          style: const TextStyle(
+                                            color: AppColors.white,
+                                            fontSize: 14,
+                                          ),
                                         ),
                                       ),
                                       title: Text(
                                         _recentOrders.first['customerName'] ?? 'Unknown',
-                                        style: const TextStyle(fontWeight: FontWeight.w500),
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w500,
+                                        ),
                                       ),
                                       subtitle: Text(
                                         '#${_recentOrders.first['id']?.substring(0, 6)}',
                                         style: const TextStyle(fontSize: 12),
                                       ),
                                       trailing: Column(
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        crossAxisAlignment: CrossAxisAlignment.end,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.end,
                                         children: [
                                           Text(
                                             'ETB ${(_recentOrders.first['totalAmount'] as num?)?.toStringAsFixed(0) ?? '0'}',
-                                            style: const TextStyle(fontWeight: FontWeight.bold),
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                           ),
                                           const SizedBox(height: 4),
                                           Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 6,
+                                              vertical: 2,
+                                            ),
                                             decoration: BoxDecoration(
-                                              color: _getStatusColor(_recentOrders.first['status']).withOpacity(0.2),
-                                              borderRadius: BorderRadius.circular(12),
+                                              color: _getStatusColor(
+                                                _recentOrders.first['status'],
+                                              ).withOpacity(0.2),
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
                                             ),
                                             child: Text(
-                                              _recentOrders.first['status'] ?? 'pending',
+                                              _recentOrders.first['status'] ??
+                                                  'pending',
                                               style: TextStyle(
-                                                color: _getStatusColor(_recentOrders.first['status']),
+                                                color: _getStatusColor(
+                                                  _recentOrders.first['status'],
+                                                ),
                                                 fontSize: 10,
                                                 fontWeight: FontWeight.w500,
                                               ),
@@ -1149,7 +1415,11 @@ class _AdminHomeState extends State<AdminHome> {
                                         Navigator.push(
                                           context,
                                           MaterialPageRoute(
-                                            builder: (context) => OrderDetailsScreen(orderId: _recentOrders.first['id']),
+                                            builder: (context) =>
+                                                OrderDetailsScreen(
+                                                  orderId:
+                                                      _recentOrders.first['id'],
+                                                ),
                                           ),
                                         );
                                       },
@@ -1161,62 +1431,12 @@ class _AdminHomeState extends State<AdminHome> {
 
                         // Order Categories
                         _buildFinancialGrid(),
-                        const SizedBox(height: 24),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                          decoration: BoxDecoration(
-                            color: AppColors.white.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text(
-                                'Operating Expenses (Non-COGS):',
-                                style: TextStyle(color: AppColors.white, fontSize: 14),
-                              ),
-                              Text(
-                                'ETB ${_otherExpenses.toStringAsFixed(0)}',
-                                style: const TextStyle(color: AppColors.white, fontWeight: FontWeight.bold),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                          decoration: BoxDecoration(
-                            color: AppColors.white.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text(
-                                'Gross Profit (Revenue - COGS):',
-                                style: TextStyle(color: AppColors.white, fontSize: 14),
-                              ),
-                              Text(
-                                'ETB ${_grossProfit.toStringAsFixed(0)}',
-                                style: TextStyle(
-                                  color: _grossProfit >= 0 ? AppColors.success : AppColors.error,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 16),
                       ]),
                     ),
                   ),
                 ],
               ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _navigateToCreateOrder,
-        backgroundColor: AppColors.accent,
-        child: const Icon(Icons.add, color: AppColors.white),
       ),
     );
   }
@@ -1234,64 +1454,102 @@ class _AdminHomeState extends State<AdminHome> {
           ),
         ),
         const SizedBox(height: 12),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildActionButton(
-              Icons.person_add,
-              'Add Employee',
-              AppColors.primaryRed,
-              _navigateToAddEmployee,
-            ),
-            _buildActionButton(
-              Icons.shopping_bag,
-              'New Order',
-              AppColors.success,
-              _navigateToCreateOrder,
-            ),
-            _buildActionButton(
-              Icons.inventory,
-              'Add Stock',
-              AppColors.info,
-              _navigateToInventory,
-            ),
-            _buildActionButton(
-              Icons.receipt,
-              'Reports',
-              AppColors.accent,
-              _navigateToReports,
-            ),
-          ],
+        SizedBox(
+          height: 120,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.only(left: 0, right: 60),
+            children: [
+              _buildQuickActionCard(
+                Icons.person_add,
+                'Add Employee',
+                AppColors.primaryRed,
+                _navigateToAddEmployee,
+              ),
+              _buildQuickActionCard(
+                Icons.shopping_bag,
+                'New Order',
+                AppColors.success,
+                _navigateToCreateOrder,
+              ),
+              _buildQuickActionCard(
+                Icons.inventory,
+                'Add Stock',
+                AppColors.info,
+                _navigateToInventory,
+              ),
+              _buildQuickActionCard(
+                Icons.receipt,
+                'Reports',
+                AppColors.accent,
+                _navigateToReports,
+              ),
+              _buildQuickActionCard(
+                Icons.local_shipping,
+                'Shipments',
+                AppColors.warning,
+                _navigateToShipments,
+              ),
+            ],
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildActionButton(
+  Widget _buildQuickActionCard(
     IconData icon,
     String label,
     Color color,
     VoidCallback onTap,
   ) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.2),
-              shape: BoxShape.circle,
+    return Container(
+      width: 90,
+      margin: const EdgeInsets.only(right: 10),
+      child: Card(
+        elevation: 3,
+        shadowColor: Colors.black26,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+          child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    icon,
+                    color: color,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.darkGrey,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
-            child: Icon(icon, color: color),
           ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: const TextStyle(fontSize: 11, color: AppColors.white),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -1302,7 +1560,11 @@ class _AdminHomeState extends State<AdminHome> {
       children: [
         const Text(
           'Order Overview',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.white),
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: AppColors.white,
+          ),
         ),
         const SizedBox(height: 12),
         GridView.count(
@@ -1358,11 +1620,68 @@ class _AdminHomeState extends State<AdminHome> {
                 color: AppColors.info,
               ),
             ),
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 5,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Icon(
+                          Icons.cancel,
+                          color: AppColors.error,
+                          size: 20,
+                        ),
+                        Text(
+                          '${_cancelledBefore + _cancelledAfter}',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.darkGrey,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Cancelled',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.mediumGrey,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '$_cancelledBefore before / $_cancelledAfter after',
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: AppColors.error,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ],
     );
   }
+
   Widget _buildRentalSummary() {
     return Card(
       child: Padding(
@@ -1388,15 +1707,39 @@ class _AdminHomeState extends State<AdminHome> {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 _buildRentalStat(
-                  'Received',
-                  'ETB ${_rentalReceivedThisMonth.toStringAsFixed(0)}',
-                  Icons.payment,
+                  'Income',
+                  'ETB ${_rentalIncome.toStringAsFixed(0)}',
+                  Icons.arrow_upward,
                   AppColors.success,
                 ),
                 _buildRentalStat(
-                  'Overdue',
-                  'ETB ${_rentalOverdue.toStringAsFixed(0)}',
+                  'Expense',
+                  'ETB ${_rentalExpense.toStringAsFixed(0)}',
+                  Icons.arrow_downward,
+                  AppColors.error,
+                ),
+                _buildRentalStat(
+                  'Net',
+                  'ETB ${_rentalNet.toStringAsFixed(0)}',
+                  Icons.account_balance,
+                  _rentalNet >= 0 ? AppColors.success : AppColors.error,
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildRentalStat(
+                  'Tenants Due',
+                  'ETB ${_tenantOverdue.toStringAsFixed(0)}',
                   Icons.warning,
+                  AppColors.warning,
+                ),
+                _buildRentalStat(
+                  'We Owe',
+                  'ETB ${_landlordOverdue.toStringAsFixed(0)}',
+                  Icons.payments,
                   AppColors.error,
                 ),
                 _buildRentalStat(
@@ -1442,884 +1785,97 @@ class _AdminHomeState extends State<AdminHome> {
       children: [
         const Text(
           'Financial Overview',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.white),
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: AppColors.white,
+          ),
         ),
         const SizedBox(height: 12),
-        GridView.count(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisCount: 2,
-          childAspectRatio: 1.5,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
-          children: [
-            GestureDetector(
-              onTap: _navigateToReports,
-              child: StatCard(
-                title: 'Revenue',
-                value: 'ETB ${_totalRevenue.toStringAsFixed(0)}',
-                icon: Icons.attach_money,
-                color: AppColors.success,
+        Card(
+          color: AppColors.white.withOpacity(0.1),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(12),
+            onTap: _navigateToProfitDetails,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+              child: Row(
+                children: [
+                  Container(
+                    width: 52,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryRed.withOpacity(0.18),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: const Icon(
+                      Icons.account_balance_wallet,
+                      size: 28,
+                      color: AppColors.white,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Financial Summary',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.white,
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          'View breakdown by currency',
+                          style: TextStyle(color: Colors.white70),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(Icons.arrow_forward_ios, color: Colors.white70),
+                ],
               ),
             ),
-            GestureDetector(
-              onTap: _navigateToUnpaidOrders,
-              child: StatCard(
-                title: 'To Collect',
-                value: 'ETB ${_toCollectAmount.toStringAsFixed(0)}',
-                icon: Icons.account_balance_wallet,
-                color: AppColors.accent,
-              ),
-            ),
-            GestureDetector(
-              onTap: _showCogsBreakdown,
-              child: StatCard(
-                title: 'COGS',
-                value: 'ETB ${_cogs.toStringAsFixed(0)}',
-                icon: Icons.inventory,
-                color: AppColors.warning,
-              ),
-            ),
-            GestureDetector(
-              onTap: _navigateToProfitDetails,
-              child: StatCard(
-                title: 'Net Profit',
-                value: 'ETB ${_netProfit.toStringAsFixed(0)}',
-                icon: Icons.trending_up,
-                color: _netProfit >= 0 ? AppColors.success : AppColors.error,
-              ),
-            ),
-          ],
+          ),
         ),
+        if (_cancelledPayments > 0) ...[
+          const SizedBox(height: 8),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: AppColors.error.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: AppColors.error.withValues(alpha: 0.25),
+              ),
+            ),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.warning_amber_rounded,
+                  color: AppColors.error,
+                  size: 16,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Notice: ETB ${_cancelledPayments.toStringAsFixed(0)} was received on cancelled orders and may need refund handling.',
+                    style: const TextStyle(
+                      color: AppColors.error,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ],
     );
   }
 }
-
-class ProfitDetailsScreen extends StatefulWidget {
-  const ProfitDetailsScreen({
-    super.key,
-    required this.showExpensesOnly,
-    required this.totalRevenue,
-    required this.totalExpenses,
-    required this.profit,
-    required this.weekProfit,
-    required this.cogsAmount,
-    required this.commissionExpenses,
-    required this.fuelExpenses,
-    required this.maintenanceExpenses,
-    required this.materialExpenses,
-    required this.expenseItems,
-    required this.orderProfitItems,
-    this.initialRange,
-  });
-
-  final bool showExpensesOnly;
-  final double totalRevenue;
-  final double totalExpenses;
-  final double profit;
-  final double weekProfit;
-  final double cogsAmount;
-  final double commissionExpenses;
-  final double fuelExpenses;
-  final double maintenanceExpenses;
-  final double materialExpenses;
-  final List<Map<String, dynamic>> expenseItems;
-  final List<Map<String, dynamic>> orderProfitItems;
-  final DateTimeRange? initialRange;
-
-  @override
-  State<ProfitDetailsScreen> createState() => _ProfitDetailsScreenState();
-}
-
-class _ProfitDetailsScreenState extends State<ProfitDetailsScreen> {
-  final DatabaseHelper _dbHelper = DatabaseHelper();
-  List<Map<String, dynamic>> _branches = [];
-  Map<String, String> _branchNamesById = {};
-  String _selectedBranchId = 'all';
-  DateTimeRange? _selectedRange;
-  bool _isLoadingDetails = true;
-  double _displayRevenue = 0.0;
-  double _displayTotalExpenses = 0.0;
-  double _displayProfit = 0.0;
-  double _displayWeekProfit = 0.0;
-  double _displayCogs = 0.0;
-  double _displayCommissionExpenses = 0.0;
-  double _displayFuelExpenses = 0.0;
-  double _displayMaintenanceExpenses = 0.0;
-  double _displayMaterialExpenses = 0.0;
-  double _displayOtherExpenses = 0.0;
-  double _displayGrossProfit = 0.0;
-  double _displayNetProfit = 0.0;
-  List<Map<String, dynamic>> _expenseItems = [];
-  List<Map<String, dynamic>> _orderProfitItems = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _selectedRange = widget.initialRange ?? AppDateFilter.instance.range;
-    _displayRevenue = widget.totalRevenue;
-    _displayTotalExpenses = widget.totalExpenses;
-    _displayProfit = widget.profit;
-    _displayWeekProfit = widget.weekProfit;
-    _displayCogs = widget.cogsAmount;
-    _displayCommissionExpenses = widget.commissionExpenses;
-    _displayFuelExpenses = widget.fuelExpenses;
-    _displayMaintenanceExpenses = widget.maintenanceExpenses;
-    _displayMaterialExpenses = widget.materialExpenses;
-    _displayOtherExpenses = widget.commissionExpenses + widget.fuelExpenses + widget.maintenanceExpenses;
-    _displayGrossProfit = widget.totalRevenue - widget.cogsAmount;
-    _displayNetProfit = widget.profit;
-    _loadBranches();
-    _loadDetails();
-    AppDateFilter.instance.rangeNotifier.addListener(_handleGlobalRangeChanged);
-  }
-
-  @override
-  void dispose() {
-    AppDateFilter.instance.rangeNotifier.removeListener(_handleGlobalRangeChanged);
-    super.dispose();
-  }
-
-  void _handleGlobalRangeChanged() {
-    final nextRange = AppDateFilter.instance.range;
-    if (nextRange == _selectedRange) return;
-    setState(() {
-      _selectedRange = nextRange;
-    });
-    _loadDetails();
-  }
-
-  int _rangeStartMillis() {
-    if (_selectedRange == null) return 0;
-    final start = _selectedRange!.start;
-    return DateTime(start.year, start.month, start.day).millisecondsSinceEpoch;
-  }
-
-  int _rangeEndMillis() {
-    if (_selectedRange == null) return DateTime.now().millisecondsSinceEpoch;
-    final end = _selectedRange!.end;
-    return DateTime(
-      end.year,
-      end.month,
-      end.day,
-      23,
-      59,
-      59,
-      999,
-    ).millisecondsSinceEpoch;
-  }
-
-  bool _withinSelectedRange(dynamic value) {
-    if (_selectedRange == null) return true;
-    final timestamp = (value as num?)?.toInt();
-    if (timestamp == null) return false;
-    return timestamp >= _rangeStartMillis() && timestamp <= _rangeEndMillis();
-  }
-
-  Future<void> _loadDetails() async {
-    setState(() => _isLoadingDetails = true);
-    try {
-      final orders = await _dbHelper.query('orders');
-      final payments = await _dbHelper.query('payment_transaction');
-      final commissions = await _dbHelper.query('commissions');
-      final fuelLogs = await _dbHelper.query('fuel_logs');
-      final maintenanceLogs = await _dbHelper.query('maintenance_logs');
-      final materialUsage = await _dbHelper.query('material_usage');
-      final materials = await _dbHelper.query('materials');
-      final products = await _dbHelper.query('products');
-
-      final orderList = List<Map<String, dynamic>>.from(orders);
-      final paymentList = List<Map<String, dynamic>>.from(payments);
-      final commissionList = List<Map<String, dynamic>>.from(commissions);
-      final fuelList = List<Map<String, dynamic>>.from(fuelLogs);
-      final maintenanceList = List<Map<String, dynamic>>.from(maintenanceLogs);
-      final materialUsageList = List<Map<String, dynamic>>.from(materialUsage);
-      final materialList = List<Map<String, dynamic>>.from(materials);
-      final productList = List<Map<String, dynamic>>.from(products);
-
-      final materialNamesById = <String, String>{
-        for (final material in materialList)
-          if ((material['id'] as String?)?.isNotEmpty ?? false)
-            material['id'] as String:
-                (material['name'] as String?) ?? material['id'] as String,
-      };
-      final productById = <String, Map<String, dynamic>>{
-        for (final product in productList)
-          if ((product['id'] as String?)?.isNotEmpty ?? false)
-            product['id'] as String: product,
-      };
-
-      final expenseItems = <Map<String, dynamic>>[];
-      final orderProfitItems = <Map<String, dynamic>>[];
-      final paymentsByOrderId = <String, double>{};
-      for (final payment in paymentList) {
-        final orderId = payment['orderId']?.toString();
-        if (orderId == null || orderId.isEmpty) continue;
-        if (!_withinSelectedRange(payment['date'])) continue;
-        final amount = (payment['amount'] as num?)?.toDouble() ?? 0.0;
-        if (payment['type'] == 'payment') {
-          paymentsByOrderId[orderId] = (paymentsByOrderId[orderId] ?? 0.0) + amount;
-        } else {
-          paymentsByOrderId[orderId] = (paymentsByOrderId[orderId] ?? 0.0) - amount;
-        }
-      }
-
-      double revenue = 0.0;
-      for (final payment in paymentList) {
-        if (_withinSelectedRange(payment['date'])) {
-          final amount = (payment['amount'] as num?)?.toDouble() ?? 0.0;
-          if (payment['type'] == 'payment') {
-            revenue += amount;
-          } else {
-            revenue -= amount;
-          }
-        }
-      }
-
-      double cogsFromOrders = 0.0;
-      double materialExpenses = 0.0;
-      double tailorCommissions = 0.0;
-      double salesCommissions = 0.0;
-      double commissionExpenses = 0.0;
-      double fuelExpenses = 0.0;
-      double maintenanceExpenses = 0.0;
-      final totalOrderProfitItems = <Map<String, dynamic>>[];
-
-      for (final order in orderList) {
-        final createdAt = (order['createdAt'] as num?)?.toInt() ?? 0;
-        if (!_withinSelectedRange(createdAt)) continue;
-
-        final orderStatus = (order['status'] as String?)?.toLowerCase() ?? '';
-        if (orderStatus == 'completed' || orderStatus == 'delivered') {
-          cogsFromOrders += (order['cogs'] as num?)?.toDouble() ?? 0.0;
-        }
-
-        double itemCogsTotal = 0.0;
-        final rawItems = order['items'];
-        final orderItems = rawItems is String
-            ? (jsonDecode(rawItems) as List<dynamic>)
-            : List<dynamic>.from(rawItems as List? ?? const []);
-        for (final rawItem in orderItems) {
-          if (rawItem is! Map) continue;
-          final item = Map<String, dynamic>.from(rawItem);
-          final productId = item['productId']?.toString();
-          if (productId == null || productId.isEmpty) continue;
-          final product = productById[productId];
-          if (product == null) continue;
-          final quantity = (item['quantity'] as num?)?.toDouble() ?? 0.0;
-          final unitCost = (product['costPrice'] as num?)?.toDouble() ?? 0.0;
-          final lineCogs = quantity * unitCost;
-          if (lineCogs <= 0) continue;
-          itemCogsTotal += lineCogs;
-          expenseItems.add({
-            'category': 'COGS',
-            'title': product['name'] ?? item['description'] ?? 'Product',
-            'subtitle':
-                'Order #${(order['id'] as String?)?.substring(0, 6) ?? ''} • Qty ${quantity.toStringAsFixed(0)} × ETB ${unitCost.toStringAsFixed(2)}',
-            'amount': lineCogs,
-            'date': createdAt,
-            'branchId': order['branchId'],
-          });
-        }
-        final orderCogs = (order['cogs'] as num?)?.toDouble() ?? 0.0;
-        if (orderCogs > itemCogsTotal) {
-          expenseItems.add({
-            'category': 'COGS',
-            'title': 'Unmapped COGS',
-            'subtitle': 'Order #${(order['id'] as String?)?.substring(0, 6) ?? ''}',
-            'amount': orderCogs - itemCogsTotal,
-            'date': createdAt,
-            'branchId': order['branchId'],
-          });
-        }
-
-        final orderId = order['id']?.toString() ?? '';
-        final idealRevenue = (order['totalAmount'] as num?)?.toDouble() ?? 0.0;
-        final actualRevenue = paymentsByOrderId[orderId] ?? 0.0;
-        final orderCommissions = commissionList
-            .where((c) {
-              if (c['orderId'] != order['id']) return false;
-              if (c['status'] == 'voided') return false;
-              final effectiveDate = c['paidAt'] ?? c['createdAt'];
-              return _withinSelectedRange(effectiveDate);
-            })
-            .fold<double>(
-              0.0,
-              (total, c) => total + ((c['amount'] as num?)?.toDouble() ?? 0.0),
-            );
-        final cogsValue = (order['cogs'] as num?)?.toDouble() ?? 0.0;
-        totalOrderProfitItems.add({
-          'orderId': orderId,
-          'customerName': order['customerName'] ?? 'Unknown',
-          'status': order['status'] ?? '',
-          'actualRevenue': actualRevenue,
-          'idealRevenue': idealRevenue,
-          'cogs': cogsValue,
-          'commissions': orderCommissions,
-          'actualProfit': actualRevenue - cogsValue - orderCommissions,
-          'idealProfit': idealRevenue - cogsValue - orderCommissions,
-          'date': createdAt,
-          'branchId': order['branchId'],
-        });
-      }
-
-    for (final c in commissionList) {
-      if (c['status'] != 'voided') {
-        final effectiveDate = c['paidAt'] ?? c['createdAt'];
-        if (effectiveDate == null || !_withinSelectedRange(effectiveDate)) {
-          continue;
-        }
-        final amount = (c['amount'] as num?)?.toDouble() ?? 0.0;
-        commissionExpenses += amount;
-        if (c['type'] == 'tailor') {
-          tailorCommissions += amount;
-        } else if (c['type'] == 'sales') {
-            salesCommissions += amount;
-          }
-          expenseItems.add({
-            'category': 'Commission',
-            'title': c['employeeName'] ?? 'Commission',
-            'subtitle': 'Order #${(c['orderId'] as String?)?.substring(0, 6) ?? ''}',
-            'amount': amount,
-          'date': (effectiveDate as num?)?.toInt() ?? 0,
-          'branchId': c['branchId'],
-        });
-      }
-    }
-
-      for (final f in fuelList) {
-        if (_withinSelectedRange(f['date'])) {
-          final amount = (f['cost'] as num?)?.toDouble() ?? 0.0;
-          fuelExpenses += amount;
-          expenseItems.add({
-            'category': 'Fuel',
-            'title': f['vehicleId'] ?? 'Fuel expense',
-            'subtitle': 'Odometer ${f['odometer'] ?? '-'}',
-            'amount': amount,
-            'date': (f['date'] as num?)?.toInt() ?? 0,
-            'branchId': f['branchId'],
-          });
-        }
-      }
-
-      for (final m in maintenanceList) {
-        if (_withinSelectedRange(m['date'])) {
-          final amount = (m['cost'] as num?)?.toDouble() ?? 0.0;
-          maintenanceExpenses += amount;
-          expenseItems.add({
-            'category': 'Maintenance',
-            'title': m['type'] ?? 'Maintenance',
-            'subtitle': m['description'] ?? m['notes'] ?? 'Maintenance expense',
-            'amount': amount,
-            'date': (m['date'] as num?)?.toInt() ?? 0,
-            'branchId': m['branchId'],
-          });
-        }
-      }
-
-      for (final mu in materialUsageList) {
-        if (_withinSelectedRange(mu['date'])) {
-          final amount = (mu['cost'] as num?)?.toDouble() ?? 0.0;
-          materialExpenses += amount;
-          final materialId = mu['material_id'] as String?;
-          expenseItems.add({
-            'category': 'Material',
-            'title': materialNamesById[materialId] ?? materialId ?? 'Material usage',
-            'subtitle': 'Qty ${(mu['quantity'] as num?)?.toStringAsFixed(0) ?? '0'}',
-            'amount': amount,
-            'date': (mu['date'] as num?)?.toInt() ?? 0,
-            'branchId': mu['branchId'],
-          });
-        }
-      }
-
-      final cogs = cogsFromOrders + materialExpenses + tailorCommissions;
-      final otherExpenses = fuelExpenses + maintenanceExpenses + salesCommissions;
-      final grossProfit = revenue - cogs;
-      final netProfit = grossProfit - otherExpenses;
-      final totalExpenses = cogs + otherExpenses;
-      final weekProfit = revenue - (cogsFromOrders + materialExpenses + tailorCommissions + commissionExpenses + fuelExpenses + maintenanceExpenses + salesCommissions);
-
-      expenseItems.sort((a, b) => ((b['date'] as num?)?.toInt() ?? 0).compareTo((a['date'] as num?)?.toInt() ?? 0));
-      totalOrderProfitItems.sort((a, b) => ((b['date'] as num?)?.toInt() ?? 0).compareTo((a['date'] as num?)?.toInt() ?? 0));
-
-      if (!mounted) return;
-      setState(() {
-        _expenseItems = expenseItems;
-        _orderProfitItems = totalOrderProfitItems;
-        _displayRevenue = revenue;
-        _displayTotalExpenses = totalExpenses;
-        _displayProfit = netProfit;
-        _displayWeekProfit = weekProfit;
-        _displayCogs = cogs;
-        _displayCommissionExpenses = commissionExpenses;
-        _displayFuelExpenses = fuelExpenses;
-        _displayMaintenanceExpenses = maintenanceExpenses;
-        _displayMaterialExpenses = materialExpenses;
-        _displayOtherExpenses = otherExpenses;
-        _displayGrossProfit = grossProfit;
-        _displayNetProfit = netProfit;
-        _isLoadingDetails = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _isLoadingDetails = false);
-    }
-  }
-
-  Future<void> _loadBranches() async {
-    final branches = await _dbHelper.query('branches');
-    if (!mounted) return;
-    final branchList = List<Map<String, dynamic>>.from(branches);
-    setState(() {
-      _branches = branchList;
-      _branchNamesById = {
-        for (final branch in branchList)
-          if ((branch['id'] as String?)?.isNotEmpty ?? false)
-            branch['id'].toString(): (branch['name'] as String?) ??
-                branch['id'].toString(),
-      };
-    });
-  }
-
-  String _branchNameForId(Object? id) {
-    final branchId = id?.toString() ?? '';
-    if (branchId.isEmpty) return 'Shared';
-    return _branchNamesById[branchId] ?? branchId;
-  }
-
-  String _formatDate(int timestamp) {
-    final date = DateTime.fromMillisecondsSinceEpoch(timestamp);
-    return '${date.day}/${date.month}/${date.year}';
-  }
-
-  String _formatRangeLabel() {
-    if (_selectedRange == null) return 'All dates';
-    final start = _selectedRange!.start;
-    final end = _selectedRange!.end;
-    return '${start.day}/${start.month}/${start.year} - ${end.day}/${end.month}/${end.year}';
-  }
-
-  bool _matchesBranch(Map<String, dynamic> item) {
-    if (_selectedBranchId == 'all') return true;
-    final branchId = item['branchId']?.toString();
-    return branchId == _selectedBranchId;
-  }
-
-  bool _matchesDate(Map<String, dynamic> item) {
-    if (_selectedRange == null) return true;
-    final timestamp = (item['date'] as num?)?.toInt();
-    if (timestamp == null) return false;
-    final start = DateTime(
-      _selectedRange!.start.year,
-      _selectedRange!.start.month,
-      _selectedRange!.start.day,
-    ).millisecondsSinceEpoch;
-    final end = DateTime(
-      _selectedRange!.end.year,
-      _selectedRange!.end.month,
-      _selectedRange!.end.day,
-      23,
-      59,
-      59,
-      999,
-    ).millisecondsSinceEpoch;
-    return timestamp >= start && timestamp <= end;
-  }
-
-  List<Map<String, dynamic>> get _filteredExpenses {
-    return _expenseItems
-        .where(_matchesBranch)
-        .where(_matchesDate)
-        .where((item) => ((item['amount'] as num?)?.toDouble() ?? 0.0) > 0)
-        .toList();
-  }
-
-  List<Map<String, dynamic>> get _filteredOrderProfit {
-    return _orderProfitItems
-        .where(_matchesBranch)
-        .where(_matchesDate)
-        .where(
-          (item) =>
-              ((item['actualProfit'] as num?)?.toDouble() ?? 0.0) != 0.0 ||
-              ((item['idealProfit'] as num?)?.toDouble() ?? 0.0) != 0.0,
-        )
-        .toList();
-  }
-
-  double get _filteredExpenseTotal {
-    return _filteredExpenses.fold<double>(
-      0.0,
-      (total, item) => total + ((item['amount'] as num?)?.toDouble() ?? 0.0),
-    );
-  }
-
-  double get _filteredActualProfitTotal {
-    return _filteredOrderProfit.fold<double>(
-      0.0,
-      (total, item) => total + ((item['actualProfit'] as num?)?.toDouble() ?? 0.0),
-    );
-  }
-
-  double get _filteredIdealProfitTotal {
-    return _filteredOrderProfit.fold<double>(
-      0.0,
-      (total, item) => total + ((item['idealProfit'] as num?)?.toDouble() ?? 0.0),
-    );
-  }
-
-  Map<String, List<Map<String, dynamic>>> _groupExpensesByCategory() {
-    final grouped = <String, List<Map<String, dynamic>>>{};
-    for (final item in _filteredExpenses) {
-      final category = (item['category'] as String?) ?? 'Other';
-      grouped.putIfAbsent(category, () => <Map<String, dynamic>>[]).add(item);
-    }
-    return grouped;
-  }
-
-  Map<String, List<Map<String, dynamic>>> _groupOrdersByBranch() {
-    final grouped = <String, List<Map<String, dynamic>>>{};
-    for (final item in _filteredOrderProfit) {
-      final branchKey = item['branchId']?.toString() ?? '';
-      grouped.putIfAbsent(branchKey, () => <Map<String, dynamic>>[]).add(item);
-    }
-    return grouped;
-  }
-
-  Widget _buildSummaryCard({
-    required String title,
-    required double value,
-    required Color color,
-  }) {
-    return Card(
-      elevation: 3,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              title,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-            ),
-            Text(
-              'ETB ${value.toStringAsFixed(2)}',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSectionTitle(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 20, bottom: 12),
-      child: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.w600,
-          color: AppColors.white,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildExpenseTile(Map<String, dynamic> item) {
-    final amount = (item['amount'] as num?)?.toDouble() ?? 0.0;
-    return Card(
-      child: ListTile(
-        title: Text('${item['category']}: ${item['title']}'),
-        subtitle: Text(
-          '${item['subtitle'] ?? ''}${item['date'] != null ? ' • ${_formatDate(item['date'] as int)}' : ''}',
-        ),
-        trailing: Text(
-          'ETB ${amount.toStringAsFixed(2)}',
-          style: const TextStyle(fontWeight: FontWeight.w600),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildOrderProfitTile(Map<String, dynamic> item) {
-    final actualProfit = (item['actualProfit'] as num?)?.toDouble() ?? 0;
-    final idealProfit = (item['idealProfit'] as num?)?.toDouble() ?? 0;
-    final actualRevenue = (item['actualRevenue'] as num?)?.toDouble() ?? 0;
-    final idealRevenue = (item['idealRevenue'] as num?)?.toDouble() ?? 0;
-    final cogs = (item['cogs'] as num?)?.toDouble() ?? 0;
-    final commissions = (item['commissions'] as num?)?.toDouble() ?? 0;
-    final unpaidAmount = idealRevenue - actualRevenue;
-    final branchLabel = _branchNameForId(item['branchId']);
-    return Card(
-      child: ListTile(
-        title: Text(item['customerName'] ?? 'Unknown customer'),
-        subtitle: Text(
-          'Order #${(item['orderId'] as String?)?.substring(0, 6) ?? ''}\n'
-          'Branch: $branchLabel\n'
-          'Actual Revenue: ETB ${actualRevenue.toStringAsFixed(2)} | Ideal Revenue: ETB ${idealRevenue.toStringAsFixed(2)}\n'
-          'Unpaid: ETB ${unpaidAmount.toStringAsFixed(2)}\n'
-          'COGS: ETB ${cogs.toStringAsFixed(2)} | Commissions: ETB ${commissions.toStringAsFixed(2)}\n'
-          'Actual Profit: ETB ${actualProfit.toStringAsFixed(2)} | Ideal Profit: ETB ${idealProfit.toStringAsFixed(2)}',
-        ),
-        trailing: Text(
-          'A ${actualProfit.toStringAsFixed(2)} / I ${idealProfit.toStringAsFixed(2)}',
-          style: TextStyle(
-            fontWeight: FontWeight.w700,
-            color: actualProfit >= 0 ? AppColors.success : AppColors.error,
-          ),
-        ),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final displayedActualProfit = _filteredActualProfitTotal;
-    final displayedIdealProfit = _filteredIdealProfitTotal;
-    final actualProfitPositive = displayedActualProfit >= 0;
-    final idealProfitPositive = displayedIdealProfit >= 0;
-    final filteredExpenses = _filteredExpenses;
-    final filteredOrders = _filteredOrderProfit;
-    final showingExpensesOnly = widget.showExpensesOnly;
-    final expensesByCategory = _groupExpensesByCategory();
-    final ordersByBranch = _groupOrdersByBranch();
-
-    final branchItems = <DropdownMenuItem<String>>[
-      const DropdownMenuItem(value: 'all', child: Text('All Branches')),
-      ..._branches.map(
-        (branch) => DropdownMenuItem<String>(
-          value: branch['id']?.toString() ?? '',
-          child: Text(branch['name'] ?? branch['id'] ?? 'Branch'),
-        ),
-      ),
-    ];
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          showingExpensesOnly ? 'Expense Details' : 'Profit Details',
-        ),
-        backgroundColor: AppColors.primaryRed,
-      ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [AppColors.backgroundStart, AppColors.backgroundEnd],
-          ),
-        ),
-        child: _isLoadingDetails
-            ? const Center(child: CircularProgressIndicator())
-            : ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            if (showingExpensesOnly) ...[
-              _buildSummaryCard(
-                title: 'Expenses',
-                value: _filteredExpenseTotal,
-                color: AppColors.warning,
-              ),
-              const SizedBox(height: 12),
-              _buildSummaryCard(
-                title: 'COGS Total',
-                value: _filteredExpenses
-                    .where((item) => item['category'] == 'COGS')
-                    .fold<double>(
-                      0.0,
-                      (total, item) => total + ((item['amount'] as num?)?.toDouble() ?? 0.0),
-                    ),
-                color: AppColors.warning,
-              ),
-              const SizedBox(height: 8),
-              _buildSummaryCard(
-                title: 'Commissions Paid',
-                value: _filteredExpenses
-                    .where((item) => item['category'] == 'Commission')
-                    .fold<double>(
-                      0.0,
-                      (total, item) => total + ((item['amount'] as num?)?.toDouble() ?? 0.0),
-                    ),
-                color: AppColors.warning,
-              ),
-              const SizedBox(height: 8),
-              _buildSummaryCard(
-                title: 'Fuel',
-                value: _filteredExpenses
-                    .where((item) => item['category'] == 'Fuel')
-                    .fold<double>(
-                      0.0,
-                      (total, item) => total + ((item['amount'] as num?)?.toDouble() ?? 0.0),
-                    ),
-                color: AppColors.warning,
-              ),
-              const SizedBox(height: 8),
-              _buildSummaryCard(
-                title: 'Maintenance',
-                value: _filteredExpenses
-                    .where((item) => item['category'] == 'Maintenance')
-                    .fold<double>(
-                      0.0,
-                      (total, item) => total + ((item['amount'] as num?)?.toDouble() ?? 0.0),
-                    ),
-                color: AppColors.warning,
-              ),
-              const SizedBox(height: 8),
-              _buildSummaryCard(
-                title: 'Material Usage',
-                value: _filteredExpenses
-                    .where((item) => item['category'] == 'Material')
-                    .fold<double>(
-                      0.0,
-                      (total, item) => total + ((item['amount'] as num?)?.toDouble() ?? 0.0),
-                    ),
-                color: AppColors.warning,
-              ),
-            ] else ...[
-              _buildSummaryCard(
-                title: 'Actual Profit',
-                value: displayedActualProfit,
-                color: actualProfitPositive ? AppColors.success : AppColors.error,
-              ),
-              const SizedBox(height: 12),
-              _buildSummaryCard(
-                title: 'Ideal Profit',
-                value: displayedIdealProfit,
-                color: idealProfitPositive ? AppColors.success : AppColors.error,
-              ),
-            ],
-            const SizedBox(height: 16),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    DropdownButtonFormField<String>(
-                      value: _selectedBranchId,
-                      decoration: const InputDecoration(
-                        labelText: 'Branch filter',
-                        border: OutlineInputBorder(),
-                      ),
-                      items: branchItems,
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedBranchId = value ?? 'all';
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: AppColors.white.withOpacity(0.08),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        _selectedRange == null
-                            ? 'Using the global dashboard date filter: All dates'
-                            : 'Using the global dashboard date filter: ${_formatRangeLabel()}',
-                        style: const TextStyle(color: AppColors.white),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    OutlinedButton(
-                      onPressed: () {
-                        setState(() {
-                          _selectedBranchId = 'all';
-                        });
-                        _loadDetails();
-                      },
-                      child: const Text('Reset branch filter'),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      showingExpensesOnly
-                          ? 'Change the date from the dashboard card. This screen only follows the global range and branch filter.'
-                          : 'Change the date from the dashboard card. This screen only follows the global range and branch filter.',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            _buildSectionTitle(
-              showingExpensesOnly ? 'Expense Breakdown' : 'Order Profit Breakdown',
-            ),
-            if (showingExpensesOnly) ...[
-              if (filteredExpenses.isEmpty)
-                const Card(
-                  child: ListTile(
-                    title: Text('No expense details found'),
-                  ),
-                )
-              else
-                ...expensesByCategory.entries.expand((entry) {
-                  final items = entry.value;
-                  final subtotal = items.fold<double>(
-                    0.0,
-                    (total, item) => total + ((item['amount'] as num?)?.toDouble() ?? 0.0),
-                  );
-                  return [
-                    Padding(
-                      padding: const EdgeInsets.only(top: 12, bottom: 8),
-                      child: Text(
-                        '${entry.key} • ETB ${subtotal.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.white,
-                        ),
-                      ),
-                    ),
-                    ...items.map(_buildExpenseTile),
-                  ];
-                }),
-            ] else ...[
-              if (filteredOrders.isEmpty)
-                const Card(
-                  child: ListTile(
-                    title: Text('No order profit details found'),
-                  ),
-                )
-              else
-                ...ordersByBranch.entries.expand((entry) {
-                  final items = entry.value;
-                  final actualSubtotal = items.fold<double>(
-                    0.0,
-                    (total, item) => total + ((item['actualProfit'] as num?)?.toDouble() ?? 0.0),
-                  );
-                  final idealSubtotal = items.fold<double>(
-                    0.0,
-                    (total, item) => total + ((item['idealProfit'] as num?)?.toDouble() ?? 0.0),
-                  );
-                  return [
-                    Padding(
-                      padding: const EdgeInsets.only(top: 12, bottom: 8),
-                      child: Text(
-                        '${_branchNameForId(entry.key)} • Actual ETB ${actualSubtotal.toStringAsFixed(2)} • Ideal ETB ${idealSubtotal.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.white,
-                        ),
-                      ),
-                    ),
-                    ...items.map(_buildOrderProfitTile),
-                  ];
-                }),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-

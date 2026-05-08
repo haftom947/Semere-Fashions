@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#0f3d3e">
+  <title>Order Tracking - Semere Fashions</title>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <style>
+    * {
+      -webkit-box-sizing: border-box;
+      box-sizing: border-box;
+    }
+
+    html {
+      color-scheme: light;
+      background: #eef2f1;
+      -webkit-text-size-adjust: 100%;
+      text-size-adjust: 100%;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, Helvetica, sans-serif;
+      line-height: 1.5;
+      background: #eef2f1;
+      color: #17211f;
+    }
+
+    body,
+    h1,
+    h2,
+    h3,
+    p {
+      color: #17211f;
+    }
+
+    .page {
+      width: 100%;
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 12px;
+      padding-bottom: 24px;
+    }
+
+    .hero {
+      overflow: hidden;
+      color: #fff;
+      background: #0f3d3e;
+      border-radius: 8px 8px 0 0;
+    }
+
+    .hero-inner {
+      padding: 22px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0));
+    }
+
+    .brand {
+      margin: 0 0 18px;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0;
+      text-transform: uppercase;
+      color: #d7eee9;
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: 24px;
+      line-height: 1.15;
+      color: #fff;
+      word-break: break-word;
+    }
+
+    .hero p {
+      margin: 10px 0 0;
+      color: #eaf7f4;
+      font-size: 15px;
+    }
+
+    .status-row {
+      display: block;
+      margin-top: 22px;
+    }
+
+    .status-pill {
+      display: inline-block;
+      max-width: 100%;
+      padding: 9px 14px;
+      border-radius: 999px;
+      background: #f5c542;
+      color: #261c00;
+      font-weight: 700;
+      font-size: 14px;
+      word-break: break-word;
+    }
+
+    .content {
+      margin-top: 0;
+      padding: 0 18px 18px;
+      background: #fff;
+      border: 1px solid #dce5e2;
+      border-top: 0;
+      border-radius: 0 0 8px 8px;
+      -webkit-box-shadow: 0 12px 30px rgba(23, 33, 31, 0.08);
+      box-shadow: 0 12px 30px rgba(23, 33, 31, 0.08);
+    }
+
+    .grid {
+      display: block;
+      margin: 0;
+    }
+
+    .col {
+      width: 100%;
+      padding: 0;
+    }
+
+    .col-full {
+      width: 100%;
+    }
+
+    .card {
+      background: #fff;
+      color: #17211f;
+      border: 0;
+      border-top: 1px dashed #cbd8d4;
+      border-radius: 0;
+      padding: 14px 0;
+      -webkit-box-shadow: none;
+      box-shadow: none;
+    }
+
+    .card h2 {
+      margin: 0 0 8px;
+      font-size: 14px;
+      line-height: 1.25;
+      color: #0f3d3e;
+    }
+
+    .info-line {
+      margin: 5px 0;
+      color: #384642;
+      word-break: break-word;
+    }
+
+    .label {
+      display: inline;
+      margin-right: 8px;
+      color: #6a7874;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .value {
+      color: #17211f;
+      font-weight: 600;
+    }
+
+    .person {
+      padding: 8px 0;
+      border-top: 1px solid #e7eeec;
+    }
+
+    .person:first-child {
+      padding-top: 0;
+      border-top: 0;
+    }
+
+    .person-role {
+      margin: 0;
+      color: #0f3d3e;
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .person-name {
+      margin: 2px 0 0;
+      color: #17211f;
+      font-weight: 700;
+      word-break: break-word;
+    }
+
+    .receipt-table {
+      width: 100%;
+      border-collapse: collapse;
+      color: #17211f;
+      font-size: 13px;
+      table-layout: fixed;
+    }
+
+    .receipt-table th,
+    .receipt-table td {
+      padding: 7px 4px;
+      border-bottom: 1px solid #e7eeec;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    .receipt-table th {
+      color: #0f3d3e;
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+
+    .receipt-table .num {
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .receipt-table td:first-child,
+    .receipt-table th:first-child {
+      width: 42%;
+      word-break: break-word;
+    }
+
+    .totals {
+      margin-top: 12px;
+      border-top: 1px solid #dce5e2;
+      padding-top: 10px;
+    }
+
+    .total-row {
+      display: -webkit-box;
+      display: -ms-flexbox;
+      display: flex;
+      -webkit-box-pack: justify;
+      -ms-flex-pack: justify;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 7px 0;
+      color: #384642;
+    }
+
+    .grand-total {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid #dce5e2;
+      color: #0f3d3e;
+      font-size: 18px;
+      font-weight: 800;
+    }
+
+    .timeline {
+      position: relative;
+      margin-top: 4px;
+    }
+
+    .timeline-item {
+      position: relative;
+      padding: 0 0 16px 26px;
+      border-left: 2px solid #d8e4e0;
+    }
+
+    .timeline-item:last-child {
+      padding-bottom: 0;
+    }
+
+    .timeline-dot {
+      position: absolute;
+      left: -7px;
+      top: 2px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #0f3d3e;
+      border: 2px solid #fff;
+      -webkit-box-shadow: 0 0 0 2px #0f3d3e;
+      box-shadow: 0 0 0 2px #0f3d3e;
+    }
+
+    .timeline-status {
+      margin: 0;
+      color: #17211f;
+      font-weight: 700;
+      word-break: break-word;
+    }
+
+    .timeline-meta {
+      margin: 3px 0 0;
+      color: #64736f;
+      font-size: 13px;
+      word-break: break-word;
+    }
+
+    .state {
+      min-height: 100vh;
+      display: -webkit-box;
+      display: -ms-flexbox;
+      display: flex;
+      -webkit-box-align: center;
+      -ms-flex-align: center;
+      align-items: center;
+      -webkit-box-pack: center;
+      -ms-flex-pack: center;
+      justify-content: center;
+      padding: 20px;
+      text-align: center;
+      background: #eef2f1;
+    }
+
+    .state-card {
+      width: 100%;
+      max-width: 460px;
+      padding: 26px;
+      border-radius: 8px;
+      background: #fff;
+      border: 1px solid #dce5e2;
+      -webkit-box-shadow: 0 12px 30px rgba(23, 33, 31, 0.08);
+      box-shadow: 0 12px 30px rgba(23, 33, 31, 0.08);
+    }
+
+    .state-card h1 {
+      margin: 0 0 8px;
+      color: #0f3d3e;
+      font-size: 24px;
+    }
+
+    .state-card p {
+      margin: 0;
+      color: #54635f;
+    }
+
+    .lookup-form {
+      margin-top: 18px;
+    }
+
+    .lookup-input {
+      width: 100%;
+      min-height: 44px;
+      padding: 10px 12px;
+      border: 1px solid #c8d5d1;
+      border-radius: 8px;
+      background: #fff;
+      color: #17211f;
+      font-size: 16px;
+    }
+
+    .lookup-button {
+      width: 100%;
+      min-height: 44px;
+      margin-top: 10px;
+      border: 0;
+      border-radius: 8px;
+      background: #0f3d3e;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .log {
+      display: none;
+      margin: 5px 0;
+      color: #b00020;
+      font-size: 12px;
+      word-break: break-word;
+    }
+
+    @media (max-width: 680px) {
+      .card {
+        padding: 12px 0;
+      }
+    }
+
+    @media (forced-colors: active) {
+      .hero,
+      .card,
+      .state-card {
+        border: 1px solid CanvasText;
+        box-shadow: none;
+      }
+
+      .status-pill {
+        border: 1px solid CanvasText;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="state">
+      <div class="state-card">
+        <h1>Loading order</h1>
+        <p>Please wait while we find your tracking details.</p>
+        <div id="logs"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    var firebaseConfig = {
+      apiKey: "AIzaSyBM1G5KL5h8-Um4EZhn1LK0LArCgBgyTbc",
+      authDomain: "semere-fashions-60efc.firebaseapp.com",
+      projectId: "semere-fashions-60efc",
+      storageBucket: "semere-fashions-60efc.firebasestorage.app",
+      messagingSenderId: "585578517638",
+      appId: "1:585578517638:web:abc123456789"
+    };
+
+    function escapeHtml(value) {
+      var text = value === undefined || value === null || value === "" ? "N/A" : String(value);
+      return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function log(msg, isError) {
+      if (window.console && console.log) {
+        console.log(msg);
+      }
+      var logDiv = document.getElementById("logs");
+      if (logDiv && isError) {
+        var p = document.createElement("p");
+        p.className = "log";
+        p.style.display = "block";
+        p.appendChild(document.createTextNode("ERROR: " + msg));
+        logDiv.appendChild(p);
+      }
+    }
+
+    function getQueryParam(name) {
+      var search = window.location.search ? window.location.search.substring(1) : "";
+      var parts = search.split("&");
+      var i;
+      var pair;
+      for (i = 0; i < parts.length; i += 1) {
+        pair = parts[i].split("=");
+        if (decodeURIComponent(pair[0] || "") === name) {
+          return decodeURIComponent((pair[1] || "").replace(/\+/g, " "));
+        }
+      }
+      return null;
+    }
+
+    function normalizeOrderId(value) {
+      return value ? String(value).replace(/\s+/g, "") : "";
+    }
+
+    function showState(title, message, isError) {
+      document.getElementById("app").innerHTML =
+        '<div class="state">' +
+          '<div class="state-card">' +
+            "<h1>" + escapeHtml(title) + "</h1>" +
+            "<p>" + escapeHtml(message) + "</p>" +
+            '<div id="logs"></div>' +
+          "</div>" +
+        "</div>";
+      if (isError) {
+        log(message, true);
+      }
+    }
+
+    function showLookup() {
+      document.getElementById("app").innerHTML =
+        '<div class="state">' +
+          '<div class="state-card">' +
+            "<h1>Track your order</h1>" +
+            "<p>Enter the number printed under the barcode.</p>" +
+            '<form class="lookup-form" onsubmit="return submitLookup();">' +
+              '<input id="manualOrderId" class="lookup-input" type="text" autocomplete="off" placeholder="Order number">' +
+              '<button class="lookup-button" type="submit">Open tracking</button>' +
+            "</form>" +
+            '<div id="logs"></div>' +
+          "</div>" +
+        "</div>";
+    }
+
+    function submitLookup() {
+      var input = document.getElementById("manualOrderId");
+      var value = normalizeOrderId(input ? input.value : "");
+      if (!value) {
+        return false;
+      }
+      window.location.href = window.location.pathname + "?id=" + encodeURIComponent(value);
+      return false;
+    }
+
+    function formatDate(value) {
+      var date;
+      if (!value) {
+        return "Date not recorded";
+      }
+      if (value.toDate && typeof value.toDate === "function") {
+        date = value.toDate();
+      } else if (value.seconds) {
+        date = new Date(value.seconds * 1000);
+      } else {
+        date = new Date(value);
+      }
+      if (isNaN(date.getTime())) {
+        return "Date not recorded";
+      }
+      return date.toLocaleString();
+    }
+
+    function toNumber(value) {
+      var number = Number(value);
+      return isNaN(number) ? 0 : number;
+    }
+
+    function money(value, currency) {
+      return escapeHtml(currency || "ETB") + " " + toNumber(value).toFixed(2);
+    }
+
+    function parseOrderItems(rawItems) {
+      if (!rawItems) {
+        return [];
+      }
+      if (Object.prototype.toString.call(rawItems) === "[object Array]") {
+        return rawItems;
+      }
+      if (typeof rawItems === "string") {
+        try {
+          return JSON.parse(rawItems) || [];
+        } catch (e) {
+          return [];
+        }
+      }
+      return [];
+    }
+
+    function itemDescription(item) {
+      return item.description || item.name || item.productName || item.service || "Item";
+    }
+
+    function itemQuantity(item) {
+      return toNumber(item.quantity || item.qty || 0);
+    }
+
+    function itemUnitPrice(item) {
+      return toNumber(item.price || item.unitPrice || item.sellingPrice || item.amount || 0);
+    }
+
+    function calcSubtotal(items) {
+      var total = 0;
+      var i;
+      for (i = 0; i < items.length; i += 1) {
+        total += itemQuantity(items[i]) * itemUnitPrice(items[i]);
+      }
+      return total;
+    }
+
+    function calcDiscount(order, subtotal, deliveryFee) {
+      var type = order.discount_type || "none";
+      var value = toNumber(order.discount_value);
+      var base = subtotal + deliveryFee;
+      if (type === "percentage") {
+        return base * value / 100;
+      }
+      if (type === "fixed") {
+        return value;
+      }
+      return 0;
+    }
+
+    function paymentMethods(payments) {
+      var methods = {};
+      var list = [];
+      var i;
+      for (i = 0; i < payments.length; i += 1) {
+        if (payments[i].method) {
+          methods[payments[i].method] = true;
+        }
+      }
+      for (i in methods) {
+        if (Object.prototype.hasOwnProperty.call(methods, i)) {
+          list.push(i);
+        }
+      }
+      return list.length ? list.join(", ") : "Not recorded";
+    }
+
+    function emptySnapshot() {
+      return {
+        forEach: function() {}
+      };
+    }
+
+    function hasValue(value) {
+      return value !== undefined && value !== null && String(value).trim() !== "";
+    }
+
+    function renderInfo(label, value) {
+      return '<p class="info-line"><span class="label">' + escapeHtml(label) + '</span><span class="value">' + escapeHtml(value) + "</span></p>";
+    }
+
+    function renderOptionalInfo(label, value) {
+      return hasValue(value) ? renderInfo(label, value) : "";
+    }
+
+    function renderOrder(orderId, order, customer, branch, assignments, statusLogs, payments, cashier) {
+      var i;
+      var currentStatus = order.status || "Pending";
+      var currency = order.currency || (branch && branch.currency) || "ETB";
+      var items = parseOrderItems(order.items);
+      var subtotal = calcSubtotal(items);
+      var deliveryFee = toNumber(order.delivery_fee);
+      var discount = calcDiscount(order, subtotal, deliveryFee);
+      var taxRate = toNumber(order.tax_rate || order.vat_rate || 0);
+      var taxAmount = toNumber(order.tax_amount || order.vat_amount || 0);
+      var grandTotal = toNumber(order.totalAmount) || (subtotal + deliveryFee - discount + taxAmount);
+      var paidAmount = toNumber(order.paid_amount);
+      var balance = grandTotal - paidAmount;
+      var html = "";
+      if (!paidAmount && payments.length > 0) {
+        for (i = 0; i < payments.length; i += 1) {
+          paidAmount += toNumber(payments[i].amount);
+        }
+        balance = grandTotal - paidAmount;
+      }
+      if (statusLogs.length === 0 && hasValue(currentStatus)) {
+        statusLogs.push({
+          status: currentStatus,
+          changedAt: order.lastModified || order.createdAt,
+          changedBy: order.createdBy || "Semere Fashions"
+        });
+      }
+
+      html += '<main class="page">';
+      html += '<section class="hero">';
+      html += '<div class="hero-inner">';
+      html += '<p class="brand">Semere Fashions</p>';
+      html += "<h1>Order #" + escapeHtml(orderId) + "</h1>";
+      html += "<p>Your order tracking details are shown below.</p>";
+      html += '<div class="status-row"><span class="status-pill">Current status: ' + escapeHtml(currentStatus) + "</span></div>";
+      html += "</div>";
+      html += "</section>";
+
+      html += '<section class="content">';
+      html += '<div class="grid">';
+
+      html += '<div class="col"><div class="card">';
+      html += "<h2>Business Details</h2>";
+      html += renderInfo("Business name", "Semere Fashions");
+      html += renderOptionalInfo("Branch", branch && branch.name ? branch.name : order.branchId);
+      html += renderOptionalInfo("Address", branch && (branch.location || branch.address));
+      html += renderOptionalInfo("Phone", branch && branch.phone);
+      html += renderOptionalInfo("Tax ID / VAT", branch && (branch.taxId || branch.vatNumber || branch.tin));
+      html += "</div></div>";
+
+      html += '<div class="col"><div class="card">';
+      html += "<h2>Customer</h2>";
+      html += renderInfo("Name", order.customerName || (customer && customer.name));
+      if (customer) {
+        html += renderOptionalInfo("Phone", customer.phone);
+        html += renderOptionalInfo("Address", customer.address);
+      }
+      html += "</div></div>";
+
+      html += '<div class="col"><div class="card">';
+      html += "<h2>Transaction</h2>";
+      html += renderInfo("Receipt number", order.receiptNumber || order.tracking_number || orderId);
+      html += renderInfo("Status", currentStatus);
+      html += renderInfo("Order ID", orderId);
+      html += renderOptionalInfo("Branch", branch && branch.name ? branch.name : order.branchId);
+      if (order.tracking_number) {
+        html += renderInfo("Shipment number", order.tracking_number);
+      }
+      if (order.courier_name) {
+        html += renderInfo("Courier", order.courier_name);
+      }
+      if (order.createdAt) {
+        html += renderInfo("Purchase date and time", formatDate(order.createdAt));
+      }
+      if (order.dueDate) {
+        html += renderInfo("Due date", formatDate(order.dueDate));
+      }
+      html += renderOptionalInfo("Cashier ID", order.createdBy);
+      html += renderOptionalInfo("Cashier name", cashier && cashier.name);
+      html += "</div></div>";
+
+      html += '<div class="col col-full"><div class="card">';
+      html += "<h2>Itemized List</h2>";
+      if (items.length === 0) {
+        html += '<p class="info-line">No line items recorded.</p>';
+      } else {
+        html += '<table class="receipt-table"><thead><tr><th>Description</th><th class="num">Qty</th><th class="num">Unit</th><th class="num">Total</th></tr></thead><tbody>';
+        for (i = 0; i < items.length; i += 1) {
+          html += "<tr>";
+          html += "<td>" + escapeHtml(itemDescription(items[i])) + "</td>";
+          html += '<td class="num">' + escapeHtml(itemQuantity(items[i])) + "</td>";
+          html += '<td class="num">' + money(itemUnitPrice(items[i]), currency) + "</td>";
+          html += '<td class="num">' + money(itemQuantity(items[i]) * itemUnitPrice(items[i]), currency) + "</td>";
+          html += "</tr>";
+        }
+        html += "</tbody></table>";
+      }
+      html += '<div class="totals">';
+      html += '<div class="total-row"><span>Subtotal</span><strong>' + money(subtotal, currency) + "</strong></div>";
+      if (deliveryFee > 0) {
+        html += '<div class="total-row"><span>Delivery fee</span><strong>' + money(deliveryFee, currency) + "</strong></div>";
+      }
+      if (discount > 0) {
+        html += '<div class="total-row"><span>Discount' + (order.discount_type ? " (" + escapeHtml(order.discount_type) + ")" : "") + '</span><strong>-' + money(discount, currency) + "</strong></div>";
+      }
+      if (taxAmount > 0 || taxRate > 0) {
+        html += '<div class="total-row"><span>Tax / VAT' + (taxRate ? " (" + escapeHtml(taxRate) + "%)" : "") + '</span><strong>' + money(taxAmount, currency) + "</strong></div>";
+      }
+      html += '<div class="total-row grand-total"><span>Grand total</span><strong>' + money(grandTotal, currency) + "</strong></div>";
+      html += "</div>";
+      html += "</div></div>";
+
+      html += '<div class="col"><div class="card">';
+      html += "<h2>Payment</h2>";
+      if (payments.length > 0) {
+        html += renderInfo("Payment method", paymentMethods(payments));
+      }
+      if (paidAmount > 0) {
+        html += renderInfo("Paid amount", money(paidAmount, currency));
+        html += renderInfo("Balance", money(balance < 0 ? 0 : balance, currency));
+      }
+      if (payments.length > 0) {
+        html += '<table class="receipt-table"><thead><tr><th>Date</th><th>Method</th><th class="num">Amount</th></tr></thead><tbody>';
+        for (i = 0; i < payments.length; i += 1) {
+          html += "<tr>";
+          html += "<td>" + escapeHtml(formatDate(payments[i].date)) + "</td>";
+          html += "<td>" + escapeHtml(payments[i].method || payments[i].receivedBy || "recorded") + "</td>";
+          html += '<td class="num">' + money(payments[i].amount, currency) + "</td>";
+          html += "</tr>";
+        }
+        html += "</tbody></table>";
+      }
+      if (payments.length === 0 && paidAmount <= 0) {
+        html += '<p class="info-line">No payment recorded.</p>';
+      }
+      html += "</div></div>";
+
+      html += '<div class="col"><div class="card">';
+      html += "<h2>Participants</h2>";
+      if (assignments.length === 0) {
+        html += '<p class="info-line">No participants assigned yet.</p>';
+      } else {
+        for (i = 0; i < assignments.length; i += 1) {
+          html += '<div class="person">';
+          html += '<p class="person-role">' + escapeHtml(assignments[i].role || "Team member") + "</p>";
+          html += '<p class="person-name">' + escapeHtml(assignments[i].employeeName || "N/A") + "</p>";
+          if (hasValue(assignments[i].employeePhone || assignments[i].phone || assignments[i].contact)) {
+            html += '<p class="info-line">' + escapeHtml(assignments[i].employeePhone || assignments[i].phone || assignments[i].contact) + "</p>";
+          }
+          html += "</div>";
+        }
+      }
+      html += "</div></div>";
+
+      html += '<div class="col"><div class="card">';
+      html += "<h2>Status History</h2>";
+      if (statusLogs.length === 0) {
+        html += '<p class="info-line">No updates yet.</p>';
+      } else {
+        html += '<div class="timeline">';
+        for (i = 0; i < statusLogs.length; i += 1) {
+          html += '<div class="timeline-item">';
+          html += '<span class="timeline-dot"></span>';
+          html += '<p class="timeline-status">' + escapeHtml(statusLogs[i].status || "Updated") + "</p>";
+          html += '<p class="timeline-meta">' + escapeHtml(formatDate(statusLogs[i].changedAt)) + " by " + escapeHtml(statusLogs[i].changedBy || "Semere Fashions") + "</p>";
+          html += "</div>";
+        }
+        html += "</div>";
+      }
+      html += "</div></div>";
+
+      if (hasValue(order.returnPolicy) || hasValue(order.terms) || hasValue(order.notes || order.note)) {
+        html += '<div class="col col-full"><div class="card">';
+        html += "<h2>Additional Info</h2>";
+        html += renderOptionalInfo("Return policy", order.returnPolicy);
+        html += renderOptionalInfo("Terms and conditions", order.terms);
+        html += renderOptionalInfo("Notes", order.notes || order.note);
+        html += "</div></div>";
+      }
+
+      html += "</div>";
+      html += "</section>";
+      html += "</main>";
+
+      document.getElementById("app").innerHTML = html;
+    }
+
+    var firebaseReady = false;
+
+    try {
+      firebase.initializeApp(firebaseConfig);
+      firebase.firestore().settings({ persistence: false });
+      firebaseReady = true;
+      log("Firebase initialized with persistence disabled", false);
+    } catch (e) {
+      showState("Tracking unavailable", "Firebase could not start: " + e.message, true);
+    }
+
+    var orderId = normalizeOrderId(getQueryParam("id"));
+
+    if (!firebaseReady) {
+      log("Firebase is not ready", true);
+    } else if (!orderId) {
+      showLookup();
+    } else {
+      var db = firebase.firestore();
+      db.collection("orders").doc(orderId).get()
+        .then(function(orderDoc) {
+          var order;
+          var customerPromise;
+          var branchPromise;
+          var cashierPromise;
+          var assignmentsPromise;
+          var logsPromise;
+          var paymentsPromise;
+
+          if (!orderDoc.exists) {
+            showState("Order not found", "We could not find this order in the tracking system.", true);
+            return null;
+          }
+
+          order = orderDoc.data() || {};
+          customerPromise = order.customerId
+            ? db.collection("customers").doc(order.customerId).get().catch(function() { return null; })
+            : Promise.resolve(null);
+          branchPromise = order.branchId
+            ? db.collection("branches").doc(order.branchId).get().catch(function() { return null; })
+            : Promise.resolve(null);
+          cashierPromise = order.createdBy
+            ? db.collection("users").doc(order.createdBy).get().catch(function() { return null; })
+            : Promise.resolve(null);
+          assignmentsPromise = db.collection("order_assignments").where("orderId", "==", orderId).get()
+            .catch(function() {
+              return emptySnapshot();
+            });
+          logsPromise = db.collection("statusLogs").where("orderId", "==", orderId).orderBy("changedAt", "asc").get()
+            .catch(function() {
+              return db.collection("order_status_logs").where("orderId", "==", orderId).orderBy("changedAt", "asc").get();
+            })
+            .catch(function() {
+              return emptySnapshot();
+            });
+          paymentsPromise = db.collection("payment_transaction").where("orderId", "==", orderId).get()
+            .then(function(paymentSnap) {
+              var payments = [];
+              var breakdownFetches = [];
+              paymentSnap.forEach(function(doc) {
+                var payment = doc.data();
+                payment.id = doc.id;
+                payments.push(payment);
+                breakdownFetches.push(
+                  db.collection("payment_breakdown").where("payment_transaction_id", "==", doc.id).get()
+                    .then(function(breakdownSnap) {
+                      breakdownSnap.forEach(function(breakdownDoc) {
+                        var breakdown = breakdownDoc.data();
+                        payment.method = payment.method || breakdown.method;
+                        if (!payment.amount && breakdown.amount) {
+                          payment.amount = breakdown.amount;
+                        }
+                      });
+                      return null;
+                    })
+                    .catch(function() {
+                      return null;
+                    })
+                );
+              });
+              return Promise.all(breakdownFetches).then(function() {
+                payments.sort(function(a, b) {
+                  return toNumber(b.date) - toNumber(a.date);
+                });
+                return payments;
+              });
+            })
+            .catch(function() {
+              return [];
+            });
+
+          return Promise.all([customerPromise, branchPromise, cashierPromise, assignmentsPromise, logsPromise, paymentsPromise]).then(function(results) {
+            var customerDoc = results[0];
+            var branchDoc = results[1];
+            var cashierDoc = results[2];
+            var assignmentsSnap = results[3];
+            var logsSnap = results[4];
+            var payments = results[5] || [];
+            var customer = customerDoc && customerDoc.exists ? customerDoc.data() : null;
+            var branch = branchDoc && branchDoc.exists ? branchDoc.data() : null;
+            var cashier = cashierDoc && cashierDoc.exists ? cashierDoc.data() : null;
+            var assignments = [];
+            var statusLogs = [];
+            var employeeFetches = [];
+
+            assignmentsSnap.forEach(function(doc) {
+              var assignment = doc.data();
+              assignments.push(assignment);
+              if (assignment.employeeId) {
+                employeeFetches.push(
+                  db.collection("users").doc(assignment.employeeId).get()
+                    .then(function(userDoc) {
+                      var user = userDoc && userDoc.exists ? userDoc.data() : null;
+                      if (user) {
+                        assignment.employeeName = assignment.employeeName || user.name;
+                        assignment.phone = assignment.phone || user.phone || user.contact || user.mobile;
+                      }
+                      return null;
+                    })
+                    .catch(function() {
+                      return null;
+                    })
+                );
+              }
+            });
+
+            logsSnap.forEach(function(doc) {
+              statusLogs.push(doc.data());
+            });
+
+            return Promise.all(employeeFetches).then(function() {
+              renderOrder(orderId, order, customer, branch, assignments, statusLogs, payments, cashier);
+              return null;
+            });
+          });
+        })
+        .catch(function(err) {
+          showState("Could not load order", err.message || "Please check your internet connection and try again.", true);
+        });
+    }
+  </script>
+</body>
+</html>

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+
 import '../services/database_helper.dart';
 import '../services/sync_service.dart';
 import '../utils/colors.dart';
 import '../utils/error_handler.dart';
 import 'add_edit_property_screen.dart';
+import 'landlord_payment_screen.dart';
 import 'tenant_list_screen.dart';
 
 class PropertyListScreen extends StatefulWidget {
@@ -32,7 +34,7 @@ class _PropertyListScreenState extends State<PropertyListScreen> {
 
   Future<void> _loadProperties() async {
     setState(() => _isLoading = true);
-    var properties = List<Map<String, dynamic>>.from(
+    final properties = List<Map<String, dynamic>>.from(
       await _dbHelper.query('properties'),
     );
     properties.sort((a, b) => (a['name'] ?? '').compareTo(b['name'] ?? ''));
@@ -58,6 +60,26 @@ class _PropertyListScreenState extends State<PropertyListScreen> {
             (p['type'] ?? '').toLowerCase().contains(lowerQuery);
       }).toList();
     });
+  }
+
+  String _usageTypeOf(Map<String, dynamic> property) {
+    final usage = property['usageType']?.toString();
+    if (usage != null && usage.isNotEmpty) return usage;
+    return property['ownership'] == 'leased' ? 'business_use' : 'rented_out';
+  }
+
+  String _usageLabel(String usageType) {
+    switch (usageType) {
+      case 'business_use':
+        return 'Business Use';
+      case 'rented_out':
+      default:
+        return 'Rented Out';
+    }
+  }
+
+  String _rentLabel(Map<String, dynamic> property) {
+    return _usageTypeOf(property) == 'business_use' ? 'Lease Cost' : 'Rent';
   }
 
   Color _getOwnershipColor(String? ownership) {
@@ -103,7 +125,6 @@ class _PropertyListScreenState extends State<PropertyListScreen> {
     );
     if (confirm != true) return;
 
-    // Optimistic update
     setState(() {
       _uiProperties.removeWhere((p) => p['id'] == id);
     });
@@ -188,7 +209,10 @@ class _PropertyListScreenState extends State<PropertyListScreen> {
                   separatorBuilder: (_, __) =>
                       const Divider(color: AppColors.white, height: 0.5),
                   itemBuilder: (context, index) {
-                    var property = _uiProperties[index];
+                    final property = _uiProperties[index];
+                    final usageType = _usageTypeOf(property);
+                    final canManageTenants = usageType == 'rented_out';
+
                     return ListTile(
                       leading: CircleAvatar(
                         radius: 18,
@@ -214,7 +238,13 @@ class _PropertyListScreenState extends State<PropertyListScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '${property['type']} · ${property['ownership']} · ETB ${(property['monthlyRent'] ?? 0).toStringAsFixed(0)}',
+                            '${property['type']} - ${_usageLabel(usageType)} - ${property['ownership']}',
+                            style: TextStyle(
+                              color: AppColors.white.withOpacity(0.7),
+                            ),
+                          ),
+                          Text(
+                            '${_rentLabel(property)}: ETB ${(property['monthlyRent'] ?? 0).toStringAsFixed(0)}',
                             style: TextStyle(
                               color: AppColors.white.withOpacity(0.7),
                             ),
@@ -245,23 +275,57 @@ class _PropertyListScreenState extends State<PropertyListScreen> {
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                          if ((property['landlordName']?.toString().trim() ?? '')
+                              .isNotEmpty)
+                            IconButton(
+                              icon: const Icon(
+                                Icons.payments,
+                                color: AppColors.success,
+                                size: 20,
+                              ),
+                              tooltip: 'Pay Landlord',
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => LandlordPaymentScreen(
+                                      propertyId: property['id'],
+                                      propertyName: property['name'] ?? '',
+                                      landlordName:
+                                          property['landlordName'] ?? '',
+                                      monthlyRent:
+                                          (property['monthlyRent'] as num?)
+                                              ?.toDouble() ??
+                                          0,
+                                    ),
+                                  ),
+                                ).then((_) => _loadProperties());
+                              },
+                            ),
                           IconButton(
                             icon: const Icon(
                               Icons.people,
                               color: AppColors.info,
                               size: 20,
                             ),
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => TenantListScreen(
-                                    propertyId: property['id'],
-                                    propertyName: property['name'] ?? '',
-                                  ),
-                                ),
-                              );
-                            },
+                            onPressed: canManageTenants
+                                ? () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => TenantListScreen(
+                                          propertyId: property['id'],
+                                          propertyName: property['name'] ?? '',
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                : () {
+                                    ErrorHandler.showWarning(
+                                      context,
+                                      'This property is marked as Business Use, so tenant management is disabled.',
+                                    );
+                                  },
                           ),
                           IconButton(
                             icon: const Icon(

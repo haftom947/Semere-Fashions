@@ -148,6 +148,7 @@ class _MaterialListScreenState extends State<MaterialListScreen> {
             'cost': costPerUnit,
             'date': DateTime.now().millisecondsSinceEpoch,
             'notes': 'Used 1 unit of ${material['name']}',
+            'type': 'general',
           });
         }
 

@@ -165,7 +165,6 @@ class _ProductionOrderScreenState extends State<ProductionOrderScreen> {
       // Create commission for tailor
       if (_tailorCommission > 0) {
         await _dbHelper.insert('commissions', {
-          'id': DateTime.now().millisecondsSinceEpoch.toString(),
           'orderId': poId,
           'employeeId': _tailorId,
           'employeeName': _tailorName,

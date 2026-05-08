@@ -5,6 +5,8 @@ class CurrencyHelper {
         return 'ETB';
       case 'AED':
         return 'AED';
+      case 'SAR':
+        return 'SAR';
       case 'USD':
         return '\$';
       case 'EUR':

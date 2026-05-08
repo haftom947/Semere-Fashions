@@ -19,8 +19,11 @@ class _AddEditAccountScreenState extends State<AddEditAccountScreen> {
   final _nameController = TextEditingController();
   final _openingBalanceController = TextEditingController();
   final _notesController = TextEditingController();
+  final _currencyController = TextEditingController();
 
   String _selectedType = 'cash';
+  String? _selectedBranchId;
+  List<Map<String, dynamic>> _branches = [];
   bool _isLoading = false;
 
   final List<String> _types = ['cash', 'bank'];
@@ -28,31 +31,55 @@ class _AddEditAccountScreenState extends State<AddEditAccountScreen> {
   @override
   void initState() {
     super.initState();
+    _loadBranches();
     if (widget.accountData != null) {
       _nameController.text = widget.accountData!['name'] ?? '';
       _selectedType = widget.accountData!['type'] ?? 'cash';
       _openingBalanceController.text =
           widget.accountData!['opening_balance']?.toString() ?? '';
       _notesController.text = widget.accountData!['notes'] ?? '';
+      _selectedBranchId = widget.accountData!['branchId']?.toString();
+      _currencyController.text = widget.accountData!['currency'] ?? '';
     }
+  }
+
+  Future<void> _loadBranches() async {
+    final branches = await _dbHelper.query('branches');
+    if (!mounted) return;
+    setState(() {
+      _branches = List<Map<String, dynamic>>.from(branches);
+    });
   }
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
+    if (_selectedType == 'cash' &&
+        (_selectedBranchId == null || _selectedBranchId!.isEmpty)) {
+      ErrorHandler.showError(context, 'Select a branch for cash accounts');
+      return;
+    }
     setState(() => _isLoading = true);
     try {
       double opening = double.tryParse(_openingBalanceController.text) ?? 0.0;
+      final existingAccount = widget.accountData;
       Map<String, dynamic> data = {
         'id':
-            widget.accountData?['id'] ??
+            existingAccount?['id'] ??
             DateTime.now().millisecondsSinceEpoch.toString(),
         'name': _nameController.text.trim(),
         'type': _selectedType,
         'opening_balance': opening,
-        'current_balance': opening, // initial current balance equals opening
+        'currency': _currencyController.text.isNotEmpty
+            ? _currencyController.text
+            : 'ETB',
+        'current_balance': existingAccount == null
+            ? opening
+            : (existingAccount['current_balance'] as num?)?.toDouble() ??
+                  opening,
+        'branchId': _selectedType == 'cash' ? _selectedBranchId : null,
         'notes': _notesController.text.trim(),
       };
-      if (widget.accountData == null) {
+      if (existingAccount == null) {
         await _dbHelper.insert('accounts', data);
       } else {
         await _dbHelper.update('accounts', data);
@@ -61,9 +88,7 @@ class _AddEditAccountScreenState extends State<AddEditAccountScreen> {
         _syncService.triggerBackgroundSync();
         ErrorHandler.showSuccess(
           context,
-          widget.accountData == null
-              ? 'Account saved'
-              : 'Account updated',
+          widget.accountData == null ? 'Account saved' : 'Account updated',
         );
         Navigator.pop(context, true);
       }
@@ -145,8 +170,80 @@ class _AddEditAccountScreenState extends State<AddEditAccountScreen> {
                               ),
                             )
                             .toList(),
-                        onChanged: (value) =>
-                            setState(() => _selectedType = value!),
+                        onChanged: (value) {
+                          if (value == null) return;
+                          setState(() {
+                            _selectedType = value;
+                            if (_selectedType == 'bank') {
+                              _selectedBranchId = null;
+                            }
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 16),
+
+                      if (_selectedType == 'cash') ...[
+                        DropdownButtonFormField<String>(
+                          initialValue: _selectedBranchId,
+                          dropdownColor: AppColors.backgroundStart,
+                          style: const TextStyle(color: AppColors.white),
+                          decoration: InputDecoration(
+                            labelText: 'Branch *',
+                            labelStyle: const TextStyle(color: AppColors.white),
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: AppColors.white.withOpacity(0.3),
+                              ),
+                            ),
+                            focusedBorder: const OutlineInputBorder(
+                              borderSide: BorderSide(color: AppColors.white),
+                            ),
+                          ),
+                          items: _branches
+                              .map(
+                                (branch) => DropdownMenuItem<String>(
+                                  value: branch['id']?.toString() ?? '',
+                                  child: Text(
+                                    branch['name'] ?? branch['id'] ?? 'Branch',
+                                  ),
+                                ),
+                              )
+                              .toList(),
+                              onChanged: (value) async {
+                                setState(() => _selectedBranchId = value);
+                                if (value != null && value.isNotEmpty) {
+                                  final branch = await _dbHelper.queryById(
+                                      'branches', value);
+                                  if (branch != null) {
+                                    setState(() => _currencyController.text =
+                                        (branch['currency'] ?? 'ETB').toString());
+                                  }
+                                }
+                              },
+                          validator: (value) => value == null || value.isEmpty
+                              ? 'Required'
+                              : null,
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+
+                      // Currency
+                      TextFormField(
+                        controller: _currencyController,
+                        enabled: _selectedType != 'cash',
+                        style: const TextStyle(color: AppColors.white),
+                        decoration: InputDecoration(
+                          labelText: 'Currency',
+                          labelStyle: const TextStyle(color: AppColors.white),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
+                          ),
+                          focusedBorder: const OutlineInputBorder(
+                            borderSide: BorderSide(color: AppColors.white),
+                          ),
+                        ),
                       ),
                       const SizedBox(height: 16),
 
@@ -156,7 +253,8 @@ class _AddEditAccountScreenState extends State<AddEditAccountScreen> {
                         style: const TextStyle(color: AppColors.white),
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
-                          labelText: 'Opening Balance (ETB)',
+                          labelText:
+                              'Opening Balance (${_currencyController.text.isNotEmpty ? _currencyController.text : 'ETB'})',
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
                             borderSide: BorderSide(

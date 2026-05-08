@@ -100,6 +100,8 @@ class _LoginScreenState extends State<LoginScreen> {
         'name': userData['name'],
         'phone': userData['phone'],
         'role': userData['role'],
+        'role_id': userData['role_id'],
+        'monthly_salary': userData['monthly_salary'],
         'branchId': userData['branchId'],
         'employmentType': userData['employmentType'],
         'status': userData['status'],

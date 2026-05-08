@@ -19,6 +19,7 @@ class SyncService {
 }
 
   final Map<String, String> _collectionMap = {
+    'roles': 'roles',
     'users': 'users',
     'orders': 'orders',
     'material_usage': 'material_usage',
@@ -32,6 +33,7 @@ class SyncService {
     'tenants': 'tenants',
     'rent_payments': 'rent_payments',
     'rent_dues': 'rent_dues',
+    'landlord_payments': 'landlord_payments',
     'social_accounts': 'social_accounts',
     'social_metrics': 'social_metrics',
     'purchase_orders': 'purchase_orders',
@@ -45,8 +47,12 @@ class SyncService {
     'payment_transaction': 'payment_transaction',
     'payment_breakdown': 'payment_breakdown',
     'order_assignments': 'order_assignments',
+    'order_status_logs': 'statusLogs',
     'measurement_types': 'measurement_types',
     'measurements': 'measurements',
+    'employee_payments': 'employee_payments',
+    'losses': 'losses',
+    'retail_products': 'retail_products',
   };
   static const Set<String> _safeFields = {
     'notes',
@@ -140,6 +146,12 @@ class SyncService {
     Map<String, dynamic> data,
   ) {
     final normalized = Map<String, dynamic>.from(data);
+    if (table == 'roles') {
+      final rawId = normalized['id'];
+      if (rawId is String) {
+        normalized['id'] = int.tryParse(rawId) ?? rawId;
+      }
+    }
     if (table == 'users') {
       if (normalized.containsKey('deviceId') &&
           !normalized.containsKey('device_id')) {
@@ -245,15 +257,16 @@ class SyncService {
         print('Record missing id, skipping: $recordCopy');
         return;
       }
+      final docId = recordCopy['id'].toString();
       recordCopy['lastModified'] = Timestamp.fromMillisecondsSinceEpoch(
         _extractLastModified(record['lastModified']),
       );
       await FirebaseFirestore.instance
           .collection(collection)
-          .doc(recordCopy['id'])
+          .doc(docId)
           .set(recordCopy, SetOptions(merge: true));
-      await _dbHelper.markAsSynced(table, record['id']);
-      print('Uploaded $table/${record['id']}');
+      await _dbHelper.markAsSynced(table, docId);
+      print('Uploaded $table/$docId');
     } catch (e) {
       print('Error uploading $table record ${record['id']}: $e');
     }
@@ -282,7 +295,7 @@ class SyncService {
   ) async {
     final serverRecord = await _fetchServerRecord(
       collection,
-      localRecord['id'],
+      localRecord['id'].toString(),
     );
     if (serverRecord != null) {
       final localLastModified = _extractLastModified(
@@ -410,6 +423,7 @@ class SyncService {
             markSynced: true,
           );
         }
+
         await _dbHelper.setLastSync(
           collection,
           DateTime.now().millisecondsSinceEpoch,
@@ -417,6 +431,67 @@ class SyncService {
       } catch (e) {
         print('Error downloading $collection: $e');
       }
+    }
+  }
+
+  Future<void> syncPaymentsForOrder(String orderId) async {
+    try {
+      final firestore = FirebaseFirestore.instance;
+      var paymentDocs = (await firestore
+          .collection('payment_transaction')
+          .where('orderId', isEqualTo: orderId)
+          .get())
+          .docs;
+
+      if (paymentDocs.isEmpty) {
+        paymentDocs = (await firestore
+                .collection('payment_transaction')
+                .where('order_id', isEqualTo: orderId)
+                .get())
+            .docs;
+      }
+
+      for (final doc in paymentDocs) {
+        final data = _convertFirestoreData(doc.data());
+        data['id'] = doc.id;
+        data['syncStatus'] = 'synced';
+        data['lastModified'] = DateTime.now().millisecondsSinceEpoch;
+        if (!data.containsKey('deletedAt')) {
+          data['deletedAt'] = 0;
+        }
+        await _dbHelper.insert(
+          'payment_transaction',
+          _normalizeForLocalWrite('payment_transaction', data),
+          markSynced: true,
+        );
+
+        var breakdownDocs = (await firestore
+            .collection('payment_breakdown')
+            .where('payment_transaction_id', isEqualTo: doc.id)
+            .get())
+            .docs;
+        if (breakdownDocs.isEmpty) {
+          breakdownDocs = (await firestore
+                  .collection('payment_breakdown')
+                  .where('paymentTransactionId', isEqualTo: doc.id)
+                  .get())
+              .docs;
+        }
+        for (final breakdownDoc in breakdownDocs) {
+          final breakdownData = _convertFirestoreData(breakdownDoc.data());
+          breakdownData['id'] = breakdownDoc.id;
+          breakdownData['payment_transaction_id'] = doc.id;
+          breakdownData['syncStatus'] = 'synced';
+          breakdownData['lastModified'] = DateTime.now().millisecondsSinceEpoch;
+          await _dbHelper.insert(
+            'payment_breakdown',
+            _normalizeForLocalWrite('payment_breakdown', breakdownData),
+            markSynced: true,
+          );
+        }
+      }
+    } catch (e) {
+      print('Error syncing payments for order $orderId: $e');
     }
   }
 

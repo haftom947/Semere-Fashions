@@ -37,6 +37,8 @@ class AppColors {
 
   // Neutral Colors
   static const Color white = Color(0xFFFFFFFF);
+  static const Color white70 = Color(0xB3FFFFFF);   // 70% opacity white
+  static const Color white24 = Color(0x3DFFFFFF);   // 24% opacity white
   static const Color black = Color(0xFF000000);
   static const Color darkGrey = Color(0xFF212121);
   static const Color mediumGrey = Color(0xFF757575);

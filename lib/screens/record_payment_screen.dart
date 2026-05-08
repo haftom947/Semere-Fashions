@@ -25,6 +25,8 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen> {
   String _type = 'payment';
   final List<String> _methods = ['cash', 'card', 'transfer'];
   final List<String> _types = ['payment', 'refund'];
+  List<Map<String, dynamic>> _accounts = [];
+  String? _selectedAccountId;
   bool _isLoading = false;
 
   @override
@@ -50,9 +52,16 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen> {
       if (!mounted) return;
       setState(() {
         _selectedOrderId = id;
-        _selectedOrder = order != null ? Map<String, dynamic>.from(order) : null;
+        _selectedOrder = order != null
+            ? Map<String, dynamic>.from(order)
+            : null;
         _isLoading = false;
+        _accounts = [];
+        _selectedAccountId = null;
       });
+      if (_selectedOrder != null) {
+        await _loadAccounts();
+      }
     } catch (e) {
       if (!mounted) return;
       setState(() => _isLoading = false);
@@ -95,6 +104,39 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen> {
     }
   }
 
+  Future<void> _loadAccounts() async {
+    if (_selectedOrder == null) return;
+    final branchId = _selectedOrder!['branchId']?.toString();
+    final accounts = List<Map<String, dynamic>>.from(
+      await _dbHelper.query('accounts'),
+    );
+    final filtered = _method == 'cash'
+        ? accounts
+              .where(
+                (account) =>
+                    account['type']?.toString() == 'cash' &&
+                    account['branchId']?.toString() == branchId,
+              )
+              .toList()
+        : accounts
+              .where(
+                (account) =>
+                    account['type']?.toString() == 'bank' &&
+                    ((account['branchId']?.toString() ?? '').isEmpty),
+              )
+              .toList();
+    if (!mounted) return;
+    setState(() {
+      _accounts = filtered;
+      if (_accounts.isEmpty) {
+        _selectedAccountId = null;
+      } else if (_selectedAccountId == null ||
+          !_accounts.any((a) => a['id']?.toString() == _selectedAccountId)) {
+        _selectedAccountId = _accounts.first['id']?.toString();
+      }
+    });
+  }
+
   Future<void> _submit() async {
     if (_selectedOrderId == null || _selectedOrder == null) {
       ErrorHandler.showError(context, 'Select an order');
@@ -102,6 +144,10 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen> {
     }
     if (_amount <= 0) {
       ErrorHandler.showError(context, 'Enter a valid amount');
+      return;
+    }
+    if (_selectedAccountId == null) {
+      ErrorHandler.showError(context, 'Select an account');
       return;
     }
 
@@ -114,6 +160,7 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen> {
         type: _type,
         branchId: _selectedOrder!['branchId'] as String?,
         receivedBy: FirebaseAuth.instance.currentUser?.uid,
+        accountId: _selectedAccountId!,
       );
 
       _syncService.emitDataChanged();
@@ -154,10 +201,16 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen> {
         ),
         child: _isLoading
             ? const Center(child: CircularProgressIndicator())
-            : Padding(
-                padding: const EdgeInsets.all(16),
+            : SingleChildScrollView(
+                padding: EdgeInsets.fromLTRB(
+                  16,
+                  16,
+                  16,
+                  16 + MediaQuery.of(context).viewInsets.bottom,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     if (widget.orderId == null)
                       ElevatedButton(
@@ -237,10 +290,57 @@ class _RecordPaymentScreenState extends State<RecordPaymentScreen> {
                             .toList(),
                         onChanged: (value) {
                           if (value == null) return;
-                          setState(() => _method = value);
+                          setState(() {
+                            _method = value;
+                            _selectedAccountId = null;
+                          });
+                          _loadAccounts();
                         },
                         decoration: const InputDecoration(labelText: 'Method'),
                       ),
+                      const SizedBox(height: 8),
+                      DropdownButtonFormField<String>(
+                        value: _selectedAccountId,
+                        dropdownColor: AppColors.backgroundStart,
+                        style: const TextStyle(color: AppColors.white),
+                        decoration: InputDecoration(
+                          labelText: 'Account',
+                          labelStyle: const TextStyle(color: AppColors.white),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
+                          ),
+                          focusedBorder: const OutlineInputBorder(
+                            borderSide: BorderSide(color: AppColors.white),
+                          ),
+                        ),
+                        items: _accounts
+                            .map(
+                              (account) => DropdownMenuItem<String>(
+                                value: account['id']?.toString(),
+                                child: Text(
+                                  '${account['name'] ?? 'Account'} '
+                                  '(ETB ${(account['current_balance'] as num?)?.toDouble().toStringAsFixed(2) ?? '0.00'})',
+                                  style: const TextStyle(
+                                    color: AppColors.white,
+                                  ),
+                                ),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (value) {
+                          setState(() => _selectedAccountId = value);
+                        },
+                      ),
+                      if (_accounts.isEmpty)
+                        const Padding(
+                          padding: EdgeInsets.only(top: 8),
+                          child: Text(
+                            'No matching accounts found for this method and branch.',
+                            style: TextStyle(color: AppColors.warning),
+                          ),
+                        ),
                       const SizedBox(height: 24),
                       ElevatedButton(
                         onPressed: _submit,

@@ -319,7 +319,7 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
                           children: [
                             Expanded(
                               child: Text(
-                                employee['name'] ?? 'Unnamed',
+                                  employee['name'] ?? 'No Name',
                                 style: const TextStyle(
                                   color: AppColors.white,
                                   fontWeight: FontWeight.w500,
@@ -351,7 +351,7 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
                           ],
                         ),
                         subtitle: Text(
-                          '${employee['role']} · ${branchSnapshot.data ?? 'Loading...'}',
+                          '${employee['role'] ?? ''} - ${employee['status'] ?? ''}',
                           style: TextStyle(
                             color: AppColors.white.withOpacity(0.7),
                           ),
@@ -379,50 +379,75 @@ class _EmployeeListScreenState extends State<EmployeeListScreen> {
                                 );
                               },
                             ),
-                            IconButton(
+                            PopupMenuButton<String>(
+                              color: AppColors.backgroundStart,
                               icon: const Icon(
-                                Icons.edit,
-                                color: AppColors.primaryRed,
+                                Icons.more_vert,
+                                color: AppColors.white,
                                 size: 20,
                               ),
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => EditEmployeeScreen(
-                                      employeeData: employee,
-                                    ),
-                                  ),
-                                ).then((_) {
-                                  if (mounted) _loadEmployees();
-                                });
+                              onSelected: (value) async {
+                                switch (value) {
+                                  case 'edit':
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            EditEmployeeScreen(
+                                              employeeData: employee,
+                                            ),
+                                      ),
+                                    ).then((_) {
+                                      if (mounted) _loadEmployees();
+                                    });
+                                    break;
+                                  case 'deactivate':
+                                    await _deactivateEmployee(employee);
+                                    break;
+                                  case 'reactivate':
+                                    await _reactivateEmployee(employee);
+                                    break;
+                                  case 'delete':
+                                    await _deleteEmployee(employee);
+                                    break;
+                                  case 'payments':
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            EmployeePaymentsScreen(
+                                          employeeId: employee['id'],
+                                          employeeName: employee['name'] ?? '',
+                                        ),
+                                      ),
+                                    );
+                                    break;
+                                }
                               },
-                            ),
-                            if (employee['status'] == 'active')
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.block,
-                                  color: AppColors.warning,
-                                  size: 20,
+                              itemBuilder: (context) => [
+                                const PopupMenuItem(
+                                  value: 'payments',
+                                  child: Text('Payments'),
                                 ),
-                                onPressed: () => _deactivateEmployee(employee),
-                              )
-                            else
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.refresh,
-                                  color: AppColors.success,
-                                  size: 20,
+                                const PopupMenuItem(
+                                  value: 'edit',
+                                  child: Text('Edit'),
                                 ),
-                                onPressed: () => _reactivateEmployee(employee),
-                              ),
-                            IconButton(
-                              icon: const Icon(
-                                Icons.delete,
-                                color: AppColors.error,
-                                size: 20,
-                              ),
-                              onPressed: () => _deleteEmployee(employee),
+                                if (employee['status'] == 'active')
+                                  const PopupMenuItem(
+                                    value: 'deactivate',
+                                    child: Text('Deactivate'),
+                                  )
+                                else
+                                  const PopupMenuItem(
+                                    value: 'reactivate',
+                                    child: Text('Reactivate'),
+                                  ),
+                                const PopupMenuItem(
+                                  value: 'delete',
+                                  child: Text('Delete'),
+                                ),
+                              ],
                             ),
                           ],
                         ),

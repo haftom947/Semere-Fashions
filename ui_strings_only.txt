@@ -1,0 +1,343 @@
+Account deleted
+Accounts
+Active
+Add
+Add at least one item
+Add Branch
+Add custom commission?
+Add Employee
+Add Fuel Log
+Add Log
+Add Measurement Type
+Add Measurements
+Add Metrics
+Add New Customer
+Add Role
+Add Tenant
+AddEmployeeScreen could not find role for id=$roleId
+AddEmployeeScreen found empty local data. Trying sync...
+AddEmployeeScreen sort failed: $e
+AddEmployeeScreen sync fallback failed: $e
+Admin
+Ã¢Å“â€¦ Initial sync completed
+Ã°Å¸â€â€ž Data changed Ã¢â‚¬â€œ reloading stats
+All Accounts
+All Branches
+All Categories
+All Currencies
+All Employee Payments
+All Employees
+All Roles
+All Sales
+Approved
+Are you sure you want to delete $name?
+Are you sure you want to logout?
+Are you sure?
+Assign
+Assign Equipment
+Assign Participant
+Assign Role
+Assigned $finalRole
+Assignment removed
+Bench
+Binding reset for $userName
+box
+Branch
+Branch added successfully!
+Branch deleted
+Branches
+Branches loaded: $branches
+Cancel
+Cancel Order
+Cancelled
+Cash Flow
+Change
+Change Month
+Checkout
+Checkout ${widget.equipmentName}
+Checkout Logs - ${widget.equipmentName}
+Clear
+Close
+Commission
+Commissions
+Compare
+Completed
+Confirm
+Confirm that this commission has been paid?
+Conflict $conflictId resolved with $resolution
+Create
+Create Order
+Create Production Order
+Create Purchase Order
+Current user
+custom
+Custom...
+Customer deleted
+customerName
+Customers
+Dashboard cache cleared
+Deactivate Employee
+Delete
+Delete Account
+Delete Branch
+Delete Customer
+Delete Employee
+Delete Entry
+Delete Equipment
+Delete failed: $e
+Delete Log
+Delete Maintenance Record
+Delete Material
+Delete Measurement
+Delete Payment
+Delete Product
+Delete Property
+Delete Purchase Order
+Delete Role
+Delete Supplier
+Delete Tenant
+Delete Type
+Deleted $collection/$recordId
+Delivered
+Delivery
+description
+Device Binding
+Downloading ${snapshot.docs.length} from $collection
+Downloading remote changes...
+Draft
+Edit Branch
+Edit Employee
+Edit Fuel Log
+Edit Measurement Type
+Edit Role
+Edit Tenant
+Employee added successfully!
+Employees
+Employees Screen - Coming Soon
+Enter a valid amount
+Enter a valid paid amount
+Enter product name
+Equipment
+Equipment deleted
+Equipment Details
+Error deleting $collection/$recordId: $e
+Error downloading $collection: $e
+Error fetching server record: $e
+Error loading admin data: $e
+Error loading manager data: $e
+Error loading order details: $e
+Error loading purchase order: $e
+Error loading rental summary: $e
+Error loading sales data: $e
+Error loading tailor data: $e
+Error loading today stats: $e
+Error loading user data: $e
+Error syncing payments for order $orderId: $e
+Error: $e
+Excel export failed: $e
+Export feature coming soon
+Failed to clear cache: $e
+Failed to deactivate employee: $e
+Failed to delete employee: $e
+Failed to delete role: $e
+Failed to generate salaries: $e
+Failed to load employees: $e
+Failed to load order: $e
+Failed to load purchase order
+Failed to load roles: $e
+Failed to reactivate employee: $e
+Failed to reset binding: $e
+Failed to save role: $e
+Failed to update order status: $e
+Failed: $e
+FCM setup skipped: $e
+Filter Transactions
+Financial Summary
+Fixed
+Fixed (ETB)
+Found ${deletions.length} pending deletions
+Found ${pending.length} pending in $table
+Fuel Logs
+Go Back
+id
+Inactive
+Invalid role: "$role"
+Inventory
+Item
+itemName
+Keep Local
+kg
+Landlord payment recorded
+Leased (pay rent to landlord)
+Leave request submitted
+Leave Requests
+liter
+Loaded ${payments.length} payments for order ${widget.orderId}
+Log deleted
+Login
+Logout
+Low Stock Only
+Machines
+Maintenance Logs
+Manage >
+Manager
+Mark as Paid
+Mark Delivered
+Mark Processing
+Mark Received
+Mark this item as returned?
+Material deleted
+Materials
+Materials - ${widget.supplierName}
+Measurement Types
+meter
+Metrics - ${widget.accountName}
+Monthly
+N/A
+name
+No
+No active employees available
+No active salesperson found
+No active tailors found.
+No assignments yet
+No employees match the selected filters.
+No expense details found
+No financial data found for this filter
+No fuel logs found.
+No internet connection
+No order profit details found
+No product sales data
+No products match the selected filters.
+No sales data for the selected filters.
+None
+None (unassigned)
+OK
+Online: $online
+Order cancelled.
+Order created successfully!
+Order Details
+Ordered
+orders
+Out for Delivery
+Override tailor cut?
+Owned with mortgage
+Paid
+Pay Landlord - ${widget.propertyName}
+Payment recorded
+Payment table error: $e
+Payments - ${widget.employeeName}
+PDF export failed: $e
+Pending
+Percentage
+Percentage (%)
+Pick
+piece
+PIN must be exactly 6 digits
+Please create or select a role first
+Please enter your PIN
+Please fill all item fields
+Please select a branch
+Please select a customer
+Please select a supplier
+Please select a tailor
+Please select an employee
+Please select dates
+Please select start date first
+Processing
+Product not found
+Product out of stock
+Production Order
+Production order created
+Products
+profit
+Properties
+Property deleted
+Purchase order created
+Purchase order deleted
+Purchase Order Details
+Purchase order received
+Purchase Orders
+quantity
+Received
+Record
+Record deleted
+Record missing id, skipping: $recordCopy
+Record Payment
+Record Payment - ${widget.tenantName}
+Rejected
+Remove
+Remove $employeeName from $role?
+Remove Assignment
+Rent payment recorded
+Reports
+Request $newStatus
+Request Leave
+Reset
+Reset branch filter
+Reset Device Binding
+Reset failed: $e
+Return Equipment
+Returned
+revenue
+Role is required
+Role name is required
+Roles
+Roles loaded: $roles
+Route ${settings.name} not found
+Sales
+Salesperson
+Save
+Save Assignment
+Save Measurements
+Save Metrics
+Select a branch for cash accounts
+Select an account
+Select an account for the payment
+Select an order
+Select Order
+Seller
+Settings
+Skip
+Skipping sync: no authenticated user
+Social Accounts
+Social Media Dashboard
+Sold Qty
+Status:
+Stock
+Stock already zero
+Submit Request
+Supplier
+Supplier deleted
+Suppliers
+Sync already in progress, waiting for current run
+Sync completed
+Sync Conflicts
+Sync failed: $e
+syncAll completed
+syncAll started
+Syncing...
+Tailor
+Tailor cut defaults to employee setting.
+Tenant deleted
+Tenants - ${widget.propertyName}
+title
+tool
+Tools
+Unknown
+Unknown customer
+Update Employee
+Update Log
+Uploaded $table/$docId
+Uploading pending deletions...
+Uploading pending records...
+Use
+Use at least one material
+Use Material
+Use Server
+User ID is missing.
+User not authenticated
+User role: "$role"
+Using offline data. Pull to refresh.
+Valid delivery fee required
+Vehicle Details
+Vehicles

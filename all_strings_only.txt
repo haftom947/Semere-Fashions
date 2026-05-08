@@ -1,0 +1,4453 @@
+- ETB ${(_discountType ==
+#${_recentOrders.first[
+#${order[
+#${orderId.substring(0, 8)}
+$_cancelledBefore before / $_cancelledAfter after
+$_cancelledBefore before / $_cancelledAfter after
+$_conflictCount conflict${_conflictCount > 1 ?
+$_localRecordCount local records
+$_selectedCurrency
+$_selectedCurrency
+${(payment[
+${(product[
+${_cancelledBefore + _cancelledAfter}
+${_cancelledBefore + _cancelledAfter}
+${_filteredLowStock.length} items
+${_rentalOccupancyRate.toStringAsFixed(1)}%
+${_rentalOccupancyRate.toStringAsFixed(1)}%
+${_rentLabel(property)}: ETB ${(property[
+${a[
+${account[
+${account[
+${account[
+${account[
+${amount >= 0 ?
+${c[
+${cancelledBefore + cancelledAfter}
+${comm[
+${commission[
+${conflict[
+${date.day}/${date.month}
+${date.day}/${date.month}
+${date.day}/${date.month}/${date.year}
+${date.day}/${date.month}/${date.year}
+${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute}
+${DateTime.now().millisecondsSinceEpoch}p
+${emp[
+${employee[
+${employee[
+${expenseItems.length} item${expenseItems.length == 1 ?
+${index + 1}
+${isPositive ?
+${item[
+${item[
+${item[
+${item[
+${item[
+${item[
+${localRecord[
+${log[
+${log[
+${material[
+${now.year}-${now.month.toString().padLeft(2,
+${now.year}-${now.month.toString().padLeft(2,
+${now.year}-${now.month.toString().padLeft(2,
+${now.year}-${now.month.toString().padLeft(2,
+${occupancyRate.toStringAsFixed(1)}%
+${order[
+${orderProfitItems.length} order${orderProfitItems.length == 1 ?
+${payment[
+${peakDay[
+${product[
+${property[
+${propertyId}_$currentMonth
+${role[
+${section.currency} ${metrics.avgOrderValue.toStringAsFixed(0)}
+${section.currency} ${metrics.totalRevenue.toStringAsFixed(0)}
+${section.currency} ${metrics.totalRevenue.toStringAsFixed(0)} / ${metrics.unpaidAmount.toStringAsFixed(0)}
+${section.currency} ${section.paidCommissions.toStringAsFixed(0)}
+${section.currency} ${section.pendingCommissions.toStringAsFixed(0)}
+${section.currency} ${section.totalCommissions.toStringAsFixed(0)}
+${section.currency} ${section.totalProfit.toStringAsFixed(0)}
+${section.currency} ${section.totalSales.toStringAsFixed(0)}
+${start.day}/${start.month}/${start.year} - ${end.day}/${end.month}/${end.year}
+${start.day}/${start.month}/${start.year} - ${end.day}/${end.month}/${end.year}
+${start.day}/${start.month}/${start.year} - ${end.day}/${end.month}/${end.year}
+${stock.toStringAsFixed(0)} / ${minLevel.toStringAsFixed(0)}
+${stock.toStringAsFixed(0)} / ${minLevel.toStringAsFixed(0)}
+${table}_$recordId
+${tenant[
+${topCustomers.first[
+${transactionId}_$method
+${type[
+${type[
+${widget.role} · $_branchName
+$cancelledBefore before / $cancelledAfter after
+$code ${((employee[
+$code ${((employee[
+$code ${((employee[
+$code ${((employee[
+$code ${((employee[
+$code ${((employee[
+$code ${((employee[
+$code ${((employee[
+$code ${((product[
+$code ${((product[
+$code ${profit.toStringAsFixed(0)}
+$code ${profit.toStringAsFixed(0)}
+$code${NumberFormat.compact().format(value)}
+$code${NumberFormat.compact().format(value)}
+$code${value.toStringAsFixed(0)}
+$code${value.toStringAsFixed(0)}
+$currency
+$currency ${value.toStringAsFixed(2)}
+$date\n${_formatCompactAmountForCurrency(revenue, currency)}\n$orders order${orders == 1 ?
+$employeeName Earnings
+$label:
+$prefix${change.toStringAsFixed(0)}%
+$prefix${change.toStringAsFixed(0)}%
+$symbol ${value.toStringAsFixed(2)}
+$userName will be able to log in from any device. Continue?
+(empty)
+(ETB ${(account[
+(ETB ${(account[
+).compareTo(b[
+).compareTo(b[
+).compareTo(b[
+).compareTo(b[
+).compareTo(b[
+).compareTo(b[
+).compareTo(b[
+).compareTo(b[
+).compareTo(b[
+).first}!
+).isNotEmpty) order[
+).isNotEmpty) order[
+).toString().toUpperCase()} • ${payment[
+, employeeName:
+, m[
+, m[
+, m[
+, m[
+, m[
+, m[
+../../services/database_helper.dart
+../../services/sync_service.dart
+../../utils/colors.dart
+../../utils/error_handler.dart
+../screens/conflict_resolution_screen.dart
+../screens/customers_screen.dart
+../screens/device_binding_screen.dart
+../screens/orders_list_screen.dart
+../screens/settings_screen.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/database_helper.dart
+../services/excel_generator.dart
+../services/excel_generator.dart
+../services/excel_generator.dart
+../services/financial_calculator.dart
+../services/financial_calculator.dart
+../services/financial_calculator.dart
+../services/low_stock_service.dart
+../services/low_stock_service.dart
+../services/pdf_generator.dart
+../services/pdf_generator.dart
+../services/pdf_generator.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../services/sync_service.dart
+../utils/app_date_filter.dart
+../utils/app_date_filter.dart
+../utils/app_date_filter.dart
+../utils/app_date_filter.dart
+../utils/app_date_filter.dart
+../utils/app_date_filter.dart
+../utils/app_date_filter.dart
+../utils/app_date_filter.dart
+../utils/app_date_filter.dart
+../utils/app_date_filter.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/colors.dart
+../utils/currency_helper.dart
+../utils/currency_helper.dart
+../utils/currency_helper.dart
+../utils/currency_helper.dart
+../utils/currency_helper.dart
+../utils/currency_helper.dart
+../utils/currency_helper.dart
+../utils/currency_helper.dart
+../utils/date_picker_helper.dart
+../utils/device_helper.dart
+../utils/error_handler.dart
+../utils/error_handler.dart
+../utils/error_handler.dart
+../utils/error_handler.dart
+../utils/error_handler.dart
+../utils/error_handler.dart
+../utils/error_handler.dart
+../utils/error_handler.dart
+../utils/error_handler.dart
+../utils/error_handler.dart
+../utils/error_handler.dart
+../utils/error_handler.dart
+../utils/error_handler.dart
+../utils/error_handler.dart
+../utils/error_handler.dart
+../utils/error_handler.dart
+../utils/error_handler.dart
+../utils/error_handler.dart
+../utils/error_handler.dart
+../utils/error_handler.dart
+../utils/error_handler.dart
+../utils/error_handler.dart
+../utils/error_handler.dart
+../utils/error_handler.dart
+../utils/error_handler.dart
+../utils/error_handler.dart
+../utils/error_handler.dart
+../utils/error_handler.dart
+../utils/error_handler.dart
+../utils/error_handler.dart
+../utils/error_handler.dart
+../utils/error_handler.dart
+../utils/error_handler.dart
+../utils/error_handler.dart
+../utils/error_handler.dart
+../utils/error_handler.dart
+../utils/error_handler.dart
+../utils/error_handler.dart
+../utils/error_handler.dart
+../utils/error_handler.dart
+../utils/error_handler.dart
+../utils/error_handler.dart
+../utils/error_handler.dart
+../utils/error_handler.dart
+../utils/locale_provider.dart
+../widgets/category_card.dart
+../widgets/category_card.dart
+../widgets/category_card.dart
+../widgets/customer_selector.dart
+../widgets/drawer_menu.dart
+../widgets/drawer_menu.dart
+../widgets/drawer_menu.dart
+../widgets/drawer_menu.dart
+../widgets/drawer_menu.dart
+../widgets/employee_selector_dialog.dart
+../widgets/employees_report.dart
+../widgets/global_date_filter_card.dart
+../widgets/global_date_filter_card.dart
+../widgets/product_selector.dart
+../widgets/products_report.dart
+../widgets/recent_order_card.dart
+../widgets/recent_order_card.dart
+../widgets/sales_report.dart
+../widgets/stat_card.dart
+../widgets/stat_card.dart
+../widgets/stat_card.dart
+../widgets/supplier_selector.dart
+../widgets/supplier_selector.dart
+: _selectedBranchId)}
+@mipmap/ic_launcher
+[ ${value.join(
+\n
+\n+${lowStockItems.length - 3} more
+} ${CurrencyHelper.formatAmount(amount.abs(), null)}
+} • $branch
+} below minimum.
+} below minimum.
+} ETB ${amount.abs().toStringAsFixed(0)}
+}${date != null ?
+}\n
+1:585578517638:android:e44f9a6f591705c191ed07
+1:585578517638:ios:ce4237e187b04ea891ed07
+6-digit PIN *
+A ${actualProfit.toStringAsFixed(2)} / I ${idealProfit.toStringAsFixed(2)}
+• $monthLabel
+• Delivery commissions remain if delivery happened.\n\n
+• Payments will NOT be automatically refunded.\n
+• Sales commissions will be voided.\n
+• Stock will NOT be restored.\n
+• Tailor commissions remain (work done).\n
+account
+Account
+Account
+Account
+Account
+Account
+Account
+Account is locked to another device
+Account Name *
+Account Name/Handle *
+Account not found
+Account not found
+Account saved
+Account Summary
+Account updated
+account_id
+account_id
+account_id
+account_id
+accountName
+accountName
+accountName
+accountName
+accountName
+accountName
+accountName
+accounts
+accounts
+Accounts
+accounts
+accounts
+accounts
+accounts
+accounts
+accounts
+accounts
+accounts
+accounts
+accounts
+accounts
+accounts
+accounts
+accounts
+accounts
+Accounts
+accountUrl
+accountUrl
+active
+active
+active
+active
+active
+active
+active
+active
+active
+active
+active
+active
+active
+active
+Active
+active
+active
+active
+active
+active
+active
+active
+active
+Active
+active
+active
+Active Employees
+Actual Profit: ${_formatMoney(currency, actualProfit)} | Ideal Profit: ${_formatMoney(currency, idealProfit)}
+Actual Revenue: ${_formatMoney(currency, actualRevenue)} | Ideal Revenue: ${_formatMoney(currency, idealRevenue)}\n
+actualProfit
+actualProfit
+actualProfit
+actualReturnDate
+actualReturnDate
+actualReturnDate
+actualReturnDate
+actualRevenue
+actualRevenue
+actualRevenue
+Add
+Add
+Add
+Add Account
+Add Account
+Add Account
+Add Branch
+Add Branch
+Add Branch
+Add Branch
+Add custom commission?
+Add Customer
+Add Customer
+Add Employee
+Add Employee
+Add Employee
+Add Employee
+Add Equipment
+Add Equipment
+Add Fuel Log
+Add Items
+Add Items
+Add Log
+Add Maintenance
+Add Material
+Add Material
+Add Measurement Type
+Add Measurements
+Add Metrics
+Add new customer
+Add New Customer
+Add Payment
+Add Payment
+Add Product
+Add Product
+Add Product
+Add Property
+Add Property
+Add Record
+Add Role
+Add Social Account
+Add Stock
+Add Stock
+Add Supplier
+Add Supplier
+Add Tenant
+Add Tenant
+add_edit_account_screen.dart
+add_edit_branch_screen.dart
+add_edit_customer_screen.dart
+add_edit_employee_payment_screen.dart
+add_edit_equipment_screen.dart
+add_edit_fuel_log_screen.dart
+add_edit_maintenance_log_screen.dart
+add_edit_material_screen.dart
+add_edit_metrics_screen.dart
+add_edit_product_screen.dart
+add_edit_property_screen.dart
+add_edit_social_account_screen.dart
+add_edit_supplier_screen.dart
+add_edit_tenant_screen.dart
+add_employee_screen.dart
+add_employee_screen.dart
+add_measurement_screen.dart
+AddEmployeeScreen build: roles=${_roles.length}, branches=${_branches.length}, selectedRoleId=$_selectedRoleId
+AddEmployeeScreen selected role: ${role[
+Additional Notes
+address
+address
+Address
+address
+address
+Address
+address
+admins
+advance
+advance
+Afternoon
+AIzaSyBM1G5KL5h8-Um4EZhn1LK0LArCgBgyTbc
+AIzaSyDiVQaOM5lFrQ0oJ3M45uoBed3O0Ek1kmQ
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+All
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+all
+All Accounts
+All Branches
+All Branches
+All Branches
+All Branches
+All Branches
+All Categories
+All Currencies
+All Currencies
+All Currencies
+All dates
+All dates
+All Employee Payments
+All Employees
+All Employees
+All Employees
+All Roles
+All Roles
+All Sales
+All stock levels are healthy
+ALTER TABLE $table ADD COLUMN changed_fields TEXT
+ALTER TABLE accounts ADD COLUMN branchId TEXT
+ALTER TABLE branches ADD COLUMN currency TEXT DEFAULT "ETB"
+ALTER TABLE commissions_new RENAME TO commissions
+ALTER TABLE conflicts ADD COLUMN conflictingFields TEXT
+ALTER TABLE employee_payments ADD COLUMN createdAt INTEGER
+ALTER TABLE employee_payments ADD COLUMN for_month TEXT
+ALTER TABLE employee_payments ADD COLUMN status TEXT DEFAULT "paid"
+ALTER TABLE equipment ADD COLUMN insurance_expiry INTEGER
+ALTER TABLE equipment ADD COLUMN insurance_policy TEXT
+ALTER TABLE equipment ADD COLUMN registration_expiry INTEGER
+ALTER TABLE material_usage ADD COLUMN orderId TEXT
+ALTER TABLE material_usage ADD COLUMN type TEXT DEFAULT "order"
+ALTER TABLE materials ADD COLUMN cost_per_unit REAL DEFAULT 0
+ALTER TABLE materials ADD COLUMN createdAt INTEGER
+ALTER TABLE order_assignments ADD COLUMN commission_amount REAL DEFAULT 0
+ALTER TABLE order_assignments_new RENAME TO order_assignments
+ALTER TABLE orders ADD COLUMN cogs REAL DEFAULT 0
+ALTER TABLE orders ADD COLUMN courier_name TEXT
+ALTER TABLE orders ADD COLUMN currency TEXT
+ALTER TABLE orders ADD COLUMN delivery_fee REAL DEFAULT 0
+ALTER TABLE orders ADD COLUMN discount_type TEXT
+ALTER TABLE orders ADD COLUMN discount_value REAL DEFAULT 0
+ALTER TABLE orders ADD COLUMN paid_amount REAL DEFAULT 0
+ALTER TABLE orders ADD COLUMN salesPersonId TEXT
+ALTER TABLE orders ADD COLUMN stock_deducted INTEGER DEFAULT 0
+ALTER TABLE orders ADD COLUMN tracking_number TEXT
+ALTER TABLE orders_new RENAME TO orders
+ALTER TABLE payment_breakdown ADD COLUMN account_id TEXT
+ALTER TABLE payment_breakdown_new RENAME TO payment_breakdown
+ALTER TABLE payment_transaction ADD COLUMN amount REAL DEFAULT 0
+ALTER TABLE payment_transaction ADD COLUMN deletedAt INTEGER DEFAULT 0
+ALTER TABLE payment_transaction ADD COLUMN tip_amount REAL DEFAULT 0
+ALTER TABLE payment_transaction_new RENAME TO payment_transaction
+ALTER TABLE products ADD COLUMN createdAt INTEGER
+ALTER TABLE products ADD COLUMN is_custom INTEGER DEFAULT 0
+ALTER TABLE products ADD COLUMN productionOrderId TEXT
+ALTER TABLE properties ADD COLUMN mortgageBank TEXT
+ALTER TABLE properties ADD COLUMN mortgageMonthly REAL
+ALTER TABLE properties ADD COLUMN rentalExpenseType TEXT
+ALTER TABLE properties ADD COLUMN usageType TEXT DEFAULT 'rented_out'
+ALTER TABLE users ADD COLUMN delivery_commission_type TEXT
+ALTER TABLE users ADD COLUMN delivery_commission_value REAL DEFAULT 0
+ALTER TABLE users ADD COLUMN device_id TEXT
+ALTER TABLE users ADD COLUMN fcmToken TEXT
+ALTER TABLE users ADD COLUMN monthly_salary REAL
+ALTER TABLE users ADD COLUMN role_id INTEGER REFERENCES roles(id)
+Amharic Language
+amount
+amount
+amount
+amount
+amount
+amount
+amount
+amount
+amount
+amount
+amount
+amount
+amount
+amount
+amount
+amount
+amount
+amount
+amount
+amount
+amount
+amount
+amount
+amount
+amount
+Amount
+amount
+amount
+amount
+amount
+amount
+amount
+amount
+amount
+amount
+amount
+amount
+amount
+amount
+amount
+Amount
+amount
+amount
+amount
+amount
+amount
+amount
+Amount
+amount
+amount
+amount
+amount
+amount
+amount
+amount
+amount
+amount
+amount
+amount
+amount
+amount
+amount
+Amount (ETB)
+Amount (ETB)
+Amount (ETB)
+Amount (ETB)
+Amount (ETB) *
+Amount must be greater than zero
+Amount Paid (ETB)
+Amount Paid (ETB) *
+Amount Paid (ETB) *
+Amount: ${CurrencyHelper.formatAmount((order[
+An error occurred: ${e.toString()}
+AND branchId = ?
+AND branchId = ?
+AND o.branchId = ?
+AND o.branchId = ?
+App Version
+application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+Approve
+approved
+approved
+Approved
+approved
+Are you sure you want to cancel this order?\n\n
+Are you sure you want to deactivate ${employee[
+Are you sure you want to delete $name?
+Are you sure you want to delete $name?
+Are you sure you want to delete $name?
+Are you sure you want to delete $name?
+Are you sure you want to delete $name?
+Are you sure you want to delete $name?
+Are you sure you want to delete $name?
+Are you sure you want to delete $name?
+Are you sure you want to delete $name?
+Are you sure you want to delete $name?
+Are you sure you want to delete order from $supplierName?
+Are you sure you want to delete this checkout record?
+Are you sure you want to delete this measurement?
+Are you sure you want to delete this metrics entry?
+Are you sure you want to logout?
+Are you sure you want to logout?
+Are you sure you want to logout?
+Are you sure you want to logout?
+Are you sure you want to logout?
+Are you sure you want to permanently delete ${employee[
+Are you sure?
+Are you sure?
+Are you sure?
+Are you sure? This will also delete all measurements of this type.
+⚠️ Low Stock Alert
+assets/images/dashboard_header.png
+Assign
+Assign
+Assign Equipment
+Assign Participant
+Assign Role
+assign_equipment_screen.dart
+Assigned Employee
+Assigned Employee
+assignedAt
+assignedTailor
+assignedTo
+assignedTo
+assignedTo
+assignedTo
+assignedTo
+assignedTo
+assignedTo
+Assignment
+Assignments
+Auto Sync
+Auto-created cash account for this branch
+Automatically sync with cloud
+Avg Order
+Avg Order Value
+Avg Order Value
+Avg Order Value
+Balance: ${CurrencyHelper.formatAmount((account[
+Balance: ETB 15,230
+bench
+Bench
+bonus
+bonus
+Bottom Performers
+Bottom Performers
+Bottom Performers
+Bottom Performers
+Brake Service
+Branch
+Branch
+Branch
+Branch
+Branch
+Branch
+Branch
+Branch
+Branch
+Branch
+Branch
+Branch
+Branch
+Branch
+Branch
+Branch
+Branch *
+Branch *
+Branch *
+Branch *
+Branch filter
+Branch Name
+Branch Name *
+Branch Overview
+Branch saved
+Branch updated
+Branch:
+Branch: ${_branchName ??
+Branch: ${_branchNameForId(_selectedBranchId ==
+Branch: ${_branchNamesById[account[
+Branch: $branchLabel\n
+branches
+branches
+branches
+branches
+branches
+branches
+branches
+branches
+branches
+Branches
+branches
+branches
+branches
+branches
+branches
+branches
+branches
+branches
+branches
+branches
+branches
+branches
+Branches
+branches
+branches
+branches
+branchName
+branchName
+branchName
+branchName
+branchName
+branchName
+broken
+Business Use
+Business Use
+Business Use: use this when the company occupies the property itself. Tenant management does not apply here.
+business_use
+business_use
+business_use
+business_use
+business_use
+business_use
+business_use
+business_use
+business_use
+business_use
+business_use
+business_use
+business_use
+Cancel
+Cancel
+Cancel
+Cancel
+Cancel
+Cancel
+Cancel
+Cancel
+Cancel
+Cancel
+Cancel
+Cancel
+Cancel
+Cancel
+Cancel
+Cancel
+Cancel
+Cancel
+Cancel
+Cancel
+Cancel
+Cancel
+Cancel
+Cancel
+Cancel
+Cancel
+Cancel
+Cancel
+Cancel
+Cancel
+Cancel
+Cancel
+Cancel
+Cancel
+Cancel
+Cancel
+Cancel
+Cancel
+Cancel
+Cancel
+Cancel
+Cancel
+Cancel
+Cancel
+Cancel
+Cancel Order
+Cancel Order
+cancelled
+cancelled
+cancelled
+cancelled
+Cancelled
+Cancelled
+cancelled
+cancelled
+Cancelled
+cancelled
+cancelled
+cancelled
+cancelled
+cancelled
+cancelled
+cancelled
+cancelled
+cancelled
+cancelled
+Cancelled
+cancelled
+cancelled
+cancelled
+cancelled
+cancelled
+Cancelled
+cancelled
+cancelled
+Cancelled
+cancelled
+cancelled
+cancelled
+cancelled
+cancelled
+cancelled
+cancelledAfter
+cancelledAfter
+cancelledBefore
+cancelledBefore
+cancelledCount
+cancelledCount
+cancelledPayments
+cancelledPayments
+card
+card
+Cash Account (${_nameController.text.trim()})
+Cash Flow
+Cash Flow
+cash_$branchId
+category
+category
+Category
+category
+category
+Category
+category
+category
+category
+category
+category
+category
+category
+category
+category
+category
+category
+category
+category
+category
+category
+category
+category
+category
+Category
+category
+category
+category
+category
+Category
+category
+Category
+category
+Change
+Change
+Change Month
+Checked out: $checkoutStr
+Checkout
+Checkout ${widget.equipmentName}
+Checkout Date: ${_checkoutDate.day}/${_checkoutDate.month}/${_checkoutDate.year}
+Checkout Logs - ${widget.equipmentName}
+checkout_logs
+checkout_logs
+checkout_logs
+checkout_logs
+checkout_logs
+checkout_logs
+checkout_logs
+checkout_logs_screen.dart
+checkoutDate
+checkoutDate
+checkoutDate
+Choose which version to keep:
+Clear
+Clear
+Clear Dashboard Cache
+Close
+Close
+Close
+Close
+cogs
+cogs
+COGS
+COGS
+COGS
+cogs
+cogs
+cogs
+cogs
+cogs
+cogs
+cogs
+COGS
+cogs
+COGS
+COGS
+COGS
+cogs
+cogs
+COGS
+cogs
+cogs
+COGS: ${_formatMoney(currency, cogs)} | Commissions: ${_formatMoney(currency, commissions)}\n
+COGS: ETB ${_cogs.toStringAsFixed(2)}\n
+cogsFromOrders
+cogsFromOrders
+Collected
+collection
+collection = ?
+color
+color
+Color
+color
+Color: ${_equipment![
+com.example.semereFashions
+comments
+Comments
+comments
+Comments
+Commission Amount (ETB)
+Commission Rate (% of Gross Profit)
+Commission Rate (% of Gross Profit)
+Commission Summary
+Commission Summary
+Commission: ${value.toStringAsFixed(0)}% of fee = ETB ${amt.toStringAsFixed(2)}
+Commission: Fixed ETB ${value.toStringAsFixed(2)}
+commission_amount
+commission_amount
+commission_amount
+commission_amount
+commission_amount
+commission_amount
+commission_amount
+commission_amount
+commissionEarned
+commissionEarned
+commissionEarned
+commissionEarned
+commissionEarned
+commissionEarned
+commissionEarned
+commissionEarned
+commissionEarned
+commissionEarned
+commissionEarned
+commissionExpenses
+commissionExpenses
+commissionPaid
+commissionPaid
+commissionPaid
+commissionPaid
+commissionPaid
+commissionPaid
+commissionPaid
+commissionPaid
+commissionPaid
+commissionPaid
+commissionPaid
+commissionPending
+commissionPending
+commissionPending
+commissionPending
+commissionPending
+commissionPending
+commissionPending
+commissionPending
+commissionPending
+commissionPending
+commissionPending
+commissionRate
+commissionRate
+commissionRate
+commissionRate
+commissionRate
+commissionRate
+commissions
+commissions
+commissions
+commissions
+Commissions
+commissions
+commissions
+commissions
+commissions
+commissions
+commissions
+commissions
+commissions
+commissions
+commissions
+commissions
+commissions
+Commissions
+commissions
+Commissions
+Commissions
+Compare
+Compare
+Comparison needs a date range
+completed
+completed
+Completed
+completed
+completed
+completed
+completed
+Completed
+Completed
+completed
+completed
+completed
+Completed
+completed
+completed
+completed
+Completed
+completed
+completed
+Completed
+completed
+completedAt
+completedOrders
+completedOrders
+conditional
+Confirm
+Confirm that this commission has been paid?
+Conflict in ${conflict[
+Conflicted at ${DateTime.fromMillisecondsSinceEpoch(conflict[
+conflictingFields
+conflictingFields
+conflicts
+conflicts
+conflicts
+conflicts
+conflicts
+cost
+cost
+cost
+cost
+cost
+cost
+cost
+cost
+cost
+cost
+cost
+cost
+cost
+cost
+cost
+cost
+cost
+cost
+cost
+Cost (ETB) *
+Cost (ETB) *
+Cost of Goods Sold (COGS) Breakdown
+Cost of Goods Sold (COGS) Breakdown
+Cost per Unit (ETB)
+Cost Price
+Cost Price (ETB)
+Cost Price (ETB)
+Cost: ETB ${(log[
+cost_per_unit
+cost_per_unit
+cost_per_unit
+costPerUnit
+costPrice
+costPrice
+costPrice
+costPrice
+costPrice
+costPrice
+costPrice
+costPrice
+costPrice
+costPrice
+count
+courier
+Courier Name (optional)
+courier_name
+courier_name
+Create
+Create New ${item[
+Create Order
+Create Order
+Create Production Order
+Create Purchase Order
+Create Purchase Order
+Create Purchase Order
+Create Purchase Order
+create_order_screen.dart
+create_purchase_order_screen.dart
+created_at
+created_at
+created_at
+created_at
+created_date
+createdBy
+createdBy
+createdBy
+critical
+critical
+currency
+currency
+Currency
+currency
+currency
+currency
+currency
+currency
+currency
+currency
+currency
+currency
+currency
+currency
+currency
+currency
+currency
+currency
+currency
+currency
+currency
+currency
+Currency
+currency
+currency
+currency
+Currency
+currency
+currency
+currency
+currency
+Currency
+Current period
+Current period
+Current Stock
+Current user
+current_balance
+current_balance
+current_balance
+current_balance
+current_balance
+current_balance
+current_balance
+Currently assigned to: ${snap.data ??
+custom
+custom
+custom
+custom
+Custom Commission
+Custom Commission
+Custom product
+Custom Role
+Custom...
+Customer
+Customer
+Customer saved
+Customer updated
+Customer: ${_order![
+Customer: ${_selectedOrder![
+Customer: ${order[
+customer_details_screen.dart
+customer_name
+customer_name
+customerName
+customerName
+customerName
+customerName
+customerName
+customerName
+customerName
+customerName
+customerName
+customerName
+customerName
+customerName
+customers
+customers
+customers
+customers
+Customers
+customers
+customers
+customers
+customers
+customers
+customers
+Customers
+customers_screen.dart
+Daily Average
+Daily Sales (Last 7 days)
+Dashboard
+dashboard_${cacheVersion}_${start}_$end
+dashboard_${cacheVersion}_all
+dashboard_cache
+dashboard_cache
+dashboard_cache
+database_helper.dart
+database_helper.dart
+database_helper.dart
+database_helper.dart
+date
+date
+date
+date
+date
+date
+date
+date
+date
+date
+date
+date
+date
+date
+date
+date
+date
+date
+date
+date
+date
+date
+date
+date
+date
+date
+date
+date
+date
+date
+date
+date
+date
+date
+date
+date
+date
+date
+date
+date
+date
+date
+date
+date
+date
+date
+date
+date
+date
+Date
+date
+date
+date
+date
+date
+date
+Date
+date
+date
+date
+date
+date
+date
+date
+date
+date
+date
+Date range comes from the global dashboard picker.
+Date: ${_formatDate(_order![
+Date: ${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}
+Date: ${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}
+Date: ${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}
+Date: ${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}
+Date: ${_selectedDate.day}/${_selectedDate.month}/${_selectedDate.year}
+Date: ${date.day}/${date.month}/${date.year}
+date_taken
+date_taken
+date_taken
+datePaid
+datePaid
+datePaid
+datePaid
+datePaid
+datePaid
+dd MMM
+dd/MM/yy
+dd/MM/yy
+dd/MM/yy
+dd/MM/yy
+dd/MM/yy
+dd/MM/yy
+dd/MM/yy
+dd/MM/yy
+dd/MM/yy
+dd/MM/yy
+dd/MM/yy
+dd/MM/yy
+dd/MM/yy
+dd/MM/yy HH:mm
+dd/MM/yy HH:mm
+dd/MM/yy HH:mm
+dd/MM/yy HH:mm
+dd/MM/yy HH:mm
+dd/MM/yyyy
+dd/MM/yyyy
+dd/MM/yyyy
+dd/MM/yyyy
+Deactivate
+Deactivate Employee
+Debug: no branches loaded for dropdown
+Debug: no roles loaded for dropdown
+deduction
+deduction
+deduction
+Default Monthly Salary
+Default Tailor Cut (ETB)
+Default Tailor Cut (ETB)
+Default: -
+Default: ETB ${salary.toString()}
+default_monthly_salary
+default_monthly_salary
+default_monthly_salary
+default_monthly_salary
+default_monthly_salary
+default_monthly_salary
+default_monthly_salary
+default_monthly_salary
+default_monthly_salary
+default_monthly_salary
+DefaultFirebaseOptions are not supported for this platform.
+DefaultFirebaseOptions have not been configured for linux -
+DefaultFirebaseOptions have not been configured for macos -
+DefaultFirebaseOptions have not been configured for web -
+DefaultFirebaseOptions have not been configured for windows -
+Delete
+Delete
+Delete
+Delete
+Delete
+Delete
+Delete
+Delete
+Delete
+Delete
+Delete
+Delete
+Delete
+Delete
+Delete
+Delete
+Delete
+Delete
+Delete
+Delete
+Delete ${role[
+Delete Account
+Delete Account
+Delete all data and sign out
+Delete Branch
+Delete Customer
+Delete Employee
+Delete Entry
+Delete Equipment
+Delete Log
+Delete Log
+Delete Maintenance Record
+Delete Material
+Delete Measurement
+Delete Payment
+Delete Product
+Delete Property
+Delete Purchase Order
+Delete Role
+Delete Supplier
+Delete Tenant
+Delete Type
+deletedAt
+deletedAt
+deletedAt
+deletedAt
+deletedAt
+deletedAt
+delivered
+delivered
+delivered
+delivered
+delivered
+delivered
+Delivered
+delivered
+delivered
+delivered
+delivered
+Delivered
+delivered
+delivered
+delivered
+delivered
+delivered
+delivered
+delivered
+Delivered
+delivered
+delivered
+Delivered orders cannot be cancelled. Use refund instead.
+Delivered orders cannot be cancelled. Use refund instead.
+Delivery Commission Type
+Delivery Commission Type
+Delivery Commission Value
+Delivery Commission Value
+Delivery Fee
+Delivery Fee (ETB)
+Delivery Fee (ETB) *
+Delivery Fee: ETB ${((_order![
+delivery_commission_type
+delivery_commission_type
+delivery_commission_type
+delivery_commission_type
+delivery_commission_type
+delivery_commission_type
+delivery_commission_type
+delivery_commission_type
+delivery_commission_type
+delivery_commission_value
+delivery_commission_value
+delivery_commission_value
+delivery_commission_value
+delivery_commission_value
+delivery_commission_value
+delivery_commission_value
+delivery_commission_value
+delivery_commission_value
+delivery_fee
+delivery_fee
+delivery_fee
+delivery_fee
+delivery_fee
+delivery_fee
+delivery_fee
+delivery_fee
+deliveryCommissions
+deliveryCommissions
+deliveryPerson
+description
+description
+Description
+description
+description
+description
+description
+description
+description
+description
+Description
+description
+description
+description
+description
+description
+description
+description
+description
+Device Binding
+Device Binding
+Device: ${value.substring(0, 18)}...
+Device: $value
+device_id
+device_id
+device_id
+device_id
+device_id
+device_id
+device_id
+device_id
+deviceId
+deviceId
+deviceId
+deviceId
+deviceId
+deviceId
+deviceId
+deviceId
+Discount ($_discountValue%):
+Discount Type
+Discount:
+Discount: -ETB ${discountAmount.toStringAsFixed(2)} (${_order![
+discount_type
+discount_type
+discount_value
+discount_value
+displayName
+displayName
+draft
+draft
+draft
+draft
+Draft
+draft
+DROP TABLE commissions
+DROP TABLE order_assignments
+DROP TABLE orders
+DROP TABLE payment_breakdown
+DROP TABLE payment_transaction
+dueDate
+dueDate
+dueDate
+dueDate
+dueDate
+dueDate
+dueMonth
+dueMonth
+dueMonth
+dueMonth
+📦 ${p[
+🧵 ${m[
+e.g., 2025-03
+e.g., Chest, Waist, Height
+e.g., cm, inches
+Edit Account
+Edit Branch
+Edit Customer
+Edit Employee
+Edit Equipment
+Edit Fuel Log
+Edit Maintenance
+Edit Material
+Edit Measurement Type
+Edit Payment
+Edit Product
+Edit Property
+Edit Role
+Edit Social Account
+Edit Supplier
+Edit Tenant
+edit_employee_screen.dart
+email
+email
+email
+email
+email
+Email
+email
+email
+Email
+Email (Optional)
+email-already-in-use
+Employee
+Employee
+Employee
+Employee
+Employee
+Employee
+Employee *
+Employee Payments
+Employee Performance
+Employee Performance (${section.currency})
+Employee:
+employee_list_screen.dart
+employee_payments
+employee_payments
+employee_payments
+employee_payments
+employee_payments
+employee_payments
+employee_payments
+employee_payments
+employee_payments_screen.dart
+employee_selector_dialog.dart
+employeeName
+employeeName
+employeeName
+employeeName
+employeeName
+employeeName
+employeeName
+employeeName
+employeeName
+employeeName
+employeeName
+employeeName
+employeeName
+employeeName
+employeeName
+employeeName
+employeeName
+employeeName
+employeeName
+employeeName
+employeeName
+employeeName
+employeeName
+employeeName
+employeeName
+employeeName
+employeeName
+employeeName
+Employees
+Employees
+Employees
+Employees
+Employees
+Employees
+Employees
+Employees Report
+Employees Report
+Employees Report
+Employees Screen - Coming Soon
+employees_report.pdf
+employees_report_${now.millisecondsSinceEpoch}.xlsx
+EmployeesReport selected employee filter: $_selectedEmployeeId, currency: $currency
+employmentType
+employmentType
+employmentType
+employmentType
+End Date *
+End: ${_endDate!.day}/${_endDate!.month}/${_endDate!.year}
+endDate
+endDate
+Engagement
+Engine Repair
+Enter a custom commission amount (optional). Leave blank to use default.
+Enter a custom commission amount. Leave blank to use default.
+Enter a name (e.g., "Chest") and optionally a unit (e.g., "cm", "inches").
+Enter branch name
+Enter customer name
+Enter location
+Enter Order ID
+Enter phone number
+Enter PIN
+Enter your 6-digit PIN
+equipment
+equipment
+equipment
+equipment
+equipment
+equipment
+equipment
+Equipment
+equipment
+equipment
+equipment
+equipment
+Equipment
+Equipment Details
+Equipment Name *
+Equipment not found
+equipment_details_screen.dart
+equipmentId
+equipmentId
+equipmentName
+ETB ${((((item[
+ETB ${((payment[
+ETB ${((product[
+ETB ${((product[
+ETB ${(_recentOrders.first[
+ETB ${(comm[
+ETB ${(item[
+ETB ${(item[
+ETB ${(order[
+ETB ${(p[
+ETB ${(p[
+ETB ${(po[
+ETB ${(tenant[
+ETB ${(topCustomers.first[
+ETB ${(totalPending * 0.9).toStringAsFixed(0)}
+ETB ${_grandTotal.toStringAsFixed(2)}
+ETB ${_landlordOverdue.toStringAsFixed(0)}
+ETB ${_landlordOverdue.toStringAsFixed(0)}
+ETB ${_metrics.avgOrderValue.toStringAsFixed(0)}
+ETB ${_metrics.totalRevenue.toStringAsFixed(0)}
+ETB ${_metrics.totalRevenue.toStringAsFixed(0)} / ${_metrics.unpaidAmount.toStringAsFixed(0)}
+ETB ${_paidCommissions.toStringAsFixed(0)}
+ETB ${_pendingCommissions.toStringAsFixed(0)}
+ETB ${_rentalExpense.toStringAsFixed(0)}
+ETB ${_rentalExpense.toStringAsFixed(0)}
+ETB ${_rentalIncome.toStringAsFixed(0)}
+ETB ${_rentalIncome.toStringAsFixed(0)}
+ETB ${_rentalNet.toStringAsFixed(0)}
+ETB ${_rentalNet.toStringAsFixed(0)}
+ETB ${_tenantOverdue.toStringAsFixed(0)}
+ETB ${_tenantOverdue.toStringAsFixed(0)}
+ETB ${_toCollectAmount.toStringAsFixed(0)}
+ETB ${_total.toStringAsFixed(2)}
+ETB ${_total.toStringAsFixed(2)}
+ETB ${_totalCommissions.toStringAsFixed(0)}
+ETB ${_totalProfit.toStringAsFixed(0)}
+ETB ${_totalRevenue.toStringAsFixed(0)}
+ETB ${_totalSales.toStringAsFixed(0)}
+ETB ${_totalStockValue.toStringAsFixed(0)}
+ETB ${amount.toStringAsFixed(0)}
+ETB ${avgOrderValue.toStringAsFixed(2)}
+ETB ${cogs.toStringAsFixed(0)}
+ETB ${commission.toStringAsFixed(0)}
+ETB ${d[
+ETB ${losses.toStringAsFixed(0)}
+ETB ${netProfit.toStringAsFixed(0)}
+ETB ${order.get(
+ETB ${overdue.toStringAsFixed(0)}
+ETB ${p[
+ETB ${paidCommissions.toStringAsFixed(2)}
+ETB ${pendingCommissions.toStringAsFixed(2)}
+ETB ${receivedThisMonth.toStringAsFixed(0)}
+ETB ${salesTotal.toStringAsFixed(0)}
+ETB ${toCollectAmount.toStringAsFixed(0)}
+ETB ${totalCommissions.toStringAsFixed(2)}
+ETB ${totalPaid.toStringAsFixed(0)}
+ETB ${totalPending.toStringAsFixed(0)}
+ETB ${totalRevenue.toStringAsFixed(0)}
+ETB ${totalRevenue.toStringAsFixed(0)}
+ETB ${totalRevenue.toStringAsFixed(2)}
+Evening
+Excel
+Excel
+Excel
+Expected Date: (optional)
+Expected Date: (optional)
+Expected Return: (optional)
+Expected: ${_expectedDate!.day}/${_expectedDate!.month}/${_expectedDate!.year}
+Expected: ${_expectedDate!.day}/${_expectedDate!.month}/${_expectedDate!.year}
+Expected: ${_expectedReturnDate!.day}/${_expectedReturnDate!.month}/${_expectedReturnDate!.year}
+Expected: ${DateFormat(
+Expected: ${DateTime.fromMillisecondsSinceEpoch(_po![
+expectedDate
+expectedDate
+expectedDate
+expectedReturnDate
+expectedReturnDate
+expectedReturnDate
+Expense
+Expense
+Expense Breakdown
+Export Database
+Export Report
+Export Report
+Export Report
+Facebook
+Failed to create employee
+Failed to generate Excel
+Failed to generate Excel
+Failed to generate Excel
+Failed to load order details: ${e.toString()}
+fcmToken
+Filter by Employee
+Filter Transactions
+Financial Overview
+Financial Overview
+Financial Overview
+Financial Summary
+Financial Summary
+Financial Summary
+fixed
+fixed
+fixed
+Fixed
+fixed
+fixed
+fixed
+fixed
+Fixed
+fixed
+fixed
+fixed
+fixed
+Fixed (ETB)
+flat
+flat
+followers
+Followers
+followers
+followers
+Followers Growth
+for_month
+for_month
+for_month
+for_month
+for_month
+Force Sync Now
+Fuel
+Fuel
+Fuel expense
+Fuel expense
+Fuel Logs
+Fuel Logs
+fuel_logs
+fuel_logs
+fuel_logs
+fuel_logs
+fuel_logs
+fuel_logs
+fuel_logs
+fuel_logs
+fuel_logs_screen.dart
+fuelExpenses
+fuelExpenses
+Full Name *
+Full Name *
+Full Name *
+general
+general
+general
+general
+General material usage
+General material usage
+Generate monthly salaries
+Generated ${employees.length} salary entr${employees.length == 1 ?
+Generated on ${DateFormat(
+Generated on ${DateFormat(
+Generated on ${DateFormat(
+Generated salary for $monthKey
+Global date filter: ${range.start.day}/${range.start.month}/${range.start.year} - ${range.end.day}/${range.end.month}/${range.end.year}
+Global date filter: All dates
+Global Date Range
+Global filter: ${range.start.day}/${range.start.month}/${range.start.year} - ${range.end.day}/${range.end.month}/${range.end.year}
+Global filter: ${range.start.day}/${range.start.month}/${range.start.year} - ${range.end.day}/${range.end.month}/${range.end.year}
+Global filter: ${range.start.day}/${range.start.month}/${range.start.year} - ${range.end.day}/${range.end.month}/${range.end.year}
+Global filter: All dates
+Global filter: All dates
+Global filter: All dates
+Go Back
+Good ${_getTimeOfDay()}, $_userName!
+Good day, $_managerName!
+Grand Total:
+Gross Profit
+Gross Profit: ETB ${_grossProfit.toStringAsFixed(2)}\n
+grossProfit
+grossProfit
+Here are your assigned orders.
+Here\
+Here\
+Here\
+id = ?
+id = ?
+id = ?
+id = ?
+id = ?
+id = ?
+id = ?
+id = ?
+id = ?
+id = ?
+id = ?
+id = ?
+id = ?
+idealProfit
+idealProfit
+idealProfit
+idealRevenue
+idealRevenue
+idealRevenue
+ies
+in_progress
+inactive
+inactive
+Inactive
+inactive
+Income
+Income
+Initial Stock
+Inspection
+Instagram
+Insurance Expiry (optional)
+Insurance Expiry: ${_formatDate(_equipment![
+Insurance Expiry: ${_insuranceExpiry!.day}/${_insuranceExpiry!.month}/${_insuranceExpiry!.year}
+Insurance Policy Number
+Insurance Policy: ${_equipment![
+insurance_expiry
+insurance_expiry
+insurance_expiry
+insurance_expiry
+insurance_policy
+insurance_policy
+insurance_policy
+Invalid PIN
+Inventory
+Inventory
+Inventory
+Inventory
+inventory_screen.dart
+is_custom
+is_custom
+isDeleted
+Item
+Item Name
+Item Name
+itemId
+itemName
+itemName
+itemName
+itemName
+itemName
+itemName
+itemName
+items
+items
+items
+items
+items
+Items
+Items
+items
+items
+itemType
+itemType
+itemType
+itemType
+itemType
+itemType
+itemType
+itemType
+itemType
+itemType
+itemType
+Keep Local
+key = ?
+Landlord
+Landlord Name
+Landlord Phone
+landlord_dues
+landlord_dues
+landlord_dues
+landlord_dues
+landlord_dues
+landlord_dues
+landlord_dues
+landlord_dues
+landlord_payment_screen.dart
+landlord_payments
+landlord_payments
+landlord_payments
+landlord_payments
+landlord_payments
+landlord_payments
+landlord_payments
+landlordName
+landlordName
+landlordName
+landlordName
+landlordName
+landlordName
+landlordName
+landlordName
+landlordPhone
+landlordPhone
+Last sync: ${_formatLastSync()}
+last_sync
+last_sync
+last_sync
+lastUpdated
+lease
+lease
+lease
+lease
+Lease Cost
+leased
+leased
+leased
+leased
+leased
+leased
+leased
+leased
+leased
+Leased (pay rent to landlord)
+Leave Requests
+Leave Requests
+leave_requests
+leave_requests
+leave_requests
+leave_requests
+leave_requests
+License Plate
+License: ${_equipment![
+License: ${_vehicle![
+licensePlate
+licensePlate
+licensePlate
+licensePlate
+licensePlate
+likes
+Likes
+likes
+Likes
+likes
+linux
+liters
+liters
+Liters *
+Loading...
+Loading...
+local
+local
+Local:
+localData
+localData
+localData
+location
+location
+location
+Location
+location
+location
+Location
+location
+location
+location
+Login
+Login failed
+Logout
+Logout
+Logout
+Logout
+Logout
+Logout
+Logout
+Logout
+Logout
+Logout
+Logout
+Loss
+Loss
+Loss
+Loss
+losses
+losses
+losses
+losses
+losses
+losses
+Losses
+Low Stock
+Low Stock
+Low Stock
+Low Stock Alert
+Low stock alert: ${lowStock.length} item${lowStock.length > 1 ?
+Low stock alert: ${lowStock.length} item${lowStock.length > 1 ?
+Low Stock Alerts
+Low Stock Items
+Low Stock Only
+low_stock_channel
+machine
+machine
+machine
+machine
+machine
+Machines
+maintenance
+maintenance
+Maintenance
+Maintenance
+maintenance
+Maintenance
+maintenance
+Maintenance
+Maintenance
+Maintenance
+Maintenance expense
+Maintenance expense
+Maintenance Logs
+Maintenance Type *
+maintenance_logs
+maintenance_logs
+maintenance_logs
+maintenance_logs
+maintenance_logs
+maintenance_logs
+maintenance_logs
+maintenance_logs
+maintenance_logs
+maintenance_logs_screen.dart
+maintenanceExpenses
+maintenanceExpenses
+make
+make
+Make
+make
+Make: ${_equipment![
+Make: ${_vehicle![
+Manage >
+Manage >
+Manage >
+Manager · $_branchName
+Mark as Paid
+Mark Delivered
+Mark one unit of ${material[
+Mark Processing
+Mark Received
+Mark this item as returned?
+Mark this when the product is made to order and may later be converted into stock.
+Material
+material
+Material
+Material
+material
+material
+Material
+Material
+material
+material
+Material
+Material Cost
+Material Name *
+Material saved
+Material updated
+Material: ${m[
+material_id
+material_id
+material_id
+material_id
+material_id
+material_id
+material_id
+material_list_screen.dart
+material_usage
+material_usage
+material_usage
+material_usage
+material_usage
+materialExpenses
+materialExpenses
+materials
+materials
+materials
+materials
+materials
+Materials
+materials
+materials
+materials
+materials
+Materials
+materials
+materials
+materials
+materials
+materials
+materials
+materials
+materials
+materials
+materials
+Materials - ${widget.supplierName}
+Materials Used
+Materials Used: ETB ${_materialExpenses.toStringAsFixed(2)}\n
+Materials Used: ETB ${_materialExpenses.toStringAsFixed(2)}\n
+materialsUsed
+Measurement Types
+Measurement Types
+measurement_types
+measurement_types
+measurement_types
+measurement_types
+measurement_types
+measurement_types
+measurement_types
+measurement_types
+measurement_types
+measurement_types
+measurements
+measurements
+measurements
+measurements
+measurements
+measurements
+merge
+Method
+method
+method
+Method: ${(payment[
+Metrics - ${widget.accountName}
+Min Level
+Minimum Level
+Minimum Level
+Minimum Level
+minimumLevel
+minimumLevel
+minimumLevel
+minimumLevel
+minimumLevel
+minimumLevel
+minimumLevel
+minimumLevel
+minimumLevel
+minimumLevel
+minimumLevel
+minimumLevel
+minimumLevel
+minimumLevel
+minimumLevel
+minimumLevel
+minimumLevel
+minimumLevel
+minimumLevel
+minimumLevel
+minimumLevel
+minimumLevel
+minimumLevel
+minimumLevel
+minimumLevel
+MMMM y
+model
+model
+Model
+model
+Model: ${_equipment![
+Model: ${_vehicle![
+month
+month
+month
+month
+month
+month
+month
+month
+month
+month
+month
+Month (YYYY-MM)
+Month (YYYY-MM) *
+Month (YYYY-MM) *
+Monthly Lease Cost (ETB) *
+Monthly Payment (ETB)
+Monthly Rent (ETB) *
+Monthly Rent Income (ETB) *
+Monthly Salary (ETB)
+Monthly Salary (ETB)
+monthly_salary
+monthly_salary
+monthly_salary
+monthly_salary
+monthly_salary
+monthlyRent
+monthlyRent
+monthlyRent
+monthlyRent
+monthlyRent
+monthlyRent
+monthlyRent
+monthlyRent
+Morning
+mortgage
+mortgage
+mortgage
+mortgage
+Mortgage Bank
+Mortgage Payment
+mortgageBank
+mortgageBank
+mortgageMonthly
+mortgageMonthly
+mortgageMonthly
+My Assigned Orders
+N/A
+N/A
+N/A
+N/A
+Name *
+Name *
+Name *
+Name *
+name = ?
+Name: ${_equipment![
+Net
+Net
+Net Profit
+Net Profit
+Net Profit: ETB ${_netProfit.toStringAsFixed(2)}
+netProfit
+netProfit
+Never
+New Order
+New Order
+New Order
+New Order
+New Order
+Next Due: ${_nextDueDate!.day}/${_nextDueDate!.month}/${_nextDueDate!.year}
+Next due: ${DateFormat(
+Next Due: (optional)
+nextDue
+nextDue
+nextDue
+nextDue
+nextDue
+No
+No
+No accounts found.
+No active salesperson found
+No assigned orders
+No assignments yet
+No branches found.
+No checkout logs found.
+No commission records found for $employeeName.
+No commissions found.
+No conflicts!
+No customer data yet
+No customers found.
+No employees found.
+No employees match the selected filters.
+No employees match the selected filters.
+No equipment found.
+No expense details found
+No field-level differences found.
+No financial data found for this filter
+No fuel logs found.
+No items added
+No items added
+No items added
+No leave requests found.
+No maintenance logs found.
+No matching accounts found for this method and branch.
+No matching accounts found for this method and branch.
+No materials found.
+No measurement types defined. Please add them in settings.
+No measurement types found.
+No measurements yet. Tap + to add.
+No metrics data for this account
+No metrics found.
+No one
+No order profit details found
+No orders found.
+No orders yet
+No orders yet
+No payment records.
+No payments recorded
+No product sales data
+No products found.
+No products match the selected filters.
+No products match the selected filters.
+No properties found.
+No purchase orders found.
+No recent orders
+No recent orders
+No roles found.
+No sales data for the selected filters.
+No sales data for the selected filters.
+No sales data for the selected filters.
+No salesperson
+No social accounts found.
+No social accounts. Add one in settings.
+No suppliers found.
+No tenants found.
+No transactions found.
+No users found
+none
+none
+none
+none
+none
+None
+none
+none
+None
+none
+None (unassigned)
+normal
+normal
+Not bound
+Not enough stock for ${item[
+Not set
+notes
+notes
+Notes
+notes
+notes
+notes
+Notes
+notes
+notes
+Notes
+notes
+notes
+Notes
+notes
+Notes
+notes
+notes
+notes
+Notes
+notes
+notes
+notes
+notes
+Notes
+notes
+notes
+notes
+notes
+notes
+notes
+notes
+Notes
+notes
+notes
+notes
+notes
+notes
+Notes (optional)
+Notes: ${_equipment![
+Notes: ${_po![
+Notes: ${req[
+Notice: ETB ${_cancelledPayments.toStringAsFixed(0)} was received on cancelled orders and may need refund handling.
+Notice: ETB ${_cancelledPayments.toStringAsFixed(0)} was received on cancelled orders and may need refund handling.
+Notice: payments received on cancelled orders: ${_formatMoney(currency, summary.cancelledPayments)}
+notification_service.dart
+Occupancy
+Occupancy
+Occupancy
+occupied
+occupied
+occupied
+occupied
+odometer
+odometer
+odometer
+Odometer ${f[
+Odometer ${fuel[
+Odometer (km)
+office
+Offline
+Offline
+Oil Change
+OK
+Online
+Online
+Only the conflicting fields are shown below:
+Opening Balance (ETB)
+opening_balance
+opening_balance
+opening_balance
+Operating Expenses: ETB ${_otherExpenses.toStringAsFixed(2)}\n
+Or add custom item
+order
+order
+order
+order
+order
+order
+order
+order
+Order #${(c[
+Order #${(item[
+Order #${_shortOrderId(commission[
+Order #${_shortOrderId(orderId)}
+Order #${_shortOrderId(orderId)}
+Order #${_shortOrderId(orderId)} - Qty ${quantity.toStringAsFixed(0)} x ${order[
+Order #${commission[
+Order #${order[
+Order #${orderId.substring(0, orderId.length < 6 ? orderId.length : 6)}
+Order #${orderId.substring(0, orderId.length < 6 ? orderId.length : 6)}
+Order #${orderId.substring(0, orderId.length < 6 ? orderId.length : 6)} â€¢ Qty ${quantity.toStringAsFixed(0)} Ã— ETB ${unitCost.toStringAsFixed(2)}
+Order Categories
+Order Categories
+Order Date: ${_orderDate.day}/${_orderDate.month}/${_orderDate.year}
+Order Date: ${_orderDate.day}/${_orderDate.month}/${_orderDate.year}
+Order Date: ${DateTime.fromMillisecondsSinceEpoch(_po![
+Order Details
+Order History
+Order ID
+Order ID
+Order ID: ${_order![
+Order material usage
+Order material usage
+Order not found
+Order not found
+Order not found
+Order Overview
+Order Overview
+Order Profit Breakdown
+Order: ${_selectedOrder![
+order_assignments
+order_assignments
+order_assignments
+order_assignments
+order_assignments
+order_assignments
+order_assignments
+order_assignments
+order_assignments
+order_details_screen.dart
+order_details_screen.dart
+order_id
+orderDate
+orderDate
+orderDate
+orderDate
+ordered
+ordered
+ordered
+ordered
+ordered
+ordered
+Ordered
+orders
+orders
+orders
+orders
+orders
+orders
+orders
+orders
+orders
+orders
+orders
+orders
+orders
+orders
+orders
+orders
+Orders
+orders
+orders
+Orders
+orders
+orders
+orders
+orders
+orders
+orders
+orders
+orders
+orders
+orders
+orders
+Orders
+orders
+orders
+orders
+orders
+orders
+Orders
+Orders
+orders
+orders
+orders
+orders
+orders
+orders
+orders
+orders
+orders_list_screen.dart
+orders_list_screen.dart
+orders_list_screen.dart
+Other
+other
+otherExpenses
+otherExpenses
+Out for Delivery
+Out for Delivery
+out_for_delivery
+out_for_delivery
+out_for_delivery
+out_for_delivery
+out_for_delivery
+out_for_delivery
+out_for_delivery
+out_for_delivery
+out_for_delivery
+out_for_delivery
+out_for_delivery
+out_for_delivery
+out_for_delivery
+Overdue
+Override tailor cut?
+Overview
+owned
+owned
+owned
+owned
+owned
+Owned with mortgage
+ownership
+ownership
+ownership
+ownership
+ownership
+ownership
+ownership
+ownership
+ownership
+ownership
+ownership
+Ownership *
+paid
+paid
+paid
+paid
+paid
+paid
+Paid
+paid
+paid
+paid
+paid
+paid
+Paid
+Paid
+paid
+paid
+paid
+paid
+Paid
+Paid
+Paid
+Paid
+Paid / Unpaid
+Paid / Unpaid
+Paid: ETB ${paid.toStringAsFixed(0)}
+Paid: ETB ${paid.toStringAsFixed(2)}
+Paid: ETB ${paidTotal.toStringAsFixed(0)}
+paid_amount
+paid_amount
+paid_amount
+paid_amount
+paid_amount
+paid_amount
+paid_amount
+paid_amount
+paid_amount
+paid_amount
+paid_amount
+paid_amount
+paid_amount
+paid_amount
+paidAt
+paidAt
+paidAt
+paidAt
+paidAt
+paidAt
+paidAt
+paidAt
+paidAt
+paidAt
+paidAt
+paidAt
+paidAt BETWEEN ? AND ?
+Pay Landlord
+Pay Landlord - ${widget.propertyName}
+Payment History
+Payment Method
+Payment Type *
+payment_breakdown
+payment_breakdown
+payment_breakdown
+payment_breakdown
+payment_breakdown
+payment_breakdown
+payment_breakdown
+payment_breakdown
+payment_breakdown
+payment_transaction
+payment_transaction
+payment_transaction
+payment_transaction
+payment_transaction
+payment_transaction
+payment_transaction
+payment_transaction
+payment_transaction
+payment_transaction
+payment_transaction
+payment_transaction
+payment_transaction
+payment_transaction
+payment_transaction
+payment_transaction
+payment_transaction_id = ?
+Payments - ${widget.employeeName}
+paymentTransactionId
+PDF
+PDF
+PDF
+Peak Day
+Pending: ETB ${pendingTotal.toStringAsFixed(0)}
+pending_deletions
+pending_deletions
+pending_deletions
+pending_deletions
+pending_deletions
+pending_deletions
+pendingOrders
+pendingOrders
+Percentage
+percentage
+percentage
+percentage
+Percentage
+percentage
+percentage
+Percentage
+percentage
+percentage
+percentage
+percentage
+Percentage (%)
+permanent
+permanent
+phone
+phone
+phone
+phone
+phone
+Phone
+phone
+phone
+Phone
+phone
+phone
+Phone
+phone
+phone
+Phone
+phone
+Phone
+phone
+phone
+phone
+phone
+phone
+phone
+Phone
+phone
+phone
+phone
+phone
+phone
+phone
+phone
+phone
+phone
+phone
+phone
+phone
+Phone
+phone
+Phone Number
+Pick
+Pick global date range
+PIN already in use
+PIN must be 6 digits
+PIN too weak (use 6 digits)
+pin$pin@semere.local
+pin$pin@semere.local
+platform
+platform
+platform
+platform
+platform
+platform
+Platform *
+Please select an employee first
+PO ID: ${_po![
+PO-${po[
+poId
+poId
+poId
+posts
+Posts Count
+price
+price
+price
+price
+Price
+price
+price
+price
+price
+price
+processing
+processing
+processing
+Processing
+processing
+processing
+Processing
+processing
+processing
+processing
+processing
+processing
+Processing
+processing
+processing
+Processing
+processing
+processing
+processingCount
+processingCount
+product
+Product
+product
+Product
+product
+Product
+product
+product
+product
+product
+product
+product
+product
+product
+product
+Product
+Product
+Product
+Product
+Product
+Product
+Product
+Product COGS: ETB ${_cogsFromOrders.toStringAsFixed(2)}\n
+Product COGS: ETB ${_cogsFromOrders.toStringAsFixed(2)}\n
+Product Name *
+Product Name *
+Product not found
+Product not found for ${item[
+Product Performance
+Product Performance (${section.currency})
+Product saved
+Product updated
+Product: ${p[
+product_list_screen.dart
+Production
+Production Order
+production_orders
+production_orders
+production_orders
+productionOrderId
+productName
+products
+products
+products
+products
+products
+products
+products
+Products
+products
+products
+products
+products
+products
+Products
+products
+products
+products
+Products
+products
+products
+products
+products
+products
+products
+products
+products
+products
+products
+products
+Products
+Products Report
+Products Report
+Products Report
+products_report.pdf
+products_report_${now.millisecondsSinceEpoch}.xlsx
+Profile URL
+profit
+profit
+profit
+profit
+profit
+profit
+profit
+profit
+profit
+profit
+Profit
+profit
+Profit
+Profit
+profit
+Profit Calculation
+profit_details_screen.dart
+profit_details_screen.dart
+promotional
+properties
+properties
+properties
+properties
+properties
+properties
+Properties
+properties
+properties
+properties
+properties
+Properties
+Property
+Property Name *
+Property Purpose *
+Property rent
+propertyId = ? AND dueMonth = ? AND status = ?
+propertyName
+Purchase Order Details
+Purchase order not found
+Purchase Orders
+Purchase Orders
+purchase_order_details_screen.dart
+purchase_order_items
+purchase_order_items
+purchase_order_items
+purchase_order_items
+purchase_order_items
+purchase_order_items
+purchase_orders
+purchase_orders
+purchase_orders
+purchase_orders
+purchase_orders
+purchase_orders
+purchase_orders
+purchase_orders
+purchase_orders
+purchase_orders_list_screen.dart
+Qty
+Qty
+Qty ${(mu[
+Qty ${_toDouble(usage[
+Qty: ${item[
+Qty: ${item[
+Qty: ${item[
+quantity
+quantity
+Quantity
+quantity
+quantity
+quantity
+quantity
+quantity
+quantity
+quantity
+quantity
+quantity
+Quantity
+quantity
+quantity
+quantity
+quantity
+quantity
+quantity
+quantity
+Quantity
+quantity
+quantity
+quantity
+quantity
+quantity
+quantity
+quantity
+Quantity Sold
+quantitySold
+quantitySold
+quantitySold
+quantitySold
+quantitySold
+quantitySold
+quantitySold
+quantitySold
+quantitySold
+quantitySold
+Quick Actions
+Quick Actions
+Quick Actions
+Quick Actions
+Quick Actions
+Ready to create new orders?
+reason
+reason
+reason
+Reason *
+Reason: ${req[
+Reassign
+received
+received
+received
+received
+received
+received
+Received
+Received
+receivedBy
+receivedBy
+Recent
+Recent
+Recent Orders
+Recent Orders
+Recent Orders
+RECENT ORDERS
+recentOrders
+recentOrders
+Record
+Record Payment
+Record Payment
+Record Payment
+Record Payment
+Record Payment - ${widget.tenantName}
+Record Payment Now
+record_payment_screen.dart
+recorded
+Ref: ${t[
+reference_id
+reference_id
+Refresh dashboard data
+Refund cannot exceed paid amount
+Registration Expiry (optional)
+Registration Expiry: ${_formatDate(_equipment![
+Registration Expiry: ${_registrationExpiry!.day}/${_registrationExpiry!.month}/${_registrationExpiry!.year}
+registration_expiry
+registration_expiry
+registration_expiry
+registration_expiry
+Reject
+rejected
+rejected
+Rejected
+rejected
+Remaining: ETB ${remaining.toStringAsFixed(0)}
+Remaining: ETB ${remaining.toStringAsFixed(2)}
+Remove
+Remove $employeeName from $role?
+Remove assignment
+Remove Assignment
+Rent
+Rent Expense
+rent_dues
+rent_dues
+rent_dues
+rent_dues
+rent_dues
+rent_dues
+rent_dues
+rent_dues
+rent_dues
+rent_payment_screen.dart
+rent_payments
+rent_payments
+rent_payments
+rent_payments
+rent_payments
+rent_payments
+Rental Expense Type
+Rental Summary
+Rental Summary
+Rental Summary
+rentalExpenseType
+rentalExpenseType
+rentalExpenseType
+Rented Out
+Rented Out
+Rented Out: use this when the property has tenants and you want to collect rent from them.
+rented_out
+rented_out
+rented_out
+rented_out
+rented_out
+rented_out
+rented_out
+rented_out
+rented_out
+rented_out
+rented_out
+rented_out
+rented_out
+rented_out
+rented_out
+rented_out
+rented_out
+rented_out
+rented_out
+Reports
+Reports
+Reports
+Reports
+Reports
+Reports
+reports_screen.dart
+Request Leave
+Request Leave
+Required
+Required
+Required
+Required
+Required
+Required
+Required
+Required
+Required
+Required
+Required
+Required
+Required
+Required
+Required
+Required
+Required
+Required
+Required
+Required
+Required
+Required
+Required
+Required
+Required
+Reset
+Reset
+Reset
+Reset All Data
+Reset All Local Data
+Reset branch filter
+Reset Device Binding
+retired
+Return
+Return Equipment
+returned
+returned
+returned
+returned
+Returned
+returned
+Returned
+returned
+returned
+returned
+Returned
+returned
+returned
+returned
+Returned
+returned
+Returned: ${DateFormat(
+returnedCount
+returnedCount
+Revenue
+Revenue
+Revenue
+Revenue
+revenue
+Revenue
+Revenue
+revenue
+revenue
+revenue
+revenue
+revenue
+revenue
+Revenue
+Revenue
+revenue
+revenue
+revenue
+revenue
+revenue
+revenue
+revenue
+Revenue
+Revenue
+revenue
+revenue
+revenue
+Revenue (ETB)
+Revenue from recorded payments for active orders only.
+Revenue Trend
+Revenue: ETB ${_totalRevenue.toStringAsFixed(2)}\n
+Role *
+Role *
+Role Name *
+Role:
+role_id
+role_id
+role_id
+role_id
+roles
+roles
+roles
+roles
+roles
+roles
+roles
+Roles
+roles
+roles
+roles
+roles
+roles
+roles
+Roles
+Route ${settings.name} not found
+Running Balance
+s
+s
+s
+safe
+safe
+salary
+salary
+salary
+salary
+salary
+salary
+salary
+salary
+Salary month: ${DateFormat(
+Salary Type *
+salary_type
+salary_type
+salary_type
+salary_type
+salary_type
+salary_type
+salary_type
+salary_type
+salary_type
+salary_type
+Sales Person
+Sales Person
+Sales Report
+Sales Report
+Sales Report
+sales_report.pdf
+sales_report_${now.millisecondsSinceEpoch}.xlsx
+salesCommissions
+salesCommissions
+Salesperson
+Salesperson
+Salesperson (optional)
+salesPersonId
+salesPersonId
+salesPersonId
+salesPersonId
+salesPersonId
+salesPersonId
+salesTotal
+salesTotal
+Save
+Save
+Save
+Save
+Save
+Save
+Save Assignment
+Save local database to file
+Save Measurements
+Save Metrics
+Search accounts...
+Search accounts...
+Search branches...
+Search by customer or order ID...
+Search by date or numbers...
+Search by employee or date...
+Search by employee or order...
+Search by employee, type, month, or status...
+Search by employee...
+Search by supplier or PO number...
+Search customer...
+Search customers...
+Search employee...
+Search employees...
+Search equipment...
+Search low stock items...
+Search maintenance...
+Search materials...
+Search products...
+Search products...
+Search properties...
+Search roles...
+Search suppliers...
+Search tenants...
+Search transactions...
+Search types...
+See All >
+See All >
+See All >
+See All >
+See All >
+SELECT * FROM fuel_logs WHERE date BETWEEN ? AND ?
+SELECT * FROM losses WHERE date BETWEEN ? AND ?
+SELECT * FROM maintenance_logs WHERE date BETWEEN ? AND ?
+SELECT * FROM material_usage WHERE date BETWEEN ? AND ?
+SELECT * FROM orders WHERE createdAt BETWEEN ? AND ?
+Select a branch
+Select a role
+Select a role
+Select a role
+Select Account
+Select branch
+Select branch
+Select branch
+SELECT COUNT(*) AS count FROM roles
+Select Employee
+Select Employee
+Select Employee *
+Select Order
+Select Supplier
+Select Tailor
+Select Tailor *
+Select type
+Select unit
+Selected Summary
+Seller
+Selling Price
+Selling Price (ETB)
+Selling Price (ETB)
+Selling Price (ETB)
+sellingPrice
+sellingPrice
+sellingPrice
+sellingPrice
+sellingPrice
+sellingPrice
+sellingPrice
+sellingPrice
+Semere Fashions
+Semere Fashions
+Semere Fashions
+semere_fashions.db
+semere-fashions-60efc
+semere-fashions-60efc
+semere-fashions-60efc.firebasestorage.app
+semere-fashions-60efc.firebasestorage.app
+Serial Number
+Serial: ${_equipment![
+serialNumber
+serialNumber
+serialNumber
+serialNumber
+server
+server
+Server:
+serverData
+serverData
+serverData
+Settings
+settings
+Settings
+Shared
+shares
+Shares
+shares
+Shares
+shop
+shop
+shop
+Skip
+Skip
+Social Accounts
+Social Accounts
+Social Dashboard
+Social Media Dashboard
+social_accounts
+social_accounts
+social_accounts
+social_accounts
+social_accounts
+social_accounts
+social_accounts
+social_accounts
+social_accounts_screen.dart
+social_metrics
+social_metrics
+social_metrics
+social_metrics
+social_metrics
+social_metrics
+social_metrics
+social_metrics_screen.dart
+Sold
+Sold
+Sold Qty
+Sort By
+Sort By
+sortOrder
+sortOrder
+sortOrder
+sortOrder
+sortOrder
+Staff
+Start Date *
+Start: ${_startDate!.day}/${_startDate!.month}/${_startDate!.year}
+startDate
+startDate
+startDate
+stat_card.dart
+Status *
+Status *
+Status:
+Status:
+Status:
+Status:
+Status:
+Status:
+Status: ${_equipment![
+Status: ${_order![
+Status: ${_vehicle![
+stock
+stock
+stock
+stock
+Stock
+stock
+stock
+stock
+stock
+stock
+stock
+stock
+stock
+stock
+stock
+stock
+stock
+stock
+stock
+stock
+stock
+stock
+stock
+stock
+stock
+stock
+stock
+stock
+stock
+stock
+stock
+Stock
+stock
+stock
+stock
+stock
+stock
+stock
+stock
+stock
+stock
+stock
+stock
+stock
+stock
+Stock
+Stock
+stock
+Stock Value
+Stock Value
+Stock Value
+Stock: $stock
+Stock: $stock $unit
+stock_deducted
+stock_deducted
+stock_deducted
+stock_deducted
+stock_deducted
+stock_deducted
+stock_deducted
+stockValue
+stockValue
+stockValue
+Submit Request
+subtitle
+subtitle
+subtitle
+subtitle
+subtitle
+subtitle
+subtitle
+subtitle
+subtitle
+Subtotal:
+Summary
+Supplier
+Supplier Name *
+Supplier: ${_po![
+supplier_materials
+supplier_materials
+supplier_materials
+supplier_materials
+supplier_materials_screen.dart
+supplierName
+supplierName
+supplierName
+supplierName
+supplierName
+suppliers
+suppliers
+suppliers
+suppliers
+Suppliers
+suppliers
+suppliers
+suppliers
+Suppliers
+suppliers
+Switch to Amharic interface
+Sync Conflicts
+Syncing...
+syncStatus = ?
+Tailor Commission
+Tailor Commission (ETB)
+Tailor Commissions: ETB ${_tailorCommissions.toStringAsFixed(2)}\n
+Tailor Commissions: ETB ${_tailorCommissions.toStringAsFixed(2)}\n
+Tailor Cut (ETB)
+Tailor cut defaults to employee setting.
+tailorCommission
+tailorCommissions
+tailorCommissions
+tailorCut
+tailorCut
+tailorCut
+tailorCut
+tailorCut
+tailorCut
+tailorCut
+tailorCut
+tailorId
+tailorId
+tailorName
+Tenant Name *
+tenant_list_screen.dart
+tenantId = ? AND dueMonth = ? AND status = ?
+tenantName
+tenantName
+tenants
+tenants
+tenants
+tenants
+tenants
+tenants
+tenants
+tenants
+Tenants - ${widget.propertyName}
+Tenants Due
+Tenants Due
+This property is marked as Business Use, so tenant management is disabled.
+this user
+This will delete all local data and sign you out.\nCloud data remains.\n\nAre you sure?
+TikTok
+TikTok
+TikTok
+TikTok
+TikTok
+timestamp DESC
+timestamp DESC
+tip_amount
+tip_amount
+Tire Rotation
+title
+title
+title
+title
+title
+title
+title
+title
+title
+title
+To Collect
+To Collect
+To Collect
+To Deliver
+To Deliver
+To Pick Up
+To Refund
+To refund a payment, use "Record Payment" with type "Refund".
+toCollectAmount
+toCollectAmount
+tool
+tool
+tool
+Tools
+Top 5 Products by Quantity Sold
+Top 5 Products by Quantity Sold
+TOP CUSTOMERS
+TOP CUSTOMERS
+Top Performers
+Top Performers
+Top Performers
+Top Performers
+total
+total
+total
+Total
+Total
+Total
+total
+total
+total
+total
+Total COGS: ETB ${_cogs.toStringAsFixed(2)}
+Total COGS: ETB ${_cogs.toStringAsFixed(2)}
+Total Cost
+Total Employees
+Total Orders
+Total Orders
+Total Orders
+Total Orders
+Total Orders
+Total Orders
+Total Orders
+Total Paid
+Total Products
+Total Products
+Total Profit
+Total Revenue
+Total Sales
+Total Sales
+Total:
+Total:
+Total: ETB ${((_order![
+Total: ETB ${(_po![
+Total: ETB ${total.toStringAsFixed(2)}
+total_amount
+total_amount
+totalAmount
+totalAmount
+totalAmount
+totalAmount
+totalAmount
+totalAmount
+totalAmount
+totalAmount
+totalAmount
+totalAmount
+totalAmount
+totalAmount
+totalAmount
+totalAmount
+totalAmount
+totalAmount
+totalAmount
+totalAmount
+totalAmount
+totalAmount
+totalAmount
+totalAmount
+totalAmount
+totalAmount
+totalAmount
+totalCost
+totalExpenses
+totalExpenses
+totalMaterialCost
+totalOrders
+totalOrders
+totalRevenue
+totalRevenue
+totalSales
+totalSales
+totalSales
+totalSales
+totalSales
+totalSales
+totalSales
+totalSales
+totalSales
+Tracking Number (optional)
+Tracking: ${_order![
+tracking_number
+tracking_number
+Transaction
+transactions
+transactions
+transactions
+transactions
+transfer
+transfer
+true
+Type *
+Type *
+Type *
+Type:
+Type: ${_equipment![
+Unassign (no one)
+Unassigned
+Unassigned
+Unassigned
+Uncategorised loss
+Uncategorised loss
+unit
+unit
+unit
+unit
+unit
+unit
+unit
+unit
+unit
+unit
+unit
+unit
+Unit (optional)
+Unit (optional)
+Unit *
+Unit *
+Unit Price
+Unit Price
+Unit: ${material[
+Unit: ${type[
+unitPrice
+unitPrice
+unitPrice
+unitPrice
+unitPrice
+unitPrice
+unitPrice
+unitPrice
+unitPrice
+unitPrice
+unitPrice
+Unknown
+Unknown
+Unknown
+Unknown
+Unknown
+Unknown
+Unknown
+Unknown
+Unknown
+Unknown
+Unknown
+Unknown
+Unknown
+Unknown
+Unknown
+Unknown
+Unknown
+unknown
+Unknown
+Unknown
+Unknown
+Unknown
+Unknown
+Unknown
+Unknown
+Unknown
+Unknown
+Unknown
+Unknown
+Unknown
+Unknown
+Unknown customer
+Unknown User
+Unmapped COGS
+Unmapped COGS
+Unnamed
+Unnamed
+Unnamed
+Unnamed
+Unnamed
+Unnamed
+Unnamed
+Unnamed
+Unnamed
+Unnamed
+Unnamed
+Unnamed
+Unnamed Role
+Unpaid: ${_formatMoney(currency, unpaidAmount)}\n
+Update Account
+Update Account
+Update Branch
+Update Customer
+Update Employee
+Update Equipment
+Update Log
+Update Material
+Update Payment
+Update Product
+Update Property
+Update Record
+Update Supplier
+Update Tenant
+usageType
+usageType
+usageType
+usageType
+usageType
+usageType
+usageType
+usageType
+Use
+Use Material
+Use Server
+Used 1 unit of ${material[
+User
+User
+User profile not found locally or in Firestore. Please contact admin.
+User role is missing. Please contact admin.
+userId
+userId
+user-not-found
+userRole
+userRole
+userRole
+users
+users
+users
+users
+users
+users
+users
+users
+users
+users
+users
+users
+users
+users
+users
+users
+users
+users
+users
+users
+users
+users
+users
+users
+users
+users
+users
+users
+users
+users
+users
+users
+users
+users
+users
+users
+users
+users
+users
+users
+users
+users
+users
+users
+users
+users
+users
+users
+users
+users
+Using the global dashboard date filter: ${_formatRangeLabel()}
+Using the global dashboard date filter: All dates
+v4
+vacant
+vacant
+vacant
+vacant
+vacant
+vacant
+vacant
+vehicle
+vehicle
+vehicle
+vehicle
+vehicle
+vehicle
+vehicle
+Vehicle Details
+Vehicle not found
+vehicle_details_screen.dart
+vehicleId
+vehicleId
+vehicleId
+vehicleId
+vehicleId
+vehicleId
+Vehicles
+Version 1.0.0
+View All
+View All
+View All >
+View breakdown by currency
+View breakdown by currency
+views
+Views
+voided
+voided
+voided
+voided
+voided
+voided
+voided
+voided
+voided
+vs previous: $change
+vs previous: $change
+warehouse
+We Owe
+We Owe
+weak-password
+weekProfit
+weekProfit
+Welcome back, ${_adminName.split(
+Welcome, $_salesName!
+Welcome, $_tailorName!
+With Driver
+With Driver
+With Driver
+With Driver
+withDriverCount
+withDriverCount
+wrong-password
+year
+year
+Year
+year
+Year: ${_equipment![
+Year: ${_vehicle![
+Yes
+Yes, Cancel
+you can reconfigure this by running the FlutterFire CLI again.
+you can reconfigure this by running the FlutterFire CLI again.
+you can reconfigure this by running the FlutterFire CLI again.
+you can reconfigure this by running the FlutterFire CLI again.
+YouTube
+yyyy-MM
+yyyy-MM
+${productCopy[
+Account deleted
+Account deleted
+Add at least one item
+Add at least one item
+Add at least one item
+AddEmployeeScreen could not find role for id=$roleId
+AddEmployeeScreen found empty local data. Trying sync...
+AddEmployeeScreen sort failed: $e
+AddEmployeeScreen sync fallback failed: $e
+Ã¢Å“â€¦ Initial sync completed
+Ã°Å¸â€â€ž Data changed Ã¢â‚¬â€œ reloading stats
+Assigned $finalRole
+Assignment removed
+Binding reset for $userName
+Branch added successfully!
+Branch deleted
+Branches loaded: $branches
+Conflict $conflictId resolved with $resolution
+Conflict detected for $table/${localRecord[
+Customer deleted
+Dashboard cache cleared
+Delete failed: $e
+Delete failed: $e
+Delete failed: $e
+Delete failed: $e
+Delete failed: $e
+Delete failed: $e
+Delete failed: $e
+Delete failed: $e
+Delete failed: $e
+Delete failed: $e
+Delete failed: $e
+Delete failed: $e
+Delete failed: $e
+Deleted $collection/$recordId
+Downloading ${snapshot.docs.length} from $collection
+Downloading remote changes...
+Employee added successfully!
+Enter a valid amount
+Enter a valid paid amount
+Enter product name
+Equipment deleted
+Error deleting $collection/$recordId: $e
+Error downloading $collection: $e
+Error fetching server record: $e
+Error loading admin data: $e
+Error loading manager data: $e
+Error loading order details: $e
+Error loading purchase order: $e
+Error loading rental summary: $e
+Error loading rental summary: $e
+Error loading sales data: $e
+Error loading tailor data: $e
+Error loading today stats: $e
+Error loading user data: $e
+Error syncing payments for order $orderId: $e
+Error uploading $table record ${record[
+Error: ${e.toString()}
+Error: ${e.toString()}
+Error: ${e.toString()}
+Error: $e
+Error: $e
+Error: $e
+Error: $e
+Error: $e
+Error: $e
+Error: $e
+Error: $e
+Error: $e
+Error: $e
+Error: $e
+Error: $e
+Error: $e
+Error: $e
+Error: $e
+Error: $e
+Error: $e
+Error: $e
+Error: $e
+Error: $e
+Error: $e
+Error: $e
+Error: $e
+Error: $e
+Error: $e
+Error: $e
+Excel export failed: $e
+Excel export failed: $e
+Excel export failed: $e
+Export feature coming soon
+Failed to clear cache: $e
+Failed to deactivate employee: $e
+Failed to delete employee: $e
+Failed to delete role: $e
+Failed to generate salaries: $e
+Failed to load employees: $e
+Failed to load order: $e
+Failed to load purchase order
+Failed to load roles: $e
+Failed to reactivate employee: $e
+Failed to reset binding: $e
+Failed to save role: $e
+Failed to update order status: $e
+Failed: $e
+FCM setup skipped: $e
+Found ${deletions.length} pending deletions
+Found ${pending.length} pending in $table
+Invalid role: "$role"
+Landlord payment recorded
+Leave request submitted
+Loaded ${payments.length} payments for order ${widget.orderId}
+Log deleted
+Log deleted
+Material deleted
+No active employees available
+No active tailors found.
+No internet connection
+No internet connection
+Online: $online
+Order cancelled.
+Order created successfully!
+Payment recorded
+Payment table error: $e
+PDF export failed: $e
+PDF export failed: $e
+PDF export failed: $e
+PIN must be exactly 6 digits
+Please create or select a role first
+Please enter your PIN
+Please fill all item fields
+Please fill all item fields
+Please select a branch
+Please select a branch
+Please select a customer
+Please select a supplier
+Please select a supplier
+Please select a tailor
+Please select an employee
+Please select an employee
+Please select dates
+Please select start date first
+Product not found
+Product out of stock
+Production order created
+Property deleted
+Purchase order created
+Purchase order created
+Purchase order deleted
+Purchase order received
+Record deleted
+Record missing id, skipping: $recordCopy
+Rent payment recorded
+Request $newStatus
+Reset failed: $e
+Role is required
+Role name is required
+Roles loaded: $roles
+Select a branch for cash accounts
+Select an account
+Select an account for the payment
+Select an order
+Skipped item ${item[
+Skipping sync: no authenticated user
+Stock already zero
+Supplier deleted
+Sync already in progress, waiting for current run
+Sync completed
+Sync completed
+Sync failed: $e
+syncAll completed
+syncAll started
+Syncing...
+Tenant deleted
+Uploaded $table/$docId
+Uploading pending deletions...
+Uploading pending records...
+Use at least one material
+User ID is missing.
+User not authenticated
+User not authenticated
+User role: "$role"
+Using offline data. Pull to refresh.
+Valid delivery fee required

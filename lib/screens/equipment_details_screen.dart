@@ -90,29 +90,31 @@ class _EquipmentDetailsScreenState extends State<EquipmentDetailsScreen> {
                           Text('Status: ${_equipment!['status']}'),
                           if (_equipment!['serialNumber'] != null)
                             Text('Serial: ${_equipment!['serialNumber']}'),
-                          if (_equipment!['make'] != null)
-                            Text('Make: ${_equipment!['make']}'),
-                          if (_equipment!['model'] != null)
-                            Text('Model: ${_equipment!['model']}'),
+                          if ((_equipment!['type'] ?? '').toString().toLowerCase() ==
+                              'vehicle') ...[
+                            if (_equipment!['make'] != null)
+                              Text('Make: ${_equipment!['make']}'),
+                            if (_equipment!['model'] != null)
+                              Text('Model: ${_equipment!['model']}'),
+                            if (_equipment!['licensePlate'] != null)
+                              Text('License: ${_equipment!['licensePlate']}'),
+                            if (_equipment!['color'] != null)
+                              Text('Color: ${_equipment!['color']}'),
+                            if (_equipment!['registration_expiry'] != null)
+                              Text(
+                                'Registration Expiry: ${_formatDate(_equipment!['registration_expiry'])}',
+                              ),
+                            if (_equipment!['insurance_policy'] != null)
+                              Text(
+                                'Insurance Policy: ${_equipment!['insurance_policy']}',
+                              ),
+                            if (_equipment!['insurance_expiry'] != null)
+                              Text(
+                                'Insurance Expiry: ${_formatDate(_equipment!['insurance_expiry'])}',
+                              ),
+                          ],
                           if (_equipment!['year'] != null)
                             Text('Year: ${_equipment!['year']}'),
-                          if (_equipment!['licensePlate'] != null)
-                            Text('License: ${_equipment!['licensePlate']}'),
-                          if (_equipment!['color'] != null)
-                            Text('Color: ${_equipment!['color']}'),
-                          // New fields
-                          if (_equipment!['registration_expiry'] != null)
-                            Text(
-                              'Registration Expiry: ${_formatDate(_equipment!['registration_expiry'])}',
-                            ),
-                          if (_equipment!['insurance_policy'] != null)
-                            Text(
-                              'Insurance Policy: ${_equipment!['insurance_policy']}',
-                            ),
-                          if (_equipment!['insurance_expiry'] != null)
-                            Text(
-                              'Insurance Expiry: ${_formatDate(_equipment!['insurance_expiry'])}',
-                            ),
                           if (_equipment!['notes'] != null)
                             Text('Notes: ${_equipment!['notes']}'),
                         ],

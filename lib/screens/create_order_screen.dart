@@ -34,6 +34,8 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
   double _paidAmount = 0.0;
   String _paymentMethod = 'cash';
   final List<String> _paymentMethods = ['cash', 'card', 'transfer'];
+  List<Map<String, dynamic>> _paymentAccounts = [];
+  String? _selectedPaymentAccountId;
   bool _recordPayment = false;
   bool _isLoading = false;
   String? _currentUserId;
@@ -42,8 +44,8 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
   String? _selectedBranchId;
   String? _branchCurrency;
   List<Map<String, dynamic>> _branches = [];
-  List<Map<String, dynamic>> _products = [];      // <-- missing declaration added
-  bool _showProductSelector = true;               // <-- added
+  List<Map<String, dynamic>> _products = []; // <-- missing declaration added
+  bool _showProductSelector = true; // <-- added
   bool _isAdminOrManager = false;
   List<Map<String, dynamic>> _salesPeople = [];
   String? _salesPersonId;
@@ -53,7 +55,7 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
     super.initState();
     _getCurrentUser();
     _loadBranches();
-    _loadProducts();           // <-- call to load products
+    _loadProducts(); // <-- call to load products
     _loadSalesPeople();
   }
 
@@ -79,6 +81,55 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
     if (!mounted) return;
     setState(() {
       _branches = branches.map((b) => Map<String, dynamic>.from(b)).toList();
+    });
+  }
+
+  String? _getOrderBranchId() {
+    return _currentUserRole == 'admin' ? _selectedBranchId : _currentBranchId;
+  }
+
+  Future<void> _loadPaymentAccounts() async {
+    if (!_recordPayment) return;
+    final branchId = _getOrderBranchId();
+    if (branchId == null || branchId.isEmpty) {
+      if (!mounted) return;
+      setState(() {
+        _paymentAccounts = [];
+        _selectedPaymentAccountId = null;
+      });
+      return;
+    }
+
+    final accounts = List<Map<String, dynamic>>.from(
+      await _dbHelper.query('accounts'),
+    );
+    final filtered = _paymentMethod == 'cash'
+        ? accounts
+              .where(
+                (account) =>
+                    account['type']?.toString() == 'cash' &&
+                    account['branchId']?.toString() == branchId,
+              )
+              .toList()
+        : accounts
+              .where(
+                (account) =>
+                    account['type']?.toString() == 'bank' &&
+                    ((account['branchId']?.toString() ?? '').isEmpty),
+              )
+              .toList();
+
+    if (!mounted) return;
+    setState(() {
+      _paymentAccounts = filtered;
+      if (_paymentAccounts.isEmpty) {
+        _selectedPaymentAccountId = null;
+      } else if (_selectedPaymentAccountId == null ||
+          !_paymentAccounts.any(
+            (a) => a['id']?.toString() == _selectedPaymentAccountId,
+          )) {
+        _selectedPaymentAccountId = _paymentAccounts.first['id']?.toString();
+      }
     });
   }
 
@@ -108,8 +159,10 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
                 'status': remoteData['status'],
                 'commissionRate': remoteData['commissionRate'],
                 'tailorCut': remoteData['tailorCut'],
-                'delivery_commission_type': remoteData['delivery_commission_type'],
-                'delivery_commission_value': remoteData['delivery_commission_value'],
+                'delivery_commission_type':
+                    remoteData['delivery_commission_type'],
+                'delivery_commission_value':
+                    remoteData['delivery_commission_value'],
                 'createdAt': remoteData['createdAt'],
               };
               final localUser = await _dbHelper.queryById('users', user.uid);
@@ -127,8 +180,11 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
       if (userData != null) {
         _currentUserRole = userData['role'];
         _currentBranchId = userData['branchId'];
-        _isAdminOrManager = (_currentUserRole == 'admin' || _currentUserRole == 'manager');
-        _selectedBranchId = _currentUserRole == 'admin' ? null : _currentBranchId;
+        _isAdminOrManager =
+            (_currentUserRole == 'admin' || _currentUserRole == 'manager');
+        _selectedBranchId = _currentUserRole == 'admin'
+            ? null
+            : _currentBranchId;
         if (_currentUserRole == 'sales') {
           _salesPersonId = _currentUserId;
         }
@@ -259,8 +315,7 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
       ErrorHandler.showError(context, 'Please select a customer');
       return;
     }
-    final role = _currentUserRole ?? '';
-    final orderBranchId = role == 'admin' ? _selectedBranchId : _currentBranchId;
+    final orderBranchId = _getOrderBranchId();
     if (orderBranchId == null || orderBranchId.isEmpty) {
       ErrorHandler.showError(context, 'Please select a branch');
       return;
@@ -280,16 +335,33 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
         return;
       }
       _paidAmount = paid;
+      if (_selectedPaymentAccountId == null) {
+        ErrorHandler.showError(context, 'Select an account for the payment');
+        return;
+      }
     } else {
       _paidAmount = 0.0;
     }
 
+    double totalCogs = 0.0;
+    for (var item in _items) {
+      final quantity = (item['quantity'] as int);
+      if (quantity <= 0) continue;
+
+      double itemCost = 0.0;
+      if (item['productId'] != null) {
+        final product = await _dbHelper.queryById('products', item['productId']);
+        itemCost = (product?['costPrice'] as num?)?.toDouble() ?? 0.0;
+      } else if (item['retailProductId'] != null) {
+        final retailProduct = await _dbHelper.queryById('retail_products', item['retailProductId']);
+        itemCost = (retailProduct?['costPrice'] as num?)?.toDouble() ?? 0.0;
+      }
+      totalCogs += itemCost * quantity;
+    }
+
     setState(() => _isLoading = true);
     try {
-      String orderId = DateTime.now().millisecondsSinceEpoch.toString();
-
       Map<String, dynamic> orderData = {
-        'id': orderId,
         'customerId': _customerId,
         'customerName': _customerName,
         'items': jsonEncode(_items),
@@ -308,12 +380,13 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
         'courier_name': _courierController.text.trim().isEmpty
             ? null
             : _courierController.text.trim(),
+        'cogs': totalCogs, // Set the calculated COGS
         'salesPersonId': _salesPersonId,
         'stock_deducted': 0,
         'paid_amount': 0.0,
       };
 
-      await _dbHelper.insert('orders', orderData);
+      final String orderId = await _dbHelper.insert('orders', orderData);
       _syncService.emitDataChanged();
 
       if (_recordPayment && _paidAmount > 0) {
@@ -321,8 +394,10 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
           orderId,
           _paidAmount,
           _paymentMethod,
+          type: 'payment',
           branchId: orderBranchId,
           receivedBy: _currentUserId,
+          accountId: _selectedPaymentAccountId!,
         );
       }
 
@@ -392,13 +467,19 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
                           style: TextStyle(color: Colors.white70),
                         ),
                         items: _branches
-                            .where((branch) => (branch['id'] as String?)?.isNotEmpty ?? false)
+                            .where(
+                              (branch) =>
+                                  (branch['id'] as String?)?.isNotEmpty ??
+                                  false,
+                            )
                             .map(
                               (branch) => DropdownMenuItem<String>(
                                 value: branch['id'].toString(),
                                 child: Text(
                                   branch['name'] ?? branch['id'] ?? 'Branch',
-                                  style: const TextStyle(color: AppColors.white),
+                                  style: const TextStyle(
+                                    color: AppColors.white,
+                                  ),
                                 ),
                               ),
                             )
@@ -408,23 +489,36 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
                             _selectedBranchId = value;
                           });
                           if (value != null) {
-                            final branch = await _dbHelper.queryById('branches', value);
+                            final branch = await _dbHelper.queryById(
+                              'branches',
+                              value,
+                            );
                             if (!mounted) return;
                             setState(() {
                               _branchCurrency = branch?['currency'] ?? 'ETB';
                             });
+                            await _loadPaymentAccounts();
                           }
                         },
                       ),
                       const SizedBox(height: 16),
                     ] else if (_currentBranchId != null) ...[
                       FutureBuilder<Map<String, dynamic>?>(
-                        future: _dbHelper.queryById('branches', _currentBranchId!),
+                        future: _dbHelper.queryById(
+                          'branches',
+                          _currentBranchId!,
+                        ),
                         builder: (context, snapshot) {
-                          final branchName = snapshot.data?['name'] ?? _currentBranchId ?? 'Branch';
+                          final branchName =
+                              snapshot.data?['name'] ??
+                              _currentBranchId ??
+                              'Branch';
                           return Card(
                             child: ListTile(
-                              leading: const Icon(Icons.store, color: AppColors.primaryRed),
+                              leading: const Icon(
+                                Icons.store,
+                                color: AppColors.primaryRed,
+                              ),
                               title: const Text('Branch'),
                               subtitle: Text(branchName),
                             ),
@@ -447,7 +541,8 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                    ] else if (_isAdminOrManager && _salesPeople.isNotEmpty) ...[
+                    ] else if (_isAdminOrManager &&
+                        _salesPeople.isNotEmpty) ...[
                       DropdownButtonFormField<String?>(
                         value: _salesPersonId,
                         dropdownColor: AppColors.backgroundStart,
@@ -505,9 +600,7 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
 
                     // Product selector (collapsible)
                     if (_showProductSelector) ...[
-                      ProductSelector(
-                        onProductSelected: _addProduct,
-                      ),
+                      ProductSelector(onProductSelected: _addProduct),
                       const SizedBox(height: 16),
                     ],
 
@@ -836,8 +929,13 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
                           if (!_recordPayment) {
                             _paidAmountController.clear();
                             _paidAmount = 0.0;
+                            _paymentAccounts = [];
+                            _selectedPaymentAccountId = null;
                           }
                         });
+                        if (_recordPayment) {
+                          _loadPaymentAccounts();
+                        }
                       },
                     ),
                     if (_recordPayment) ...[
@@ -898,9 +996,56 @@ class _CreateOrderScreenState extends State<CreateOrderScreen> {
                             .toList(),
                         onChanged: (value) {
                           if (value == null) return;
-                          setState(() => _paymentMethod = value);
+                          setState(() {
+                            _paymentMethod = value;
+                            _selectedPaymentAccountId = null;
+                          });
+                          _loadPaymentAccounts();
                         },
                       ),
+                      const SizedBox(height: 8),
+                      DropdownButtonFormField<String>(
+                        value: _selectedPaymentAccountId,
+                        dropdownColor: AppColors.backgroundStart,
+                        style: const TextStyle(color: AppColors.white),
+                        decoration: InputDecoration(
+                          labelText: 'Account',
+                          labelStyle: const TextStyle(color: AppColors.white),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
+                          ),
+                          focusedBorder: const OutlineInputBorder(
+                            borderSide: BorderSide(color: AppColors.white),
+                          ),
+                        ),
+                        items: _paymentAccounts
+                            .map(
+                              (account) => DropdownMenuItem<String>(
+                                value: account['id']?.toString(),
+                                child: Text(
+                                  '${account['name'] ?? 'Account'} '
+                                  '(ETB ${(account['current_balance'] as num?)?.toDouble().toStringAsFixed(2) ?? '0.00'})',
+                                  style: const TextStyle(
+                                    color: AppColors.white,
+                                  ),
+                                ),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (value) {
+                          setState(() => _selectedPaymentAccountId = value);
+                        },
+                      ),
+                      if (_paymentAccounts.isEmpty)
+                        const Padding(
+                          padding: EdgeInsets.only(top: 8),
+                          child: Text(
+                            'No matching accounts found for this method and branch.',
+                            style: TextStyle(color: AppColors.warning),
+                          ),
+                        ),
                     ],
                     const SizedBox(height: 24),
 

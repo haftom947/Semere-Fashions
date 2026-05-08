@@ -21,13 +21,18 @@ class _AddEditPropertyScreenState extends State<AddEditPropertyScreen> {
   final _monthlyRentController = TextEditingController();
   final _landlordNameController = TextEditingController();
   final _landlordPhoneController = TextEditingController();
+  final _mortgageBankController = TextEditingController();
+  final _mortgageMonthlyController = TextEditingController();
 
   String _selectedType = 'shop';
+  String _selectedUsageType = 'rented_out';
   String _selectedOwnership = 'owned';
   String _selectedStatus = 'vacant';
+  String _rentalExpenseType = 'lease';
   bool _isLoading = false;
 
   final List<String> _types = ['shop', 'warehouse', 'flat', 'office'];
+  final List<String> _usageTypes = ['rented_out', 'business_use'];
   final List<String> _ownerships = ['owned', 'leased'];
   final List<String> _statuses = ['vacant', 'occupied', 'maintenance'];
 
@@ -42,10 +47,37 @@ class _AddEditPropertyScreenState extends State<AddEditPropertyScreen> {
       _landlordNameController.text = widget.propertyData!['landlordName'] ?? '';
       _landlordPhoneController.text =
           widget.propertyData!['landlordPhone'] ?? '';
+      _mortgageBankController.text =
+          widget.propertyData!['mortgageBank'] ?? '';
+      _mortgageMonthlyController.text =
+          widget.propertyData!['mortgageMonthly']?.toString() ?? '';
       _selectedType = widget.propertyData!['type'] ?? 'shop';
+      _selectedUsageType =
+          widget.propertyData!['usageType'] ??
+          ((widget.propertyData!['ownership'] ?? 'owned') == 'leased'
+              ? 'business_use'
+              : 'rented_out');
       _selectedOwnership = widget.propertyData!['ownership'] ?? 'owned';
       _selectedStatus = widget.propertyData!['status'] ?? 'vacant';
+      _rentalExpenseType =
+          widget.propertyData!['rentalExpenseType'] ?? 'lease';
     }
+  }
+
+  String _usageLabel(String usage) {
+    switch (usage) {
+      case 'business_use':
+        return 'Business Use';
+      case 'rented_out':
+      default:
+        return 'Rented Out';
+    }
+  }
+
+  String _rentLabel() {
+    return _selectedUsageType == 'business_use'
+        ? 'Monthly Lease Cost (ETB) *'
+        : 'Monthly Rent Income (ETB) *';
   }
 
   Future<void> _save() async {
@@ -59,13 +91,16 @@ class _AddEditPropertyScreenState extends State<AddEditPropertyScreen> {
         'name': _nameController.text.trim(),
         'address': _addressController.text.trim(),
         'type': _selectedType,
+        'usageType': _selectedUsageType,
         'ownership': _selectedOwnership,
         'status': _selectedStatus,
         'monthlyRent': double.tryParse(_monthlyRentController.text) ?? 0,
-        if (_selectedOwnership == 'leased') ...{
-          'landlordName': _landlordNameController.text.trim(),
-          'landlordPhone': _landlordPhoneController.text.trim(),
-        },
+        'landlordName': _landlordNameController.text.trim(),
+        'landlordPhone': _landlordPhoneController.text.trim(),
+        'mortgageBank': _mortgageBankController.text.trim(),
+        'mortgageMonthly':
+            double.tryParse(_mortgageMonthlyController.text) ?? 0,
+        'rentalExpenseType': _rentalExpenseType,
       };
       if (widget.propertyData == null) {
         await _dbHelper.insert('properties', data);
@@ -181,6 +216,36 @@ class _AddEditPropertyScreenState extends State<AddEditPropertyScreen> {
                       ),
                       const SizedBox(height: 16),
 
+                      // Purpose dropdown
+                      DropdownButtonFormField<String>(
+                        initialValue: _selectedUsageType,
+                        dropdownColor: AppColors.backgroundStart,
+                        style: const TextStyle(color: AppColors.white),
+                        decoration: InputDecoration(
+                          labelText: 'Property Purpose *',
+                          labelStyle: const TextStyle(color: AppColors.white),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
+                          ),
+                          focusedBorder: const OutlineInputBorder(
+                            borderSide: BorderSide(color: AppColors.white),
+                          ),
+                        ),
+                        items: _usageTypes
+                            .map(
+                              (usage) => DropdownMenuItem<String>(
+                                value: usage,
+                                child: Text(_usageLabel(usage)),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (value) =>
+                            setState(() => _selectedUsageType = value!),
+                      ),
+                      const SizedBox(height: 16),
+
                       // Ownership dropdown
                       DropdownButtonFormField<String>(
                         initialValue: _selectedOwnership,
@@ -241,13 +306,116 @@ class _AddEditPropertyScreenState extends State<AddEditPropertyScreen> {
                       ),
                       const SizedBox(height: 16),
 
+                      DropdownButtonFormField<String>(
+                        initialValue: _rentalExpenseType,
+                        dropdownColor: AppColors.backgroundStart,
+                        style: const TextStyle(color: AppColors.white),
+                        decoration: InputDecoration(
+                          labelText: 'Rental Expense Type',
+                          labelStyle: const TextStyle(color: AppColors.white),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
+                          ),
+                          focusedBorder: const OutlineInputBorder(
+                            borderSide: BorderSide(color: AppColors.white),
+                          ),
+                        ),
+                        items: const [
+                          DropdownMenuItem(
+                            value: 'lease',
+                            child: Text('Leased (pay rent to landlord)'),
+                          ),
+                          DropdownMenuItem(
+                            value: 'mortgage',
+                            child: Text('Owned with mortgage'),
+                          ),
+                        ],
+                        onChanged: (value) =>
+                            setState(() => _rentalExpenseType = value!),
+                      ),
+                      const SizedBox(height: 16),
+
+                      TextFormField(
+                        controller: _landlordNameController,
+                        style: const TextStyle(color: AppColors.white),
+                        decoration: InputDecoration(
+                          labelText: 'Landlord Name',
+                          labelStyle: const TextStyle(color: AppColors.white),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
+                          ),
+                          focusedBorder: const OutlineInputBorder(
+                            borderSide: BorderSide(color: AppColors.white),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      TextFormField(
+                        controller: _landlordPhoneController,
+                        style: const TextStyle(color: AppColors.white),
+                        decoration: InputDecoration(
+                          labelText: 'Landlord Phone',
+                          labelStyle: const TextStyle(color: AppColors.white),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: AppColors.white.withOpacity(0.3),
+                            ),
+                          ),
+                          focusedBorder: const OutlineInputBorder(
+                            borderSide: BorderSide(color: AppColors.white),
+                          ),
+                        ),
+                      ),
+                      if (_rentalExpenseType == 'mortgage') ...[
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: _mortgageBankController,
+                          style: const TextStyle(color: AppColors.white),
+                          decoration: InputDecoration(
+                            labelText: 'Mortgage Bank',
+                            labelStyle: const TextStyle(color: AppColors.white),
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: AppColors.white.withOpacity(0.3),
+                              ),
+                            ),
+                            focusedBorder: const OutlineInputBorder(
+                              borderSide: BorderSide(color: AppColors.white),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: _mortgageMonthlyController,
+                          style: const TextStyle(color: AppColors.white),
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            labelText: 'Monthly Payment (ETB)',
+                            labelStyle: const TextStyle(color: AppColors.white),
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: AppColors.white.withOpacity(0.3),
+                              ),
+                            ),
+                            focusedBorder: const OutlineInputBorder(
+                              borderSide: BorderSide(color: AppColors.white),
+                            ),
+                          ),
+                        ),
+                      ],
+
                       // Monthly Rent
                       TextFormField(
                         controller: _monthlyRentController,
                         style: const TextStyle(color: AppColors.white),
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
-                          labelText: 'Monthly Rent (ETB) *',
+                          labelText: _rentLabel(),
                           labelStyle: const TextStyle(color: AppColors.white),
                           enabledBorder: OutlineInputBorder(
                             borderSide: BorderSide(
@@ -263,44 +431,26 @@ class _AddEditPropertyScreenState extends State<AddEditPropertyScreen> {
                       ),
                       const SizedBox(height: 16),
 
-                      // Conditional fields for leased properties
-                      if (_selectedOwnership == 'leased') ...[
-                        TextFormField(
-                          controller: _landlordNameController,
-                          style: const TextStyle(color: AppColors.white),
-                          decoration: InputDecoration(
-                            labelText: 'Landlord Name',
-                            labelStyle: const TextStyle(color: AppColors.white),
-                            enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                color: AppColors.white.withOpacity(0.3),
-                              ),
-                            ),
-                            focusedBorder: const OutlineInputBorder(
-                              borderSide: BorderSide(color: AppColors.white),
-                            ),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppColors.white.withOpacity(0.08),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: AppColors.white.withOpacity(0.18),
                           ),
                         ),
-                        const SizedBox(height: 16),
-                        TextFormField(
-                          controller: _landlordPhoneController,
-                          style: const TextStyle(color: AppColors.white),
-                          keyboardType: TextInputType.phone,
-                          decoration: InputDecoration(
-                            labelText: 'Landlord Phone',
-                            labelStyle: const TextStyle(color: AppColors.white),
-                            enabledBorder: OutlineInputBorder(
-                              borderSide: BorderSide(
-                                color: AppColors.white.withOpacity(0.3),
-                              ),
-                            ),
-                            focusedBorder: const OutlineInputBorder(
-                              borderSide: BorderSide(color: AppColors.white),
-                            ),
+                        child: Text(
+                          _selectedUsageType == 'rented_out'
+                              ? 'Rented Out: use this when the property has tenants and you want to collect rent from them.'
+                              : 'Business Use: use this when the company occupies the property itself. Tenant management does not apply here.',
+                          style: const TextStyle(
+                            color: AppColors.white,
+                            height: 1.35,
                           ),
                         ),
-                        const SizedBox(height: 16),
-                      ],
+                      ),
+                      const SizedBox(height: 16),
 
                       // Save button
                       SizedBox(

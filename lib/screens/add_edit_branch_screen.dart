@@ -24,7 +24,7 @@ class _AddEditBranchScreenState extends State<AddEditBranchScreen> {
   String _selectedCurrency = 'ETB';
   bool _isLoading = false;
 
-  final List<String> _currencies = ['ETB', 'AED', 'USD', 'EUR', 'GBP'];
+  final List<String> _currencies = ['ETB', 'AED', 'SAR', 'USD', 'EUR', 'GBP'];
 
   @override
   void initState() {
@@ -54,6 +54,16 @@ class _AddEditBranchScreenState extends State<AddEditBranchScreen> {
       };
       if (widget.branchData == null) {
         await _dbHelper.insert('branches', data);
+        final branchId = data['id'] as String;
+        await _dbHelper.insert('accounts', {
+          'id': 'cash_$branchId',
+          'name': 'Cash Account (${_nameController.text.trim()})',
+          'type': 'cash',
+          'opening_balance': 0.0,
+          'current_balance': 0.0,
+          'branchId': branchId,
+          'notes': 'Auto-created cash account for this branch',
+        }, markSynced: true);
       } else {
         await _dbHelper.update('branches', data);
       }

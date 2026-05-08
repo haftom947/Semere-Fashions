@@ -16,18 +16,23 @@ class EmployeePaymentsScreen extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  _EmployeePaymentsScreenState createState() => _EmployeePaymentsScreenState();
+  State<EmployeePaymentsScreen> createState() => _EmployeePaymentsScreenState();
 }
 
 class _EmployeePaymentsScreenState extends State<EmployeePaymentsScreen> {
   final DatabaseHelper _dbHelper = DatabaseHelper();
   final SyncService _syncService = SyncService();
+  final TextEditingController _searchController = TextEditingController();
+
   List<Map<String, dynamic>> _payments = [];
   List<Map<String, dynamic>> _filteredPayments = [];
   List<Map<String, dynamic>> _employees = [];
   String? _selectedEmployeeId;
   bool _isLoading = true;
-  final TextEditingController _searchController = TextEditingController();
+  DateTime _selectedSalaryMonth = DateTime(
+    DateTime.now().year,
+    DateTime.now().month,
+  );
 
   @override
   void initState() {
@@ -40,7 +45,8 @@ class _EmployeePaymentsScreenState extends State<EmployeePaymentsScreen> {
   }
 
   Future<void> _loadEmployees() async {
-    var employees = await _dbHelper.query('users');
+    final employees = await _dbHelper.query('users');
+    if (!mounted) return;
     setState(() {
       _employees = employees;
     });
@@ -48,12 +54,14 @@ class _EmployeePaymentsScreenState extends State<EmployeePaymentsScreen> {
 
   Future<void> _loadPayments() async {
     setState(() => _isLoading = true);
-    var allPayments = List<Map<String, dynamic>>.from(
+    final allPayments = List<Map<String, dynamic>>.from(
       await _dbHelper.query('employee_payments'),
-    );
-    allPayments.sort(
-      (a, b) => (b['datePaid'] as int).compareTo(a['datePaid'] as int),
-    );
+    )..sort(
+        (a, b) => ((b['datePaid'] as num?)?.toInt() ?? 0).compareTo(
+          (a['datePaid'] as num?)?.toInt() ?? 0,
+        ),
+      );
+    if (!mounted) return;
     setState(() {
       _payments = allPayments;
       _applyFilters();
@@ -64,20 +72,22 @@ class _EmployeePaymentsScreenState extends State<EmployeePaymentsScreen> {
   void _applyFilters() {
     var filtered = _payments;
 
-    // Filter by selected employee (if any)
     if (_selectedEmployeeId != null && _selectedEmployeeId!.isNotEmpty) {
       filtered = filtered
-          .where((p) => p['employeeId'] == _selectedEmployeeId)
+          .where((p) => p['employeeId']?.toString() == _selectedEmployeeId)
           .toList();
     }
 
-    // Search filter (optional)
     if (_searchController.text.isNotEmpty) {
       final query = _searchController.text.toLowerCase();
       filtered = filtered.where((p) {
-        return (p['employeeName'] ?? '').toLowerCase().contains(query) ||
-            (p['type'] ?? '').toLowerCase().contains(query) ||
-            (p['month'] ?? '').toLowerCase().contains(query);
+        return (p['employeeName'] ?? '').toString().toLowerCase().contains(
+                  query,
+                ) ||
+            (p['type'] ?? '').toString().toLowerCase().contains(query) ||
+            (p['month'] ?? '').toString().toLowerCase().contains(query) ||
+            (p['for_month'] ?? '').toString().toLowerCase().contains(query) ||
+            (p['status'] ?? '').toString().toLowerCase().contains(query);
       }).toList();
     }
 
@@ -142,6 +152,62 @@ class _EmployeePaymentsScreenState extends State<EmployeePaymentsScreen> {
     }
   }
 
+  Future<void> _pickSalaryMonth() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedSalaryMonth,
+      firstDate: DateTime(2020, 1),
+      lastDate: DateTime(2100, 12),
+      builder: (context, child) =>
+          Theme(data: ThemeData.light(), child: child!),
+    );
+    if (picked == null || !mounted) return;
+    setState(() {
+      _selectedSalaryMonth = DateTime(picked.year, picked.month);
+    });
+  }
+
+  Future<void> _generateMonthlySalaries() async {
+    await _pickSalaryMonth();
+    if (!mounted) return;
+
+    final monthKey = DateFormat('yyyy-MM').format(_selectedSalaryMonth);
+    try {
+      final employees = await _dbHelper.generateMonthlySalaries(monthKey);
+      await _loadPayments();
+      _syncService.triggerBackgroundSync();
+      if (!mounted) return;
+      final monthLabel = DateFormat('MMMM y').format(_selectedSalaryMonth);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Generated ${employees.length} salary entr${employees.length == 1 ? 'y' : 'ies'} for $monthLabel.',
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ErrorHandler.showError(context, 'Failed to generate salaries: $e');
+    }
+  }
+
+  void _openPaymentEditor({
+    required String employeeId,
+    required String employeeName,
+    Map<String, dynamic>? paymentData,
+  }) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AddEditEmployeePaymentScreen(
+          employeeId: employeeId,
+          employeeName: employeeName,
+          paymentData: paymentData,
+        ),
+      ),
+    ).then((_) => _loadPayments());
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -150,11 +216,34 @@ class _EmployeePaymentsScreenState extends State<EmployeePaymentsScreen> {
             ? const Text('All Employee Payments')
             : Text('Payments - ${widget.employeeName}'),
         backgroundColor: AppColors.primaryRed,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.calendar_month),
+            tooltip: 'Generate monthly salaries',
+            onPressed: _generateMonthlySalaries,
+          ),
+        ],
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(100),
+          preferredSize: const Size.fromHeight(148),
           child: Column(
             children: [
-              // Employee selector (only shown when no specific employee is passed)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Salary month: ${DateFormat('MMMM y').format(_selectedSalaryMonth)}',
+                        style: const TextStyle(color: AppColors.white),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: _pickSalaryMonth,
+                      child: const Text('Change Month'),
+                    ),
+                  ],
+                ),
+              ),
               if (widget.employeeId.isEmpty) ...[
                 Padding(
                   padding: const EdgeInsets.symmetric(
@@ -162,7 +251,7 @@ class _EmployeePaymentsScreenState extends State<EmployeePaymentsScreen> {
                     vertical: 8,
                   ),
                   child: DropdownButtonFormField<String>(
-                    value: _selectedEmployeeId,
+                    initialValue: _selectedEmployeeId,
                     dropdownColor: AppColors.backgroundStart,
                     style: const TextStyle(color: AppColors.white),
                     decoration: InputDecoration(
@@ -189,9 +278,9 @@ class _EmployeePaymentsScreenState extends State<EmployeePaymentsScreen> {
                       ),
                       ..._employees.map(
                         (e) => DropdownMenuItem(
-                          value: e['id'],
+                          value: e['id']?.toString(),
                           child: Text(
-                            e['name'] ?? 'Unknown',
+                            e['name']?.toString() ?? 'Unknown',
                             style: const TextStyle(color: AppColors.white),
                           ),
                         ),
@@ -201,7 +290,6 @@ class _EmployeePaymentsScreenState extends State<EmployeePaymentsScreen> {
                   ),
                 ),
               ],
-              // Search field
               Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
@@ -211,7 +299,7 @@ class _EmployeePaymentsScreenState extends State<EmployeePaymentsScreen> {
                   controller: _searchController,
                   style: const TextStyle(color: AppColors.white),
                   decoration: InputDecoration(
-                    hintText: 'Search by employee, type, or month...',
+                    hintText: 'Search by employee, type, month, or status...',
                     hintStyle: TextStyle(
                       color: AppColors.white.withOpacity(0.5),
                     ),
@@ -258,19 +346,37 @@ class _EmployeePaymentsScreenState extends State<EmployeePaymentsScreen> {
                   separatorBuilder: (_, __) =>
                       const Divider(color: AppColors.white, height: 0.5),
                   itemBuilder: (context, index) {
-                    var p = _filteredPayments[index];
-                    DateTime date = DateTime.fromMillisecondsSinceEpoch(
-                      p['datePaid'],
+                    final payment = _filteredPayments[index];
+                    final date = DateTime.fromMillisecondsSinceEpoch(
+                      (payment['datePaid'] as num?)?.toInt() ?? 0,
                     );
-                    String dateStr = DateFormat('dd/MM/yy').format(date);
-                    bool isPositive = p['type'] != 'deduction';
-                    double amount = (p['amount'] as num?)?.toDouble() ?? 0;
+                    final dateStr = DateFormat('dd/MM/yy').format(date);
+                    final isPositive = payment['type'] != 'deduction';
+                    final amount =
+                        (payment['amount'] as num?)?.toDouble() ?? 0.0;
+                    final monthLabel =
+                        payment['for_month']?.toString() ??
+                        payment['month']?.toString();
+                    final status = (payment['status'] ?? 'paid').toString();
+
                     return ListTile(
+                      onTap: () => _openPaymentEditor(
+                        employeeId: payment['employeeId']?.toString() ?? '',
+                        employeeName:
+                            payment['employeeName']?.toString() ?? 'Unknown',
+                        paymentData: payment,
+                      ),
                       leading: CircleAvatar(
                         radius: 18,
-                        backgroundColor: _getTypeColor(p['type']),
+                        backgroundColor: _getTypeColor(
+                          payment['type']?.toString() ?? '',
+                        ),
                         child: Text(
-                          p['type'][0].toUpperCase(),
+                          (payment['type']?.toString().isNotEmpty ?? false)
+                              ? payment['type']
+                                  .toString()[0]
+                                  .toUpperCase()
+                              : '?',
                           style: const TextStyle(
                             color: AppColors.white,
                             fontSize: 14,
@@ -281,27 +387,51 @@ class _EmployeePaymentsScreenState extends State<EmployeePaymentsScreen> {
                         children: [
                           Expanded(
                             child: Text(
-                              '${p['type'].toUpperCase()} · ${p['employeeName']}',
+                              '${(payment['type'] ?? '').toString().toUpperCase()} • ${payment['employeeName']}',
                               style: const TextStyle(
                                 color: AppColors.white,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
                           ),
-                          if (p['month'] != null)
+                          if (monthLabel != null && monthLabel.isNotEmpty)
                             Text(
-                              ' · ${p['month']}',
+                              ' • $monthLabel',
                               style: TextStyle(
                                 color: AppColors.white.withOpacity(0.7),
                               ),
                             ),
                         ],
                       ),
-                      subtitle: Text(
-                        dateStr,
-                        style: TextStyle(
-                          color: AppColors.white.withOpacity(0.7),
-                        ),
+                      subtitle: Row(
+                        children: [
+                          Text(
+                            dateStr,
+                            style: TextStyle(
+                              color: AppColors.white.withOpacity(0.7),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: status == 'pending'
+                                  ? AppColors.warning
+                                  : AppColors.success,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              status,
+                              style: const TextStyle(
+                                color: AppColors.white,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -322,7 +452,8 @@ class _EmployeePaymentsScreenState extends State<EmployeePaymentsScreen> {
                               color: AppColors.error,
                               size: 20,
                             ),
-                            onPressed: () => _deletePayment(p['id']),
+                            onPressed: () =>
+                                _deletePayment(payment['id'].toString()),
                           ),
                         ],
                       ),
@@ -333,7 +464,6 @@ class _EmployeePaymentsScreenState extends State<EmployeePaymentsScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // When adding a payment from the global view, we need to select an employee first.
           if (widget.employeeId.isEmpty && _selectedEmployeeId == null) {
             ErrorHandler.showWarning(
               context,
@@ -341,25 +471,20 @@ class _EmployeePaymentsScreenState extends State<EmployeePaymentsScreen> {
             );
             return;
           }
-          String targetEmployeeId = widget.employeeId.isNotEmpty
+          final targetEmployeeId = widget.employeeId.isNotEmpty
               ? widget.employeeId
               : _selectedEmployeeId!;
-          String targetEmployeeName = widget.employeeId.isNotEmpty
+          final targetEmployeeName = widget.employeeId.isNotEmpty
               ? widget.employeeName
               : _employees.firstWhere(
-                      (e) => e['id'] == targetEmployeeId,
+                      (e) => e['id']?.toString() == targetEmployeeId,
                     )['name'] ??
                     'Unknown';
 
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => AddEditEmployeePaymentScreen(
-                employeeId: targetEmployeeId,
-                employeeName: targetEmployeeName,
-              ),
-            ),
-          ).then((_) => _loadPayments());
+          _openPaymentEditor(
+            employeeId: targetEmployeeId,
+            employeeName: targetEmployeeName.toString(),
+          );
         },
         backgroundColor: AppColors.accent,
         child: const Icon(Icons.add),

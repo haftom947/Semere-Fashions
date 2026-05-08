@@ -32,11 +32,15 @@ class _CustomersScreenState extends State<CustomersScreen> {
 
   Future<void> _loadCustomers() async {
     setState(() => _isLoading = true);
+    final db = await _dbHelper.database;
     var customers = List<Map<String, dynamic>>.from(
-      await _dbHelper.query('customers'),
-    );
-    customers.sort(
-      (a, b) => (b['createdAt'] ?? 0).compareTo(a['createdAt'] ?? 0),
+      await db.rawQuery('''
+        SELECT c.*, COUNT(o.id) AS order_count
+        FROM customers c
+        LEFT JOIN orders o ON o.customerId = c.id AND o.status != 'cancelled'
+        GROUP BY c.id
+        ORDER BY c.name
+      '''),
     );
     setState(() {
       _customers = customers;
@@ -190,14 +194,15 @@ class _CustomersScreenState extends State<CustomersScreen> {
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    subtitle: customer['phone'] != null
-                        ? Text(
-                            customer['phone'],
-                            style: TextStyle(
-                              color: AppColors.white.withOpacity(0.7),
-                            ),
-                          )
-                        : null,
+                    subtitle: Text(
+                      (customer['phone'] != null
+                              ? '${customer['phone']} • '
+                              : '') +
+                          'Orders: ${customer['order_count'] ?? 0}',
+                      style: TextStyle(
+                        color: AppColors.white.withOpacity(0.7),
+                      ),
+                    ),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
