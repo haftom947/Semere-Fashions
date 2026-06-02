@@ -1137,6 +1137,24 @@ class DatabaseHelper {
       )
     ''');
 
+
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS leave_requests(
+        id TEXT PRIMARY KEY,
+        employeeId TEXT,
+        employeeName TEXT,
+        startDate INTEGER,
+        endDate INTEGER,
+        reason TEXT,
+        notes TEXT,
+        status TEXT DEFAULT 'pending',
+        createdAt INTEGER,
+        syncStatus TEXT DEFAULT 'pending',
+        lastModified INTEGER,
+        changed_fields TEXT
+      )
+    ''');
+
     await db.execute('''
       CREATE TABLE landlord_payments(
         id TEXT PRIMARY KEY,
@@ -1422,19 +1440,21 @@ class DatabaseHelper {
 
     // Leave requests table
     await db.execute('''
-      CREATE TABLE leave_requests(
+      CREATE TABLE IF NOT EXISTS leave_requests(
         id TEXT PRIMARY KEY,
         employeeId TEXT,
         employeeName TEXT,
         startDate INTEGER,
         endDate INTEGER,
         reason TEXT,
+        notes TEXT,
         status TEXT DEFAULT 'pending',
         approvedBy TEXT,
         approvedAt INTEGER,
-        notes TEXT,
-        syncStatus TEXT DEFAULT 'synced',
-        lastModified INTEGER
+        createdAt INTEGER,
+        syncStatus TEXT DEFAULT 'pending',
+        lastModified INTEGER,
+        changed_fields TEXT
       )
     ''');
 
@@ -2363,5 +2383,33 @@ class DatabaseHelper {
       [orderId],
     );
     return (result.first['total'] as num?)?.toDouble() ?? 0.0;
+  }
+
+  // Insert a leave request
+  Future<void> insertLeaveRequest({
+    required String employeeId,
+    required String employeeName,
+    required int startDate,
+    required int endDate,
+    required String reason,
+    String? notes,
+  }) async {
+    final db = await database;
+    final id = const Uuid().v4();
+    final now = DateTime.now().millisecondsSinceEpoch;
+    await db.insert('leave_requests', {
+      'id': id,
+      'employeeId': employeeId,
+      'employeeName': employeeName,
+      'startDate': startDate,
+      'endDate': endDate,
+      'reason': reason,
+      'notes': notes ?? '',
+      'status': 'pending',
+      'createdAt': now,
+      'syncStatus': 'pending',
+      'lastModified': now,
+      'changed_fields': '{}',
+    });
   }
 }

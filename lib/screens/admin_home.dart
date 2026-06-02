@@ -1235,7 +1235,7 @@ class _AdminHomeState extends State<AdminHome> {
                         const SizedBox(height: 24),
 
                         // Consolidated Stats Grid
-                        _buildOrderStatsGrid(),
+                        _buildStatusGrid(),
                         const SizedBox(height: 24),
 
                         // Rental Summary
@@ -1554,128 +1554,85 @@ class _AdminHomeState extends State<AdminHome> {
     );
   }
 
-  Widget _buildOrderStatsGrid() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Order Overview',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: AppColors.white,
+  double _statusCardWidth(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    const horizontalPadding = 16.0;
+    const spacing = 4.0;
+    const totalSpacing = spacing * 2;
+    final availableWidth = screenWidth - (horizontalPadding * 2) - totalSpacing;
+    return availableWidth / 3;
+  }
+
+  Widget _buildStatusCard(Map<String, dynamic> status, VoidCallback? onTap) {
+    final cardWidth = _statusCardWidth(context);
+    return SizedBox(
+      width: cardWidth,
+      height: 105,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Card(
+          color: AppColors.cardBackground,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(status['icon'] as IconData, color: status['color'] as Color, size: 22),
+                const SizedBox(height: 6),
+                Text(
+                  '${status['count']}',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: status['color'] as Color,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  status['label'] as String,
+                  style: const TextStyle(fontSize: 11, color: AppColors.darkGrey),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
           ),
         ),
-        const SizedBox(height: 12),
-        GridView.count(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisCount: 2,
-          childAspectRatio: 1.5,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
+      ),
+    );
+  }
+
+  Widget _buildStatusGrid() {
+    final statuses = [
+      {'label': 'Total', 'count': _totalOrders, 'icon': Icons.receipt_long, 'color': AppColors.info},
+      {'label': 'Pending', 'count': _pendingOrders, 'icon': Icons.hourglass_empty, 'color': AppColors.warning},
+      {'label': 'Processing', 'count': _processingCount, 'icon': Icons.settings, 'color': AppColors.info},
+      {'label': 'Completed', 'count': _completedOrders, 'icon': Icons.check_circle, 'color': AppColors.success},
+      {'label': 'Cancelled', 'count': _cancelledBefore + _cancelledAfter, 'icon': Icons.cancel, 'color': AppColors.error},
+      {'label': 'With Driver', 'count': _withDriverCount, 'icon': Icons.local_shipping, 'color': AppColors.warning},
+    ];
+
+    return Column(
+      children: [
+        Row(
           children: [
-            GestureDetector(
-              onTap: () => _navigateToOrdersWithStatus(null),
-              child: StatCard(
-                title: 'Total Orders',
-                value: _totalOrders.toString(),
-                icon: Icons.shopping_bag,
-                color: AppColors.primaryRed,
-              ),
-            ),
-            GestureDetector(
-              onTap: () => _navigateToOrdersWithStatus('pending'),
-              child: StatCard(
-                title: 'Pending',
-                value: _pendingOrders.toString(),
-                icon: Icons.pending_actions,
-                color: AppColors.warning,
-              ),
-            ),
-            GestureDetector(
-              onTap: () => _navigateToOrdersWithStatus('delivered'),
-              child: StatCard(
-                title: 'Completed',
-                value: _completedOrders.toString(),
-                icon: Icons.check_circle,
-                color: AppColors.info,
-              ),
-            ),
-            GestureDetector(
-              onTap: () => _navigateToOrdersWithStatus('out_for_delivery'),
-              child: StatCard(
-                title: 'With Driver',
-                value: _withDriverCount.toString(),
-                icon: Icons.delivery_dining,
-                color: AppColors.primaryRed,
-              ),
-            ),
-            GestureDetector(
-              onTap: () => _navigateToOrdersWithStatus('processing'),
-              child: StatCard(
-                title: 'Processing',
-                value: _processingCount.toString(),
-                icon: Icons.pending,
-                color: AppColors.info,
-              ),
-            ),
-            Container(
-              decoration: BoxDecoration(
-                color: AppColors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 5,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Icon(
-                          Icons.cancel,
-                          color: AppColors.error,
-                          size: 20,
-                        ),
-                        Text(
-                          '${_cancelledBefore + _cancelledAfter}',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.darkGrey,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Cancelled',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppColors.mediumGrey,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '$_cancelledBefore before / $_cancelledAfter after',
-                      style: const TextStyle(
-                        fontSize: 10,
-                        color: AppColors.error,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+            _buildStatusCard(statuses[0], () => _navigateToOrdersWithStatus(null)),
+            const SizedBox(width: 4),
+            _buildStatusCard(statuses[1], () => _navigateToOrdersWithStatus('pending')),
+            const SizedBox(width: 4),
+            _buildStatusCard(statuses[2], () => _navigateToOrdersWithStatus('processing')),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Row(
+          children: [
+            _buildStatusCard(statuses[3], () => _navigateToOrdersWithStatus('delivered')),
+            const SizedBox(width: 4),
+            _buildStatusCard(statuses[4], () => _navigateToOrdersWithStatus('cancelled')),
+            const SizedBox(width: 4),
+            _buildStatusCard(statuses[5], () => _navigateToOrdersWithStatus('out_for_delivery')),
           ],
         ),
       ],

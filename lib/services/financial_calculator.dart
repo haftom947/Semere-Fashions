@@ -212,83 +212,81 @@ class FinancialCalculator {
       revenue += actualRevenue;
 
       double linkedOrderMaterialCost = 0.0;
-      if (status == 'completed' || status == 'delivered') {
-        final cogsAmount = _toDouble(order['cogs']);
-        cogsFromOrders += cogsAmount;
+      final cogsAmount = _toDouble(order['cogs']);
+      cogsFromOrders += cogsAmount;
 
-        double itemCogsTotal = 0.0;
-        final rawItems = order['items'];
-        final orderItems = rawItems is String
-            ? (jsonDecode(rawItems) as List<dynamic>)
-            : List<dynamic>.from(rawItems as List? ?? const []);
-        for (final rawItem in orderItems) {
-          if (rawItem is! Map) continue;
-          final item = Map<String, dynamic>.from(rawItem);
-          final productId = item['productId']?.toString();
-          if (productId == null || productId.isEmpty) continue;
+      double itemCogsTotal = 0.0;
+      final rawItems = order['items'];
+      final orderItems = rawItems is String
+          ? (jsonDecode(rawItems) as List<dynamic>)
+          : List<dynamic>.from(rawItems as List? ?? const []);
+      for (final rawItem in orderItems) {
+        if (rawItem is! Map) continue;
+        final item = Map<String, dynamic>.from(rawItem);
+        final productId = item['productId']?.toString();
+        if (productId == null || productId.isEmpty) continue;
 
-          final product = productById[productId];
-          if (product == null) continue;
+        final product = productById[productId];
+        if (product == null) continue;
 
-          final quantity = _toDouble(item['quantity']);
-          final unitCost = _toDouble(product['costPrice']);
-          final lineCogs = quantity * unitCost;
-          if (lineCogs <= 0) continue;
+        final quantity = _toDouble(item['quantity']);
+        final unitCost = _toDouble(product['costPrice']);
+        final lineCogs = quantity * unitCost;
+        if (lineCogs <= 0) continue;
 
-          itemCogsTotal += lineCogs;
-          expenseItems.add(
-            ExpenseItem(
-              category: 'COGS',
-              title: product['name'] ?? item['description'] ?? 'Product',
-              subtitle:
-                  'Order #${_shortOrderId(orderId)} - Qty ${quantity.toStringAsFixed(0)} x ${order['currency'] ?? 'ETB'} ${unitCost.toStringAsFixed(2)}',
-              amount: lineCogs,
-              date: createdAt,
-              branchId: order['branchId']?.toString(),
-              currency: order['currency']?.toString() ?? 'ETB',
-            ),
-          );
-        }
+        itemCogsTotal += lineCogs;
+        expenseItems.add(
+          ExpenseItem(
+            category: 'COGS',
+            title: product['name'] ?? item['description'] ?? 'Product',
+            subtitle:
+                'Order #${_shortOrderId(orderId)} - Qty ${quantity.toStringAsFixed(0)} x ${order['currency'] ?? 'ETB'} ${unitCost.toStringAsFixed(2)}',
+            amount: lineCogs,
+            date: createdAt,
+            branchId: order['branchId']?.toString(),
+            currency: order['currency']?.toString() ?? 'ETB',
+          ),
+        );
+      }
 
-        for (final usage in materialUsage) {
-          final usageType = usage['type']?.toString() ?? 'order';
-          final usageOrderId = usage['orderId']?.toString();
-          if (usageType != 'order' || usageOrderId != orderId) continue;
-          if (!matchesBranch(usage)) continue;
-          final amount = _toDouble(usage['cost']);
-          if (amount <= 0) continue;
-          linkedOrderMaterialCost += amount;
-          expenseItems.add(
-            ExpenseItem(
-              category: 'COGS',
-              title:
-                  materialNamesById[usage['material_id']?.toString()] ??
-                  usage['material_id']?.toString() ??
-                  'Order material usage',
-              subtitle: 'Order #${_shortOrderId(orderId)}',
-              amount: amount,
-              date: createdAt,
-              branchId: order['branchId']?.toString(),
-              currency: order['currency']?.toString() ?? 'ETB',
-            ),
-          );
-        }
+      for (final usage in materialUsage) {
+        final usageType = usage['type']?.toString() ?? 'order';
+        final usageOrderId = usage['orderId']?.toString();
+        if (usageType != 'order' || usageOrderId != orderId) continue;
+        if (!matchesBranch(usage)) continue;
+        final amount = _toDouble(usage['cost']);
+        if (amount <= 0) continue;
+        linkedOrderMaterialCost += amount;
+        expenseItems.add(
+          ExpenseItem(
+            category: 'COGS',
+            title:
+                materialNamesById[usage['material_id']?.toString()] ??
+                usage['material_id']?.toString() ??
+                'Order material usage',
+            subtitle: 'Order #${_shortOrderId(orderId)}',
+            amount: amount,
+            date: createdAt,
+            branchId: order['branchId']?.toString(),
+            currency: order['currency']?.toString() ?? 'ETB',
+          ),
+        );
+      }
 
-        orderMaterialCogs += linkedOrderMaterialCost;
+      orderMaterialCogs += linkedOrderMaterialCost;
 
-        if (cogsAmount > itemCogsTotal) {
-          expenseItems.add(
-            ExpenseItem(
-              category: 'COGS',
-              title: 'Unmapped COGS',
-              subtitle: 'Order #${_shortOrderId(orderId)}',
-              amount: cogsAmount - itemCogsTotal,
-              date: createdAt,
-              branchId: order['branchId']?.toString(),
-              currency: order['currency']?.toString() ?? 'ETB',
-            ),
-          );
-        }
+      if (cogsAmount > itemCogsTotal) {
+        expenseItems.add(
+          ExpenseItem(
+            category: 'COGS',
+            title: 'Unmapped COGS',
+            subtitle: 'Order #${_shortOrderId(orderId)}',
+            amount: cogsAmount - itemCogsTotal,
+            date: createdAt,
+            branchId: order['branchId']?.toString(),
+            currency: order['currency']?.toString() ?? 'ETB',
+          ),
+        );
       }
 
       final orderCommissions = activeCommissions

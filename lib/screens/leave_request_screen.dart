@@ -1,120 +1,100 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../services/database_helper.dart';
 import '../services/sync_service.dart';
 import '../utils/colors.dart';
-import '../utils/error_handler.dart';
 
 class LeaveRequestScreen extends StatefulWidget {
   const LeaveRequestScreen({Key? key}) : super(key: key);
 
   @override
-  _LeaveRequestScreenState createState() => _LeaveRequestScreenState();
+  State<LeaveRequestScreen> createState() => _LeaveRequestScreenState();
 }
 
 class _LeaveRequestScreenState extends State<LeaveRequestScreen> {
-  final DatabaseHelper _dbHelper = DatabaseHelper();
-  final SyncService _syncService = SyncService();
   final _formKey = GlobalKey<FormState>();
   final _reasonController = TextEditingController();
   final _notesController = TextEditingController();
-
   DateTime? _startDate;
   DateTime? _endDate;
-  String? _employeeId;
-  String? _employeeName;
-  bool _isLoading = false;
+  bool _isSubmitting = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _loadEmployeeData();
-  }
-
-  Future<void> _loadEmployeeData() async {
-    User? user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      var employee = await _dbHelper.queryById('users', user.uid);
-      if (employee != null) {
-        setState(() {
-          _employeeId = user.uid;
-          _employeeName = employee['name'];
-        });
-      }
-    }
-  }
-
-  Future<void> _selectStartDate(BuildContext context) async {
+  Future<void> _pickDate(bool isStart) async {
+    final now = DateTime.now();
     final picked = await showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
-      builder: (context, child) =>
-          Theme(data: ThemeData.light(), child: child!),
+      initialDate: isStart
+          ? (_startDate ?? now)
+          : (_endDate ?? _startDate ?? now),
+      firstDate: now,
+      lastDate: now.add(const Duration(days: 365)),
     );
     if (picked != null) {
-      setState(() => _startDate = picked);
-    }
-  }
-
-  Future<void> _selectEndDate(BuildContext context) async {
-    if (_startDate == null) {
-      ErrorHandler.showError(context, 'Please select start date first');
-      return;
-    }
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: _startDate!.add(const Duration(days: 1)),
-      firstDate: _startDate!.add(const Duration(days: 1)),
-      lastDate: _startDate!.add(const Duration(days: 30)),
-      builder: (context, child) =>
-          Theme(data: ThemeData.light(), child: child!),
-    );
-    if (picked != null) {
-      setState(() => _endDate = picked);
+      setState(() {
+        if (isStart) {
+          _startDate = picked;
+        } else {
+          _endDate = picked;
+        }
+      });
     }
   }
 
   Future<void> _submit() async {
-    if (_employeeId == null) {
-      ErrorHandler.showError(context, 'User not authenticated');
-      return;
-    }
-    if (_startDate == null || _endDate == null) {
-      ErrorHandler.showError(context, 'Please select dates');
-      return;
-    }
     if (!_formKey.currentState!.validate()) return;
+    if (_startDate == null || _endDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select both dates')),
+      );
+      return;
+    }
+    if (_startDate!.isAfter(_endDate!)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Start date must be before end date')),
+      );
+      return;
+    }
 
-    setState(() => _isLoading = true);
+    setState(() => _isSubmitting = true);
+
     try {
-      await _dbHelper.insert('leave_requests', {
-        'id': DateTime.now().millisecondsSinceEpoch.toString(),
-        'employeeId': _employeeId,
-        'employeeName': _employeeName,
-        'startDate': _startDate!.millisecondsSinceEpoch,
-        'endDate': _endDate!.millisecondsSinceEpoch,
-        'reason': _reasonController.text.trim(),
-        'notes': _notesController.text.trim(),
-        'status': 'pending',
-      });
+      final prefs = await SharedPreferences.getInstance();
+      final userId = prefs.getString('userId') ?? 'unknown';
+      final userName = prefs.getString('userName') ?? 'Employee';
 
-      var connectivityResult = await Connectivity().checkConnectivity();
-      if (connectivityResult != ConnectivityResult.none) {
-        _syncService.syncAll();
-      }
+      await DatabaseHelper().insertLeaveRequest(
+        employeeId: userId,
+        employeeName: userName,
+        startDate: _startDate!.millisecondsSinceEpoch,
+        endDate: _endDate!.millisecondsSinceEpoch,
+        reason: _reasonController.text.trim(),
+        notes: _notesController.text.trim(),
+      );
+
+      await SyncService().syncAll();
 
       if (mounted) {
-        ErrorHandler.showSuccess(context, 'Leave request submitted');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Leave request submitted')),
+        );
         Navigator.pop(context);
       }
     } catch (e) {
-      if (mounted) ErrorHandler.showError(context, 'Error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) setState(() => _isSubmitting = false);
     }
+  }
+
+  @override
+  void dispose() {
+    _reasonController.dispose();
+    _notesController.dispose();
+    super.dispose();
   }
 
   @override
@@ -132,109 +112,97 @@ class _LeaveRequestScreenState extends State<LeaveRequestScreen> {
             colors: [AppColors.backgroundStart, AppColors.backgroundEnd],
           ),
         ),
-        child: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : Padding(
-                padding: const EdgeInsets.all(16),
-                child: Form(
-                  key: _formKey,
-                  child: ListView(
-                    children: [
-                      // Start date
-                      ListTile(
-                        title: Text(
-                          _startDate == null
-                              ? 'Start Date *'
-                              : 'Start: ${_startDate!.day}/${_startDate!.month}/${_startDate!.year}',
-                          style: const TextStyle(color: AppColors.white),
-                        ),
-                        trailing: IconButton(
-                          icon: const Icon(
-                            Icons.calendar_today,
-                            color: AppColors.white,
-                          ),
-                          onPressed: () => _selectStartDate(context),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-
-                      // End date
-                      ListTile(
-                        title: Text(
-                          _endDate == null
-                              ? 'End Date *'
-                              : 'End: ${_endDate!.day}/${_endDate!.month}/${_endDate!.year}',
-                          style: const TextStyle(color: AppColors.white),
-                        ),
-                        trailing: IconButton(
-                          icon: const Icon(
-                            Icons.calendar_today,
-                            color: AppColors.white,
-                          ),
-                          onPressed: () => _selectEndDate(context),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Reason
-                      TextFormField(
-                        controller: _reasonController,
-                        style: const TextStyle(color: AppColors.white),
-                        decoration: InputDecoration(
-                          labelText: 'Reason *',
-                          labelStyle: const TextStyle(color: AppColors.white),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: AppColors.white.withOpacity(0.3),
-                            ),
-                          ),
-                          focusedBorder: const OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white),
-                          ),
-                        ),
-                        validator: (value) =>
-                            value == null || value.isEmpty ? 'Required' : null,
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Notes (optional)
-                      TextFormField(
-                        controller: _notesController,
-                        style: const TextStyle(color: AppColors.white),
-                        maxLines: 3,
-                        decoration: InputDecoration(
-                          labelText: 'Additional Notes',
-                          labelStyle: const TextStyle(color: AppColors.white),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: AppColors.white.withOpacity(0.3),
-                            ),
-                          ),
-                          focusedBorder: const OutlineInputBorder(
-                            borderSide: BorderSide(color: AppColors.white),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Submit button
-                      SizedBox(
-                        width: double.infinity,
-                        height: 50,
-                        child: ElevatedButton(
-                          onPressed: _submit,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primaryRed,
-                            foregroundColor: AppColors.white,
-                          ),
-                          child: const Text('Submit Request'),
-                        ),
-                      ),
-                    ],
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Form(
+            key: _formKey,
+            child: ListView(
+              children: [
+                // Start date
+                ListTile(
+                  title: const Text('Start Date',
+                      style: TextStyle(color: AppColors.white)),
+                  subtitle: Text(
+                    _startDate == null
+                        ? 'Tap to select'
+                        : '${_startDate!.day}/${_startDate!.month}/${_startDate!.year}',
+                    style: const TextStyle(color: AppColors.white70),
+                  ),
+                  trailing: const Icon(Icons.calendar_today,
+                      color: AppColors.white),
+                  onTap: () => _pickDate(true),
+                ),
+                const SizedBox(height: 12),
+                // End date
+                ListTile(
+                  title: const Text('End Date',
+                      style: TextStyle(color: AppColors.white)),
+                  subtitle: Text(
+                    _endDate == null
+                        ? 'Tap to select'
+                        : '${_endDate!.day}/${_endDate!.month}/${_endDate!.year}',
+                    style: const TextStyle(color: AppColors.white70),
+                  ),
+                  trailing: const Icon(Icons.calendar_today,
+                      color: AppColors.white),
+                  onTap: () => _pickDate(false),
+                ),
+                const SizedBox(height: 16),
+                // Reason
+                TextFormField(
+                  controller: _reasonController,
+                  maxLines: 3,
+                  style: const TextStyle(color: AppColors.white),
+                  decoration: const InputDecoration(
+                    labelText: 'Reason',
+                    labelStyle: TextStyle(color: AppColors.white70),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: AppColors.white24),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: AppColors.white),
+                    ),
+                  ),
+                  validator: (value) =>
+                      value == null || value.trim().isEmpty ? 'Required' : null,
+                ),
+                const SizedBox(height: 16),
+                // Notes
+                TextFormField(
+                  controller: _notesController,
+                  maxLines: 2,
+                  style: const TextStyle(color: AppColors.white),
+                  decoration: const InputDecoration(
+                    labelText: 'Notes (optional)',
+                    labelStyle: TextStyle(color: AppColors.white70),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: AppColors.white24),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: AppColors.white),
+                    ),
                   ),
                 ),
-              ),
+                const SizedBox(height: 24),
+                // Submit button
+                ElevatedButton(
+                  onPressed: _isSubmitting ? null : _submit,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryRed,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  child: _isSubmitting
+                      ? const CircularProgressIndicator(color: AppColors.white)
+                      : const Text('Submit Request',
+                          style: TextStyle(color: AppColors.white)),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
 }
+
+

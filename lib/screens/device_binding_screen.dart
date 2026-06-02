@@ -64,6 +64,12 @@ class _DeviceBindingScreenState extends State<DeviceBindingScreen> {
 
   Future<void> _loadUsersFromLocal({required bool showOfflineMessage}) async {
     final localUsers = await _dbHelper.queryAll('users');
+    // Apply the same mapping as in Firestore load for consistency
+    for (final user in localUsers) {
+      if (user.containsKey('deviceId') && !user.containsKey('device_id')) {
+        user['device_id'] = user['deviceId'];
+      }
+    }
     localUsers.sort(
       (a, b) => (a['name'] ?? '').toString().toLowerCase().compareTo(
         (b['name'] ?? '').toString().toLowerCase(),
@@ -191,7 +197,7 @@ class _DeviceBindingScreenState extends State<DeviceBindingScreen> {
                         itemCount: _users.length,
                         itemBuilder: (context, index) {
                           final user = _users[index];
-                          final deviceId = user['device_id'];
+                          final deviceId = user['deviceId'] ?? user['device_id'];
                           final isBound =
                               deviceId != null &&
                               deviceId.toString().trim().isNotEmpty;

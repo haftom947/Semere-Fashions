@@ -281,7 +281,7 @@ class _ShipmentDashboardScreenState extends State<ShipmentDashboardScreen> {
         actions: [
           IconButton(
             tooltip: 'Scan barcode / QR',
-            icon: const Icon(Icons.qr_code_scanner),
+            icon: const Icon(Icons.camera_alt),
             onPressed: () {
               Navigator.push(
                 context,
